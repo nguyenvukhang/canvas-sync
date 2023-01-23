@@ -39,10 +39,6 @@ MainWindow::MainWindow(QWidget *parent)
       server("", "https://canvas.nus.edu.sg")
 {
   ui->setupUi(this);
-  TreeModel *model = newTreeModel();
-  ui->treeView->setModel(model);
-  ClickableTreeView *ctv = ui->treeView;
-  ctv->expandAll();
 }
 
 MainWindow::~MainWindow()
@@ -115,9 +111,7 @@ void MainWindow::on_pushButton_fetch_clicked()
 TreeItem *retrieve(TreeItem *item, vector<int> *path)
 {
   while (!path->empty()) {
-    qDebug() << "at -> " << item->data()[0] << item->data()[1];
     int idx = path->back();
-    qDebug() << "idx " << idx;
     path->pop_back();
     item = item->child(idx);
   }
@@ -126,13 +120,10 @@ TreeItem *retrieve(TreeItem *item, vector<int> *path)
 TreeItem *retrieve(TreeModel *model, vector<int> *path)
 {
   if (path->size() == 1) {
-    qDebug() << "Size 1";
     return model->item(path->back());
   } else {
     int idx = path->back();
     path->pop_back();
-    qDebug() << "idx " << idx;
-    qDebug() << "start going in";
     return retrieve(model->item(idx), path);
   }
 }
@@ -158,12 +149,15 @@ void MainWindow::on_treeView_doubleClicked(const QModelIndex &index)
   to_dir_dialog(&dialog);
   auto home = QDir::homePath();
   dialog.setDirectory(this->start_dir != home ? this->start_dir : home);
-  dialog.exec();
+  int result = dialog.exec();
 
   auto item = retrieve(ui->treeView->model(), index);
 
   auto local_dir = dialog.selectedFiles()[0];
-  item->setData(1, local_dir);
+
+  // only set the value if a value was actually chosen.
+  if (result == 1)
+    item->setData(1, local_dir);
 
   // updated last selected dir
   QDir selected_dir = QDir::fromNativeSeparators(local_dir);

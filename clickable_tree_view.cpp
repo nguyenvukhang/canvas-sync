@@ -2,7 +2,8 @@
 #include <QAction>
 #include <QMenu>
 
-ClickableTreeView::ClickableTreeView(QWidget *parent) : QTreeView(parent) {
+ClickableTreeView::ClickableTreeView(QWidget *parent) : QTreeView(parent)
+{
 
   setContextMenuPolicy(Qt::CustomContextMenu);
   connect(this, &ClickableTreeView::customContextMenuRequested, this,
@@ -11,19 +12,11 @@ ClickableTreeView::ClickableTreeView(QWidget *parent) : QTreeView(parent) {
             if (!index.isValid())
               return;
             QMenu menu;
-            auto addChildAction = menu.addAction("Add Child");
-            auto removeItemAction = menu.addAction("Remove Item");
-            auto editItemAction = menu.addAction("Edit Item");
+            auto addChildAction = menu.addAction("Clear");
             auto selectedAction = menu.exec(mapToGlobal(pos));
             switch (menu.actions().indexOf(selectedAction)) {
             case 0:
-              addChild(index);
-              break;
-            case 1:
-              removeItem(index);
-              break;
-            case 2:
-              editItem(index);
+              clear(index);
               break;
             default:
               break;
@@ -33,28 +26,22 @@ ClickableTreeView::ClickableTreeView(QWidget *parent) : QTreeView(parent) {
   setEditTriggers(QAbstractItemView::NoEditTriggers);
 }
 
-ClickableTreeView::~ClickableTreeView() {}
+ClickableTreeView::~ClickableTreeView()
+{
+}
 
-TreeModel *ClickableTreeView::model() const {
+TreeModel *ClickableTreeView::model() const
+{
   return static_cast<TreeModel *>(QTreeView::model());
 }
 
-void ClickableTreeView::setModel(TreeModel *model) {
+void ClickableTreeView::setModel(TreeModel *model)
+{
   QTreeView::setModel(model);
 }
 
-void ClickableTreeView::addChild(QModelIndex index) {
+void ClickableTreeView::clear(QModelIndex index)
+{
   auto model = this->model();
-  model->itemFromIndex(index)->appendChild(
-      new TreeItem(QStringList() << "New Item", model->itemFromIndex(index)));
-  expandAll();
+  model->itemFromIndex(index)->setData(1, "");
 }
-
-void ClickableTreeView::removeItem(QModelIndex index) {
-  auto model = this->model();
-  model->itemFromIndex(index)->parent()->removeChild(
-      model->itemFromIndex(index));
-  expandAll();
-}
-
-void ClickableTreeView::editItem(QModelIndex index) { edit(index); }
