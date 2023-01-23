@@ -13,7 +13,7 @@ std::string HttpJson::get(const char *url) const
   Client cli(this->base_url);
   cli.set_bearer_token_auth(this->token);
   Result res = cli.Get(url);
-  if (res->status == 200) {
+  if (res->status == 200 || res.error() == httplib::Error::Success) {
     return res->body;
   }
   // error handling

@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QDir>
 #include <QMainWindow>
 #include <csrv.h>
 
@@ -22,10 +23,16 @@ public:
 private slots:
   void on_pushButton_pull_clicked();
   void on_lineEdit_accessToken_textChanged(const QString &arg1);
+  void on_pushButton_fetch_clicked();
+  void on_treeView_doubleClicked(const QModelIndex &index);
+  void on_treeView_expanded(const QModelIndex &index);
+  void on_treeView_collapsed(const QModelIndex &index);
 
 private:
   QString token;
   Ui::MainWindow *ui;
   canvas::Server server;
+  QString start_dir =
+      QDir::homePath(); // directory that the file explorer will open with.
 };
 #endif // MAINWINDOW_H

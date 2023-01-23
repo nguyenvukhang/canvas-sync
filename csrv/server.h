@@ -24,6 +24,8 @@ public:
   string dump_tree();
   FileTree *get_tree();
 
+  bool valid_token();
+
   void set_token(string *token);
 };
 }; // namespace canvas

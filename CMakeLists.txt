@@ -14,7 +14,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # auto-generated package resolution
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Concurrent)
 
 set(PROJECT_SOURCES
     main.cpp
@@ -44,7 +44,7 @@ else()
       add_executable(CanvasSync ${PROJECT_SOURCES})
     endif()
 endif()
-target_link_libraries(CanvasSync PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(CanvasSync PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Concurrent)
 set_target_properties(CanvasSync PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER canvassync.nguyenvukhang.com
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}

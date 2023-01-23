@@ -7,7 +7,14 @@ using json = nlohmann::json;
 
 Profile CanvasApi::profile()
 {
-  return this->get("/api/v1/users/self/profile").get<Profile>();
+  try {
+    return this->get("/api/v1/users/self/profile").get<Profile>();
+  } catch (std::runtime_error) {
+    cout << "GOT HERE >>>>>>>>>>>>>>>>>>>>>.." << endl;
+    return *new Profile();
+  } catch (json::exception) {
+    return *new Profile();
+  }
 }
 
 vector<Course> CanvasApi::courses()

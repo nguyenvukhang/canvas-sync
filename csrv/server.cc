@@ -44,6 +44,11 @@ void Server::set_token(string *token)
   this->api = new CanvasApi(new HttpJson(token, &this->base_url));
 }
 
+bool Server::valid_token()
+{
+  return this->api->profile().id > 0;
+}
+
 void Server::run_debug()
 {
   debug(&this->tree);

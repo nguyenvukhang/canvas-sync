@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Canvas Sync</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
@@ -106,6 +106,9 @@
     </item>
     <item>
      <widget class="ClickableTreeView" name="treeView">
+      <property name="selectionBehavior">
+       <enum>QAbstractItemView::SelectItems</enum>
+      </property>
       <property name="uniformRowHeights">
        <bool>true</bool>
       </property>
