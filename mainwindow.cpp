@@ -26,6 +26,15 @@ void insert(TreeItem *item, FileTree *tree)
   }
 }
 
+void clear_children(TreeItem *item, int index)
+{
+  item->setData(index, "");
+  int child_count = item->childrenItems().size();
+  for (int i = 0; i < child_count; i++) {
+    clear_children(item->child(i), index);
+  }
+}
+
 TreeModel *newTreeModel()
 {
   auto headers = QStringList() << "canvas folder"
@@ -108,37 +117,6 @@ void MainWindow::on_pushButton_fetch_clicked()
   }
 }
 
-TreeItem *retrieve(TreeItem *item, vector<int> *path)
-{
-  while (!path->empty()) {
-    int idx = path->back();
-    path->pop_back();
-    item = item->child(idx);
-  }
-  return item;
-}
-TreeItem *retrieve(TreeModel *model, vector<int> *path)
-{
-  if (path->size() == 1) {
-    return model->item(path->back());
-  } else {
-    int idx = path->back();
-    path->pop_back();
-    return retrieve(model->item(idx), path);
-  }
-}
-TreeItem *retrieve(TreeModel *model, const QModelIndex &index)
-{
-  vector<int> path;
-  path.push_back(index.row());
-  QModelIndex a = index;
-  while (a.parent().isValid()) {
-    path.push_back(a.parent().row());
-    a = a.parent();
-  }
-  return retrieve(model, &path);
-}
-
 void MainWindow::on_treeView_doubleClicked(const QModelIndex &index)
 {
   // go home for non-localdir bois
@@ -151,13 +129,16 @@ void MainWindow::on_treeView_doubleClicked(const QModelIndex &index)
   dialog.setDirectory(this->start_dir != home ? this->start_dir : home);
   int result = dialog.exec();
 
-  auto item = retrieve(ui->treeView->model(), index);
+  auto item = ui->treeView->model()->itemFromIndex(index);
 
   auto local_dir = dialog.selectedFiles()[0];
 
   // only set the value if a value was actually chosen.
-  if (result == 1)
+  if (result == 1) {
+    clear_children(item, 1);
+    // update itself
     item->setData(1, local_dir);
+  }
 
   // updated last selected dir
   QDir selected_dir = QDir::fromNativeSeparators(local_dir);
