@@ -28,6 +28,10 @@ set(PROJECT_SOURCES
         mainwindow.ui
         samplewidget.h
         samplewidget.cpp
+        tree_model.h
+        tree_model.cpp
+        clickable_tree_view.h
+        clickable_tree_view.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
