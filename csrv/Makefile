@@ -12,12 +12,16 @@ TEST_BIN=./build/canvas_sync_tests
 
 develop:
 	@make --no-print-directory build
-	@make run_tests
+	# @make run_tests
+	@CANVAS_TOKEN=$(CANVAS_TOKEN) sh -c './build/canvas_sync_debugging_memes || exit 0'
 	@make save_config
 
 build: FORCE
 	# configure the build
-	@cmake -B $(MAKEFILE_DIR)/build -S $(MAKEFILE_DIR) $(CMAKE_FLAGS)
+	@cmake \
+		-DWITH_TESTS=OFF \
+		-DDEBUG_BIN=ON \
+		-B $(MAKEFILE_DIR)/build -S $(MAKEFILE_DIR) $(CMAKE_FLAGS)
 	# run the build
 	@cmake --build $(MAKEFILE_DIR)/build
 

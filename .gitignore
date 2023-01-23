@@ -72,6 +72,6 @@ CMakeLists.txt.user*
 *.exe
 
 # additional user-set ignores
-build
+build*
 .cache
 .env

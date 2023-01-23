@@ -5,3 +5,4 @@
 #include "httpclient.h"
 #include "httpjson.h"
 #include "types.h"
+#include "server.h"

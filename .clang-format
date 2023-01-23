@@ -1,5 +1,3 @@
 BreakBeforeBraces: Linux
-# BinPackArguments: false
-# BinPackParameters: false
-# ExperimentalAutoDetectBinPacking: false
-# AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortFunctionsOnASingleLine: None

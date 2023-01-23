@@ -6,7 +6,8 @@
 #include "httpclient.h"
 #include "httplib.h"
 
-class HttpJson : public HttpClient {
+class HttpJson : public HttpClient
+{
 private:
   std::string token;
   std::string base_url;
