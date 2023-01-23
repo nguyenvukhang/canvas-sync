@@ -74,3 +74,4 @@ CMakeLists.txt.user*
 # additional user-set ignores
 build
 .cache
+.env

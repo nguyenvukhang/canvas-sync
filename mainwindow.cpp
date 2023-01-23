@@ -2,6 +2,7 @@
 #include "samplewidget.h"
 #include "tree_model.h"
 #include "ui_mainwindow.h"
+#include <csrv.h>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
@@ -14,7 +15,12 @@ MainWindow::MainWindow(QWidget *parent)
   model->appendRow(QStringList() << "Elements"
                                  << "dank");
   model->appendRow(QStringList() << "Items");
+  model->item(0)->appendChild(new TreeItem(QStringList() << "Items"));
+  // model->item(0)->childrenItems;
+  // model[0].appendChild();
   ui->treeView->setModel(model);
+  ClickableTreeView *ctv = ui->treeView;
+  ctv->expandAll();
 }
 
 MainWindow::~MainWindow() { delete ui; }
