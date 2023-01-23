@@ -1,0 +1,17 @@
+[
+{
+  "directory": "/Users/khang/repos/qt/canvas-sync/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/Users/khang/repos/qt/canvas-sync/build/CanvasSync_autogen/include -iframework /opt/homebrew/Cellar/qt@5/5.15.8/lib -isystem /opt/homebrew/Cellar/qt@5/5.15.8/lib/QtWidgets.framework/Headers -isystem /opt/homebrew/Cellar/qt@5/5.15.8/lib/QtGui.framework/Headers -isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.1.sdk/System/Library/Frameworks/OpenGL.framework/Headers -isystem /opt/homebrew/Cellar/qt@5/5.15.8/lib/QtCore.framework/Headers -isystem /opt/homebrew/Cellar/qt@5/5.15.8/./mkspecs/macx-clang  -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.1.sdk -mmacosx-version-min=12.6 -fPIC -std=gnu++17 -o CMakeFiles/CanvasSync.dir/CanvasSync_autogen/mocs_compilation.cpp.o -c /Users/khang/repos/qt/canvas-sync/build/CanvasSync_autogen/mocs_compilation.cpp",
+  "file": "/Users/khang/repos/qt/canvas-sync/build/CanvasSync_autogen/mocs_compilation.cpp"
+},
+{
+  "directory": "/Users/khang/repos/qt/canvas-sync/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/Users/khang/repos/qt/canvas-sync/build/CanvasSync_autogen/include -iframework /opt/homebrew/Cellar/qt@5/5.15.8/lib -isystem /opt/homebrew/Cellar/qt@5/5.15.8/lib/QtWidgets.framework/Headers -isystem /opt/homebrew/Cellar/qt@5/5.15.8/lib/QtGui.framework/Headers -isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.1.sdk/System/Library/Frameworks/OpenGL.framework/Headers -isystem /opt/homebrew/Cellar/qt@5/5.15.8/lib/QtCore.framework/Headers -isystem /opt/homebrew/Cellar/qt@5/5.15.8/./mkspecs/macx-clang  -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.1.sdk -mmacosx-version-min=12.6 -fPIC -std=gnu++17 -o CMakeFiles/CanvasSync.dir/main.cpp.o -c /Users/khang/repos/qt/canvas-sync/main.cpp",
+  "file": "/Users/khang/repos/qt/canvas-sync/main.cpp"
+},
+{
+  "directory": "/Users/khang/repos/qt/canvas-sync/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/Users/khang/repos/qt/canvas-sync/build/CanvasSync_autogen/include -iframework /opt/homebrew/Cellar/qt@5/5.15.8/lib -isystem /opt/homebrew/Cellar/qt@5/5.15.8/lib/QtWidgets.framework/Headers -isystem /opt/homebrew/Cellar/qt@5/5.15.8/lib/QtGui.framework/Headers -isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.1.sdk/System/Library/Frameworks/OpenGL.framework/Headers -isystem /opt/homebrew/Cellar/qt@5/5.15.8/lib/QtCore.framework/Headers -isystem /opt/homebrew/Cellar/qt@5/5.15.8/./mkspecs/macx-clang  -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.1.sdk -mmacosx-version-min=12.6 -fPIC -std=gnu++17 -o CMakeFiles/CanvasSync.dir/mainwindow.cpp.o -c /Users/khang/repos/qt/canvas-sync/mainwindow.cpp",
+  "file": "/Users/khang/repos/qt/canvas-sync/mainwindow.cpp"
+}
+]

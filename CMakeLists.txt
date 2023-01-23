@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 
+# additional flags set for canvas-sync development
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1) # to build compile_commands.json
+set(CMAKE_PREFIX_PATH /opt/homebrew/Cellar/qt@5/5.15.8/)
+
 project(CanvasSync VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
