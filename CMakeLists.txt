@@ -3,6 +3,11 @@ cmake_minimum_required(VERSION 3.5)
 # additional flags set for canvas-sync development
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1) # to build compile_commands.json
 set(CMAKE_PREFIX_PATH ~/Qt/6.4.2/macos)
+# include the autogen stuff so ui files can be imported
+# for example, `nice_component.ui` can be imported as `ui_nice_component.h`
+# in C++ files.
+include_directories(${PROJECT_SOURCE_DIR}/build/CanvasSync_autogen/include)
+
 
 project(CanvasSync VERSION 0.1 LANGUAGES CXX)
 
