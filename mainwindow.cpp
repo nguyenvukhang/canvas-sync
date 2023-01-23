@@ -5,12 +5,27 @@
 #include <QDebug>
 #include <csrv.h>
 
-TreeItem *to_node(FileTree *content)
+void insert(TreeItem *item, FileTree *tree)
 {
-  QString id = QString::fromStdString(to_string(content->id));
-  QString name = QString::fromStdString(content->name);
-  TreeItem *t = new TreeItem(QStringList() << id << name);
-  return t;
+  int child_count = tree->folders.size();
+  if (child_count == 0)
+    return;
+  for (int i = 0; i < child_count; i++) {
+    auto f = tree->folders[i];
+    QString id = QString::fromStdString(to_string(f.id));
+    QString name = QString::fromStdString(f.name);
+    item->appendChild(new TreeItem(QStringList() << name << id));
+    insert(item->child(i), &f);
+  }
+}
+
+TreeModel *newTreeModel()
+{
+  auto headers = QStringList() << "id"
+                               << "name"
+                               << "local dir";
+  TreeModel *model = new TreeModel(headers);
+  return model;
 }
 
 MainWindow::MainWindow(QWidget *parent)
@@ -18,18 +33,10 @@ MainWindow::MainWindow(QWidget *parent)
       server("", "https://canvas.nus.edu.sg")
 {
   ui->setupUi(this);
-  TreeModel *model = new TreeModel(QStringList() << "id"
-                                                 << "name"
-                                                 << "local dir");
-  model->appendRow(QStringList() << "12345"
-                                 << "Clownery"
-                                 << "/dev/null");
-
-  model->item(0)->appendChild(new TreeItem(QStringList() << "09876"
-                                                         << "Nested"));
-  FileTree f;
-  model->item(0)->appendChild(to_node(&f));
-
+  auto headers = QStringList() << "id"
+                               << "name"
+                               << "local dir";
+  TreeModel *model = new TreeModel(headers);
   ui->treeView->setModel(model);
   ClickableTreeView *ctv = ui->treeView;
   ctv->expandAll();
@@ -42,21 +49,16 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_pushButton_pull_clicked()
 {
-  qDebug() << "CLICKED -> PULL" << this->token;
   this->server.load_tree();
   auto tree = this->server.get_tree();
-  auto item = to_node(tree);
-  auto model = ui->treeView->model();
-  // model->item(0)->appendChild(&item);
-  // ui->treeView->setModel(model);
-  QString tree_dump = QString::fromStdString(this->server.dump_tree());
-  qDebug() << "TREE -> " << tree_dump;
+  TreeModel *model = newTreeModel();
+  insert(model->item(0), tree);
+  ui->treeView->setModel(model);
 }
 
-void MainWindow::on_lineEdit_accessToken_textChanged(const QString &arg1)
+void MainWindow::on_lineEdit_accessToken_textChanged(const QString &input)
 {
-  this->token = arg1;
-  string token = arg1.toStdString();
+  this->token = input;
+  string token = input.toStdString();
   this->server.set_token(&token);
-  qDebug() << "Token is now -> " << arg1;
 }
