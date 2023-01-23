@@ -28,36 +28,26 @@ set(INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
+add_library(CanvasServer ${SOURCES})
+target_link_libraries(CanvasServer ${LINK_LIBS})
+target_include_directories(CanvasServer PUBLIC ${INCLUDE_DIRS})
 
-if(DEBUG_BIN)
-  add_executable(canvas_sync_debugging_memes main.cc ${SOURCES})
-  target_link_libraries(canvas_sync_debugging_memes ${LINK_LIBS})
-  target_include_directories(canvas_sync_debugging_memes PUBLIC ${INCLUDE_DIRS})
-else()
-  add_library(CanvasServer ${SOURCES})
-  target_link_libraries(CanvasServer ${LINK_LIBS})
-  target_include_directories(CanvasServer PUBLIC ${INCLUDE_DIRS})
-endif()
+# get GoogleTest suite
+include(FetchContent)
+FetchContent_Declare(googletest
+  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
+FetchContent_MakeAvailable(googletest)
 
-if(WITH_TESTS)
-  # get GoogleTest suite
-  include(FetchContent)
-  FetchContent_Declare(googletest
-    URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
-  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-
-  FetchContent_MakeAvailable(googletest)
-
-  # `cs_test` as testing binary
-  enable_testing()
-  add_executable(cs_test
-    filetree.cc filetree_test.cc
-    canvas_api.cc canvas_api_test.cc
-    types.cc)
-  target_include_directories(cs_test PUBLIC include)
-  target_link_libraries(cs_test GTest::gtest_main GTest::gmock_main)
-  include(GoogleTest)
-  gtest_discover_tests(cs_test)
-endif()
+# `cs_test` as testing binary
+enable_testing()
+add_executable(cs_test
+  filetree.cc filetree_test.cc
+  canvas_api.cc canvas_api_test.cc
+  types.cc)
+target_include_directories(cs_test PUBLIC include)
+target_link_libraries(cs_test GTest::gtest_main GTest::gmock_main)
+include(GoogleTest)
+gtest_discover_tests(cs_test)

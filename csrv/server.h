@@ -19,11 +19,12 @@ public:
   Server(string *token, string *base_url);
   void run();
   void run_debug();
+
   void load_tree();
   string dump_tree();
-  Server with_token(string *token);
+  FileTree *get_tree();
 
-  string get_base_url();
+  void set_token(string *token);
 };
 }; // namespace canvas
 

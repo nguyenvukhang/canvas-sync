@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/Users/khang/repos/qt/canvas-sync/csrv/debug/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -I/opt/homebrew/Cellar/openssl@3/3.0.7/include -I/Users/khang/repos/qt/canvas-sync/csrv/debug/.. -I/Users/khang/repos/qt/canvas-sync/csrv/debug/../include -O3 -DNDEBUG -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.1.sdk -mmacosx-version-min=12.6 -std=gnu++17 -o CMakeFiles/canvas_debug.dir/main.cc.o -c /Users/khang/repos/qt/canvas-sync/csrv/debug/main.cc",
+  "file": "/Users/khang/repos/qt/canvas-sync/csrv/debug/main.cc"
+}
+]
