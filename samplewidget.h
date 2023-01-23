@@ -6,7 +6,7 @@
 class SampleWidget : public QPushButton
 {
 public:
-    SampleWidget();
+    SampleWidget(QWidget *parent = 0);
 };
 
 #endif // SAMPLEWIDGET_H
