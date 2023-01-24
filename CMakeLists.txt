@@ -18,11 +18,8 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Concurrent)
 
 set(PROJECT_SOURCES
     main.cc
-    mainwindow.cc
-    mainwindow.h
-    mainwindow.ui
-    samplewidget.h
-    samplewidget.cc
+    mainwindow.cc mainwindow.h mainwindow.ui
+    updates.cc updates.h updates.ui
     tree_model.h
     tree_model.cc
     clickable_tree_view.h

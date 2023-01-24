@@ -3,6 +3,7 @@
 #include "tree.h"
 #include "tree_model.h"
 #include "ui_mainwindow.h"
+#include "updates.h"
 
 #include <QApplication>
 #include <QDebug>
@@ -95,6 +96,36 @@ void MainWindow::fetch_clicked()
   server.fetch_updates(&all);
   debug_updates(&all, true);
   qDebug() << "FETCH clicked!";
+  QMessageBox a;
+  Updates u;
+  QString buffer, tmp;
+  int prev_course = -1;
+  for (auto u : all) {
+    if (u.course_id != prev_course) {
+      if (!tmp.isEmpty()) {
+        buffer.push_back("## ");
+        buffer.push_back(server.course_name(prev_course).c_str());
+        buffer.push_back('\n');
+        buffer.push_back(tmp);
+        tmp.clear();
+      }
+      prev_course = u.course_id;
+    }
+    if (!u.files.empty()) {
+      tmp.push_back("#### ");
+      tmp.push_back(u.remote_dir.c_str());
+      tmp.push_back('\n');
+    }
+    for (auto f : u.files) {
+      tmp.push_back(f.filename.c_str());
+      tmp.push_back('\n');
+      tmp.push_back('\n');
+    }
+  }
+  buffer.push_back(tmp);
+  u.setText(buffer);
+  u.setModal(true);
+  u.exec();
 }
 
 void MainWindow::changeToken_clicked()
