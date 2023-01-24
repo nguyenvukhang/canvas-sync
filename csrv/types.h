@@ -63,9 +63,35 @@ public:
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(File, id, folder_id, filename, url);
 
+// enough information to execute a download + display updates
+class Update
+{
+public:
+  // needed for download
+  // using `folder_id`, a list of files can be fetched from the API
+  // these files will then be checked against files inside of `local_dir`
+  int folder_id;
+  string local_dir;
+
+  // needed for update report
+  // string remote_dir; // can just read from an already-fetched vector<Folder>
+  // vector<string> files; // update after running the download's API call
+
+  Update(const int folder_id, const string *local_dir)
+  {
+    this->folder_id = folder_id;
+    this->local_dir.assign(*local_dir);
+  }
+  Update(const int folder_id)
+  {
+    this->folder_id = folder_id;
+  }
+};
+
 void debug(Profile *);
 void debug(Course *);
 void debug(Folder *);
 void debug(File *);
+void debug(Update *);
 
 #endif

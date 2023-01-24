@@ -36,6 +36,8 @@ MainWindow::MainWindow(QWidget *parent)
           SLOT(treeView_collapsed(const QModelIndex &)));
   connect(ui->treeView, SIGNAL(clicked(const QModelIndex &)), this,
           SLOT(treeView_clicked(const QModelIndex &)));
+  connect(ui->treeView, SIGNAL(doubleClicked(const QModelIndex &)), this,
+          SLOT(treeView_doubleClicked(const QModelIndex &)));
   connect(ui->treeView, SIGNAL(cleared(const QModelIndex &)), this,
           SLOT(treeView_cleared(const QModelIndex &)));
 
@@ -68,6 +70,14 @@ void MainWindow::pull_clicked()
 
 void MainWindow::fetch_clicked()
 {
+  TreeModel *model = ui->treeView->model();
+  int n = model->childrenCount();
+  for (int i = 0; i < n; i++) {
+    TreeItem *it = model->item(i);
+    // qDebug() << get_id(*it) << ": " << get_remote_dir(*it);
+    resolve_all_folders(it);
+  }
+  // resolve_all_folders(ui->treeView)
   qDebug() << "FETCH clicked!";
 }
 
@@ -212,10 +222,11 @@ void MainWindow::treeView_cleared(const QModelIndex &index)
 
 void MainWindow::treeView_clicked(const QModelIndex &index)
 {
+  TreeModel *model = ui->treeView->model();
   qDebug() << "[ DEBUG ]\n";
-  qDebug() << "id: " << get_id(index);
-  qDebug() << "dir: " << get_local_dir(index);
-  auto model = ui->treeView->model();
+  qDebug() << "id:     " << get_id(index);
+  qDebug() << "remote: " << get_remote_dir(index);
+  qDebug() << "local : " << get_local_dir(index);
   int count = index.model()->children().size();
   qDebug() << "children: " << get_id(model->index(0, 0, index));
   qDebug() << "count:    " << count;

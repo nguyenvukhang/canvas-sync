@@ -1,4 +1,52 @@
 #include "tree.h"
+#include <filesystem>
+
+namespace fs = std::filesystem;
+
+void resolve_all_folders(TreeItem *item, fs::path *local_base_dir,
+                         fs::path *cwd, vector<Update> *list)
+{
+  auto children = item->childrenItems();
+  string local_dir = get_local_dir(*item).toStdString();
+
+  if (!cwd->empty() && !local_dir.empty()) {
+    qDebug() << "NOT SUPPOSED TO REACH HERE";
+    qDebug() << "resolve_all_folders:: cwd and local_dir are both populated.";
+  }
+
+  if (!cwd->empty() || !local_dir.empty()) {
+    fs::path new_cwd;
+    new_cwd = *cwd / get_remote_dir(*item).toStdString();
+    if (!local_dir.empty()) {
+      *local_base_dir = local_dir;
+    }
+    Update u(get_id(*item).toInt());
+    u.local_dir = *local_base_dir / new_cwd;
+    list->push_back(u);
+    cwd = &new_cwd;
+  }
+
+  for (auto child : children) {
+    resolve_all_folders(child, local_base_dir, cwd, list);
+  }
+}
+
+// assume here that `item` contains information about the module itself,
+// and thus is not included in the resolution of the path.
+vector<Update> resolve_all_folders(TreeItem *item)
+{
+  vector<Update> list;
+  auto children = item->childrenItems();
+  for (auto child : children) {
+    fs::path p = "";
+    fs::path base = "";
+    resolve_all_folders(child, &base, &p, &list);
+  }
+  for (auto i : list) {
+    qDebug() << i.folder_id << " -> " << i.local_dir.c_str();
+  }
+  return list;
+}
 
 void insert(TreeItem *item, FileTree *tree, QSettings *settings)
 {
@@ -15,24 +63,36 @@ void insert(TreeItem *item, FileTree *tree, QSettings *settings)
   }
 }
 
+enum TreeCol { REMOTE_DIR, LOCAL_DIR, FOLDER_ID };
+
 QString get_id(const QModelIndex &index)
 {
-  return index.siblingAtColumn(2).data(2).toString();
+  return index.siblingAtColumn(FOLDER_ID).data().toString();
 }
 
 QString get_local_dir(const QModelIndex &index)
 {
-  return index.siblingAtColumn(1).data(2).toString();
+  return index.siblingAtColumn(LOCAL_DIR).data().toString();
 }
 
-QString get_local_dir(const TreeItem &item)
+QString get_remote_dir(const QModelIndex &index)
 {
-  return item.data(1).toString();
+  return index.siblingAtColumn(REMOTE_DIR).data().toString();
 }
 
 QString get_id(const TreeItem &item)
 {
-  return item.data(2).toString();
+  return item.data(FOLDER_ID).toString();
+}
+
+QString get_local_dir(const TreeItem &item)
+{
+  return item.data(LOCAL_DIR).toString();
+}
+
+QString get_remote_dir(const TreeItem &item)
+{
+  return item.data(REMOTE_DIR).toString();
 }
 
 bool expand_tracked(ClickableTreeView *tree, QModelIndex &index)

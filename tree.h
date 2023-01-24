@@ -9,14 +9,18 @@
 
 void insert(TreeItem *item, FileTree *tree, QSettings *settings);
 
-QString get_id(const QModelIndex &index);
-QString get_local_dir(const QModelIndex &index);
+QString get_id(const QModelIndex &);
+QString get_local_dir(const QModelIndex &);
+QString get_remote_dir(const QModelIndex &);
 
-QString get_id(const TreeItem &item);
-QString get_local_dir(const TreeItem &item);
+QString get_id(const TreeItem &);
+QString get_local_dir(const TreeItem &);
+QString get_remote_dir(const TreeItem &);
 
 void expand_tracked(ClickableTreeView *tree);
 void fix_tree(Ui::MainWindow *ui);
+
+vector<Update> resolve_all_folders(TreeItem *item);
 
 using ItemOperator = std::function<void(TreeItem *item)>;
 void on_all_children(TreeItem *item, ItemOperator);
