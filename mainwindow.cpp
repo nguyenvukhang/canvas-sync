@@ -26,6 +26,13 @@ void insert(TreeItem *item, FileTree *tree)
   }
 }
 
+void fix_tree(Ui::MainWindow *ui)
+{
+  auto tree_view = ui->treeView;
+  tree_view->resizeColumnToContents(0);
+  tree_view->setColumnHidden(2, true);
+}
+
 void clear_children(TreeItem *item, int index)
 {
   item->setData(index, "");
@@ -38,7 +45,8 @@ void clear_children(TreeItem *item, int index)
 TreeModel *newTreeModel()
 {
   auto headers = QStringList() << "canvas folder"
-                               << "local folder";
+                               << "local folder"
+                               << "id";
   TreeModel *model = new TreeModel(headers);
   return model;
 }
@@ -62,6 +70,7 @@ void MainWindow::on_pushButton_pull_clicked()
   TreeModel *model = newTreeModel();
   insert(model->item(0), tree);
   ui->treeView->setModel(model);
+  ui->treeView->setColumnHidden(2, true);
 }
 
 void MainWindow::on_lineEdit_accessToken_textChanged(const QString &input)
@@ -88,7 +97,7 @@ void MainWindow::on_lineEdit_accessToken_textChanged(const QString &input)
     TreeModel *model = newTreeModel();
     insert(model->item(0), tree);
     ui->treeView->setModel(model);
-    ui->treeView->resizeColumnToContents(0);
+    fix_tree(ui);
   } else {
     ui->label_authenticationStatus->setText("unauthenticated");
   }
@@ -101,24 +110,12 @@ void to_dir_dialog(QFileDialog *dialog)
   dialog->setOption(QFileDialog::DontUseNativeDialog);
 }
 
-void MainWindow::on_pushButton_fetch_clicked()
-{
-  QFileDialog dialog(this);
-  to_dir_dialog(&dialog);
-  dialog.setWindowTitle("DANK MEMES");
-  dialog.setDirectory(this->start_dir);
-  if (dialog.exec() != 0) {
-    QMessageBox::warning(this, "Oops", "Unable to open a file manager.");
-  } else {
-    auto fileNames = dialog.selectedFiles();
-    for (auto f : fileNames) {
-      qDebug() << "selected" << f;
-    }
-  }
-}
-
 void MainWindow::on_treeView_doubleClicked(const QModelIndex &index)
 {
+  // don't do anything to root bois.
+  if (!index.parent().isValid()) {
+    return;
+  }
   // go home for non-localdir bois
   if (index.column() != 1)
     return;
@@ -148,10 +145,16 @@ void MainWindow::on_treeView_doubleClicked(const QModelIndex &index)
 
 void MainWindow::on_treeView_expanded(const QModelIndex &index)
 {
-  ui->treeView->resizeColumnToContents(0);
+  fix_tree(ui);
 }
 
 void MainWindow::on_treeView_collapsed(const QModelIndex &index)
 {
-  ui->treeView->resizeColumnToContents(0);
+  fix_tree(ui);
+}
+
+void MainWindow::on_treeView_clicked(const QModelIndex &index)
+{
+  qDebug() << "[ DEBUG ] " << index.siblingAtColumn(2).data(2) << index.data(1)
+           << index.data(2);
 }

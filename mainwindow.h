@@ -3,6 +3,7 @@
 
 #include <QDir>
 #include <QMainWindow>
+#include <QSettings>
 #include <csrv.h>
 
 QT_BEGIN_NAMESPACE
@@ -23,12 +24,14 @@ public:
 private slots:
   void on_pushButton_pull_clicked();
   void on_lineEdit_accessToken_textChanged(const QString &arg1);
-  void on_pushButton_fetch_clicked();
   void on_treeView_doubleClicked(const QModelIndex &index);
   void on_treeView_expanded(const QModelIndex &index);
   void on_treeView_collapsed(const QModelIndex &index);
 
+  void on_treeView_clicked(const QModelIndex &index);
+
 private:
+  QSettings settings;
   QString token;
   Ui::MainWindow *ui;
   canvas::Server server;
