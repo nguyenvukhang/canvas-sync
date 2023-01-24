@@ -68,16 +68,32 @@ void MainWindow::pull_clicked()
   qDebug() << "DONE WITH PULL";
 }
 
+void debug_updates(vector<Update> *u, bool show_files)
+{
+  for (auto u : *u) {
+    qDebug() << u.folder_id << "->" << u.local_dir.c_str();
+    if (!show_files)
+      continue;
+    for (auto f : u.files) {
+      qDebug() << "[+]" << f.filename.c_str() << "(" << f.local_dir.c_str()
+               << ")";
+    }
+  }
+}
+
 void MainWindow::fetch_clicked()
 {
   TreeModel *model = ui->treeView->model();
+  vector<Update> all;
   int n = model->childrenCount();
   for (int i = 0; i < n; i++) {
-    TreeItem *it = model->item(i);
-    // qDebug() << get_id(*it) << ": " << get_remote_dir(*it);
-    resolve_all_folders(it);
+    vector<Update> updates = resolve_all_folders(model->item(i));
+    for (auto u : updates) {
+      all.push_back(std::move(u));
+    }
   }
-  // resolve_all_folders(ui->treeView)
+  server.fetch_updates(&all);
+  debug_updates(&all, true);
   qDebug() << "FETCH clicked!";
 }
 
@@ -135,7 +151,7 @@ void MainWindow::try_auth(const QString &token)
   this->set_auth_state(true);
 
   // load the filetree
-  this->server.load_tree();
+  this->server.load();
   auto tree = this->server.get_tree();
   TreeModel *model = newTreeModel();
   insert(model->item(0), tree, &settings);

@@ -6,7 +6,6 @@ namespace fs = std::filesystem;
 void resolve_all_folders(TreeItem *item, fs::path *local_base_dir,
                          fs::path *cwd, vector<Update> *list)
 {
-  auto children = item->childrenItems();
   string local_dir = get_local_dir(*item).toStdString();
 
   if (!cwd->empty() && !local_dir.empty()) {
@@ -14,21 +13,28 @@ void resolve_all_folders(TreeItem *item, fs::path *local_base_dir,
     qDebug() << "resolve_all_folders:: cwd and local_dir are both populated.";
   }
 
-  if (!cwd->empty() || !local_dir.empty()) {
-    fs::path new_cwd;
+  fs::path new_cwd;
+  fs::path new_base = *local_base_dir;
+
+  if (!local_base_dir->empty()) {
     new_cwd = *cwd / get_remote_dir(*item).toStdString();
-    if (!local_dir.empty()) {
-      *local_base_dir = local_dir;
-    }
-    Update u(get_id(*item).toInt());
-    u.local_dir = *local_base_dir / new_cwd;
-    list->push_back(u);
-    cwd = &new_cwd;
   }
 
-  for (auto child : children) {
-    resolve_all_folders(child, local_base_dir, cwd, list);
+  // one-time thing. on any path downwards it is guaranteed to only have
+  // one occurrence of a non-empty local path.
+  if (!local_dir.empty()) {
+    new_base = local_dir;
   }
+
+  if (!new_base.empty()) {
+    Update u(get_id(*item).toInt());
+    u.local_dir = new_base / new_cwd;
+    list->push_back(u);
+  }
+
+  auto children = item->childrenItems();
+  for (auto child : children)
+    resolve_all_folders(child, &new_base, &new_cwd, list);
 }
 
 // assume here that `item` contains information about the module itself,
@@ -42,8 +48,9 @@ vector<Update> resolve_all_folders(TreeItem *item)
     fs::path base = "";
     resolve_all_folders(child, &base, &p, &list);
   }
-  for (auto i : list) {
-    qDebug() << i.folder_id << " -> " << i.local_dir.c_str();
+  int n = list.size(), id = get_id(*item).toInt();
+  for (int i = 0; i < n; i++) {
+    list[i].course_id = id;
   }
   return list;
 }

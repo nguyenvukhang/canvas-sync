@@ -5,6 +5,7 @@
 #include "httpclient.h"
 #include "json.hpp"
 #include "types.h"
+#include <map>
 
 using namespace std;
 
@@ -36,6 +37,8 @@ public:
   void download(File *);
   FileTree courses_file_tree();
   void courses_file_tree(FileTree *tree, const vector<Course> *);
+
+  void load(FileTree *, vector<Course> *, map<int, string> *folders);
 
   vector<File> folder_files(const int *);
   vector<vector<File>> folder_files(const vector<int> *);

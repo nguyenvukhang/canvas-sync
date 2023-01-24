@@ -33,6 +33,35 @@ void Server::load_tree()
   api->courses_file_tree(&this->tree, &this->courses);
 }
 
+void Server::load()
+{
+  api->load(&this->tree, &this->courses, &this->folder_names);
+}
+
+void Server::fetch_updates(vector<Update> *u)
+{
+  vector<int> folder_ids;
+  int n = u->size();
+  for (int i = 0; i < n; i++) {
+    folder_ids.push_back(u->at(i).folder_id);
+  }
+  vector<vector<File>> af = this->api->folder_files(&folder_ids);
+  this->merge_data(u, &af);
+  //
+  // bool run_download = false;
+  //
+  // // run the download
+  // for (int i = 0; i < n; i++) {
+  //   fs::create_directories(u->at(i).local_dir);
+  //   fs::path local_dir = u->at(i).local_dir;
+  //   for (auto f : u->at(i).files) {
+  //     if (!fs::exists(f.local_dir / f.filename) && run_download) {
+  //       api->download(&f);
+  //     }
+  //   }
+  // }
+}
+
 FileTree *Server::get_tree()
 {
   return &this->tree;
@@ -89,7 +118,7 @@ vector<File> Server::folder_files(const int *folder_id)
   return this->api->folder_files(folder_id);
 }
 
-void merge_data(vector<Update> *updates, vector<vector<File>> *files)
+void Server::merge_data(vector<Update> *updates, vector<vector<File>> *files)
 {
   namespace fs = std::filesystem;
   int n = updates->size();
@@ -97,6 +126,7 @@ void merge_data(vector<Update> *updates, vector<vector<File>> *files)
     vector<File> f = files->at(i);
     int fc = f.size();
     fs::path local_dir = updates->at(i).local_dir;
+    (*updates)[i].remote_dir = this->folder_name(updates->at(i).folder_id);
     for (int j = 0; j < fc; j++) {
       if (!fs::exists(local_dir / f[j].filename)) {
         f[j].local_dir = local_dir;
@@ -147,6 +177,7 @@ void Server::run_debug()
     updates.push_back(*new Update(i, s));
     folder_ids.push_back(i);
   };
+  this->load();
   f(224013, base / "course files/Lectures/Java Intro and ADT");
   f(234811, base / "course files/Lectures/Week1");
   // f(224011, base / "course files/Tutorials");
@@ -154,7 +185,7 @@ void Server::run_debug()
 
   vector<vector<File>> all_files = this->api->folder_files(&folder_ids);
 
-  merge_data(&updates, &all_files);
+  this->merge_data(&updates, &all_files);
 
   bool run_download = false;
 
@@ -172,7 +203,7 @@ void Server::run_debug()
   }
 
   for (auto u : updates) {
-    cout << "folder id: " << u.folder_id << endl;
+    cout << "folder id: " << u.folder_id << u.remote_dir << endl;
     for (auto f : u.files) {
       cout << "  * " << f.filename << endl;
     }

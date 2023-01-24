@@ -16,6 +16,7 @@ private:
   vector<Course> courses;
   map<int, string> folder_names;
   string base_url;
+  void merge_data(vector<Update> *updates, vector<vector<File>> *files);
 
 public:
   string folder_name(int folder_id);
@@ -24,6 +25,10 @@ public:
   Server(string *token, string *base_url);
   void run();
   void run_debug();
+
+  void load();
+
+  void fetch_updates(vector<Update> *);
 
   void load_tree();
   string dump_tree();

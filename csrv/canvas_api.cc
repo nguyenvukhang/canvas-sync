@@ -110,6 +110,26 @@ FileTree CanvasApi::courses_file_tree()
   return *root;
 };
 
+void CanvasApi::load(FileTree *t, vector<Course> *c, map<int, string> *m)
+{
+  *c = this->courses();
+  vector<int> c_ids;
+  for (auto c : *c)
+    c_ids.push_back(c.id);
+  vector<vector<Folder>> folders = this->course_folders(&c_ids);
+
+  int n = c_ids.size();
+  for (int i = 0; i < n; i++) {
+    FileTree *tree = new FileTree(&c->at(i));
+    tree->insert_folders(folders[i]);
+    t->insert_tree(tree);
+  }
+
+  for (auto f : folders)
+    for (auto f : f)
+      m->insert(std::pair(f.id, f.full_name));
+}
+
 void CanvasApi::courses_file_tree(FileTree *root, const vector<Course> *courses)
 {
   vector<future<FileTree>> futures;

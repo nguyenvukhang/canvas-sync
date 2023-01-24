@@ -74,7 +74,8 @@ public:
   std::filesystem::path local_dir;
 
   // needed for update report
-  // string remote_dir; // can just read from an already-fetched vector<Folder>
+  int course_id;
+  string remote_dir; // can just read from an already-fetched vector<Folder>
   vector<File> files; // update after running the download's API call
 
   Update(const int folder_id, const string local_dir)
