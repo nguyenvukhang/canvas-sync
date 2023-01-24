@@ -11,4 +11,7 @@ public:
   void clear(QModelIndex index);
   void setModel(TreeModel *model);
   TreeModel *model() const;
+
+signals:
+  void cleared(const QModelIndex &index);
 };

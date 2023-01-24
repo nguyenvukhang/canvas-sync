@@ -44,4 +44,5 @@ void ClickableTreeView::clear(QModelIndex index)
 {
   auto model = this->model();
   model->itemFromIndex(index)->setData(1, "");
+  emit cleared(index);
 }

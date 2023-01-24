@@ -27,8 +27,8 @@ private slots:
   void on_treeView_doubleClicked(const QModelIndex &index);
   void on_treeView_expanded(const QModelIndex &index);
   void on_treeView_collapsed(const QModelIndex &index);
-
   void on_treeView_clicked(const QModelIndex &index);
+  void on_treeView_cleared(const QModelIndex &index);
 
 private:
   QSettings settings;
@@ -37,5 +37,6 @@ private:
   canvas::Server server;
   QString start_dir =
       QDir::homePath(); // directory that the file explorer will open with.
+  void try_auth(const QString &token);
 };
 #endif // MAINWINDOW_H
