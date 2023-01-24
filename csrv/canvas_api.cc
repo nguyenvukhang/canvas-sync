@@ -8,6 +8,27 @@
 using json = nlohmann::json;
 namespace fs = std::filesystem;
 
+template <typename T, typename I>
+vector<T> get_many(const vector<I> *input, function<T(I)> func,
+                   int parallel = 5)
+{
+  vector<future<T>> futures;
+  BS::thread_pool pool(parallel);
+  int n = input->size();
+  for (int i = 0; i < n; i++) {
+    I input_value = input->at(i);
+    future<T> fut =
+        pool.submit([func, input_value] { return func(input_value); });
+    futures.push_back(std::move(fut));
+  }
+  vector<T> all;
+  for (auto fut = futures.begin(); fut < futures.end(); fut++) {
+    T f = fut->get();
+    all.push_back(std::move(f));
+  }
+  return all;
+}
+
 Profile CanvasApi::profile()
 {
   try {
@@ -47,22 +68,10 @@ vector<File> CanvasApi::folder_files(const int *folder_id)
 
 vector<vector<File>> CanvasApi::folder_files(const vector<int> *folder_ids)
 {
-  vector<future<vector<File>>> futures;
-  BS::thread_pool pool(5);
-  int n = folder_ids->size();
-  for (int i = 0; i < n; i++) {
-    int folder_id = folder_ids->at(i);
-    future<vector<File>> files = pool.submit(
-        [this, folder_id] { return this->folder_files(&folder_id); });
-    futures.push_back(std::move(files));
-  }
-
-  vector<vector<File>> all;
-  for (auto fut = futures.begin(); fut < futures.end(); fut++) {
-    vector<File> files = fut->get();
-    all.push_back(std::move(files));
-  }
-  return all;
+  function<vector<File>(int)> get = [this](int folder_id) {
+    return this->folder_files(&folder_id);
+  };
+  return get_many(folder_ids, get);
 }
 
 vector<Folder> CanvasApi::course_folders(const int *course_id)
@@ -71,6 +80,14 @@ vector<Folder> CanvasApi::course_folders(const int *course_id)
       "/api/v1/courses/" + to_string(*course_id) + "/folders?per_page=10000";
   json j = this->get(url.c_str());
   return to_vec<Folder>(j);
+}
+
+vector<vector<Folder>> CanvasApi::course_folders(const vector<int> *course_ids)
+{
+  function<vector<Folder>(int)> b = [this](int course_id) {
+    return this->course_folders(&course_id);
+  };
+  return get_many(course_ids, b);
 }
 
 FileTree CanvasApi::courses_file_tree()

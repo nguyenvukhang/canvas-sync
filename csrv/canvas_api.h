@@ -29,6 +29,7 @@ public:
 
   vector<Course> courses();
   vector<Folder> course_folders(const int *course_id);
+  vector<vector<Folder>> course_folders(const vector<int> *course_ids);
   vector<File> course_files(const int *course_id);
 
   void download(vector<File> *);

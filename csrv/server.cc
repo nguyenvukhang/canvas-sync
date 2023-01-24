@@ -1,5 +1,6 @@
 #include "server.h"
 #include "debug.h"
+#include <algorithm>
 #include <filesystem>
 #include <map>
 
@@ -102,6 +103,23 @@ void merge_data(vector<Update> *updates, vector<vector<File>> *files)
       }
     }
   }
+}
+
+string Server::folder_name(int folder_id)
+{
+  return this->folder_names.at(folder_id);
+}
+
+string Server::course_name(int course_id)
+{
+  auto c = this->courses;
+  int i = this->courses.size();
+  while (i-- > 0) {
+    if (this->courses[i].id == course_id) {
+      return this->courses[i].name;
+    }
+  }
+  return "[course not found]";
 }
 
 void Server::run_debug()

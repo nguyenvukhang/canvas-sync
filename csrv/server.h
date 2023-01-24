@@ -4,6 +4,7 @@
 #include "canvas_api.h"
 #include "filetree.h"
 #include "httpjson.h"
+#include <map>
 
 namespace canvas
 {
@@ -13,9 +14,12 @@ private:
   CanvasApi *api;
   FileTree tree;
   vector<Course> courses;
+  map<int, string> folder_names;
   string base_url;
 
 public:
+  string folder_name(int folder_id);
+  string course_name(int course_id);
   Server(const char *token, const char *base_url);
   Server(string *token, string *base_url);
   void run();
