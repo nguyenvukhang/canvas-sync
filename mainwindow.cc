@@ -152,3 +152,9 @@ void MainWindow::on_treeView_clicked(const QModelIndex &index)
   qDebug() << "children: " << get_id(model->index(0, 0, index));
   qDebug() << "count:    " << count;
 }
+
+void MainWindow::on_pushButton_clicked()
+{
+  settings.clear();
+  settings.sync();
+}

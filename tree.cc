@@ -35,7 +35,7 @@ bool expand_tracked(ClickableTreeView *tree, QModelIndex &index)
     expand |= expand_tracked(tree, child);
     child = model->index(i++, 0, index);
   }
-  if ((i == 1 && !get_local_dir(index).isEmpty()) || expand) {
+  if (!get_local_dir(index).isEmpty() || expand) {
     tree->expand(index.parent());
     return true;
   }
