@@ -47,19 +47,16 @@ void Server::fetch_updates(vector<Update> *u)
   }
   vector<vector<File>> af = this->api->folder_files(&folder_ids);
   this->merge_data(u, &af);
-  //
-  // bool run_download = false;
-  //
-  // // run the download
-  // for (int i = 0; i < n; i++) {
-  //   fs::create_directories(u->at(i).local_dir);
-  //   fs::path local_dir = u->at(i).local_dir;
-  //   for (auto f : u->at(i).files) {
-  //     if (!fs::exists(f.local_dir / f.filename) && run_download) {
-  //       api->download(&f);
-  //     }
-  //   }
-  // }
+}
+
+void Server::download_updates(const vector<Update> *u)
+{
+  int n = u->size();
+  for (int i = 0; i < n; i++) {
+    filesystem::create_directories(u->at(i).local_dir);
+    vector<File> files = u->at(i).files;
+    api->download(&files);
+  }
 }
 
 FileTree *Server::get_tree()

@@ -162,7 +162,7 @@ void fix_tree(Ui::MainWindow *ui)
   tree_view->resizeColumnToContents(0);
   expand_tracked(tree_view);
   // // FIXME: after debugging, hide ids from user
-  // // tree_view->setColumnHidden(2, true);
+  tree_view->setColumnHidden(FOLDER_ID, true);
 }
 
 void on_all_parents(TreeItem *item, ItemOperator func)

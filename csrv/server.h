@@ -29,6 +29,7 @@ public:
   void load();
 
   void fetch_updates(vector<Update> *);
+  void download_updates(const vector<Update> *);
 
   void load_tree();
   string dump_tree();

@@ -24,6 +24,7 @@ public:
 private slots:
   void pull_clicked();
   void fetch_clicked();
+  void show_updates(const vector<Update> &);
   void changeToken_clicked();
   void accessToken_textChanged(const QString &arg1);
   void treeView_doubleClicked(const QModelIndex &index);

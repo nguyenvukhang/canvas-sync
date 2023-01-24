@@ -51,40 +51,8 @@ MainWindow::~MainWindow()
   delete ui;
 }
 
-void MainWindow::pull_clicked()
+vector<Update> gather_tracked(TreeModel *model)
 {
-  auto a = settings.allKeys();
-  qDebug() << "STARTING PULL";
-  // only folder ids are numbers, and only numbers are folder ids
-  for (auto key : a) {
-    bool ok = false;
-    int id = key.toInt(&ok);
-    if (!ok)
-      continue;
-    vector<File> files = this->server.folder_files(&id);
-    for (auto f : files) {
-      qDebug() << f.filename.c_str();
-    }
-  }
-  qDebug() << "DONE WITH PULL";
-}
-
-void debug_updates(vector<Update> *u, bool show_files)
-{
-  for (auto u : *u) {
-    qDebug() << u.folder_id << "->" << u.local_dir.c_str();
-    if (!show_files)
-      continue;
-    for (auto f : u.files) {
-      qDebug() << "[+]" << f.filename.c_str() << "(" << f.local_dir.c_str()
-               << ")";
-    }
-  }
-}
-
-void MainWindow::fetch_clicked()
-{
-  TreeModel *model = ui->treeView->model();
   vector<Update> all;
   int n = model->childrenCount();
   for (int i = 0; i < n; i++) {
@@ -93,11 +61,14 @@ void MainWindow::fetch_clicked()
       all.push_back(std::move(u));
     }
   }
-  server.fetch_updates(&all);
-  debug_updates(&all, true);
+  return all;
+}
+
+void MainWindow::show_updates(const vector<Update> &u)
+{
   QString buffer, tmp;
   int prev_course = -1;
-  for (auto u : all) {
+  for (auto u : u) {
     if (u.course_id != prev_course) {
       if (!tmp.isEmpty()) {
         buffer.push_back("## ");
@@ -119,10 +90,43 @@ void MainWindow::fetch_clicked()
       tmp.push_back('\n');
     }
   }
-  Updates u;
-  u.setText(buffer + tmp);
-  u.setModal(true);
-  u.exec();
+  buffer += tmp;
+  if (buffer.isEmpty()) {
+    QMessageBox::information(this, "Update", "All up to date!");
+  } else {
+    Updates w;
+    w.setText(buffer);
+    w.setModal(true);
+    w.exec();
+  }
+}
+
+void MainWindow::fetch_clicked()
+{
+  ui->pushButton_fetch->setDisabled(true);
+  ui->pushButton_fetch->setText("Fetching...");
+  ui->pushButton_fetch->repaint();
+  qApp->processEvents();
+  vector<Update> all = gather_tracked(ui->treeView->model());
+  server.fetch_updates(&all);
+  ui->pushButton_fetch->setText("Fetch");
+  ui->pushButton_fetch->setDisabled(false);
+  this->show_updates(all);
+
+}
+
+void MainWindow::pull_clicked()
+{
+  ui->pushButton_pull->setDisabled(true);
+  ui->pushButton_pull->setText("Pulling...");
+  ui->pushButton_pull->repaint();
+  qApp->processEvents();
+  vector<Update> all = gather_tracked(ui->treeView->model());
+  server.fetch_updates(&all);
+  server.download_updates(&all);
+  ui->pushButton_pull->setText("Pull");
+  ui->pushButton_pull->setDisabled(false);
+  this->show_updates(all);
 }
 
 void MainWindow::changeToken_clicked()
