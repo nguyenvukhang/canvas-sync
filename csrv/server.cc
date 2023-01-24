@@ -29,6 +29,7 @@ void Server::run()
 void Server::load_tree()
 {
   this->courses = api->courses();
+  // vector<Course> courses = api->course_folders();
   api->courses_file_tree(&this->tree, &this->courses);
 }
 

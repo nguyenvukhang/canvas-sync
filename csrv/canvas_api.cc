@@ -93,22 +93,18 @@ vector<vector<Folder>> CanvasApi::course_folders(const vector<int> *course_ids)
 FileTree CanvasApi::courses_file_tree()
 {
   vector<Course> courses = this->courses();
-  vector<future<FileTree>> futures;
-  BS::thread_pool pool(5);
-
-  for (auto course = courses.begin(); course < courses.end(); course++) {
-    FileTree *tree = new FileTree(&*course);
-    future<FileTree> course_tree = pool.submit([tree, this] {
-      tree->insert_folders(this->course_folders(&tree->id));
-      return *tree;
-    });
-    futures.push_back(std::move(course_tree));
-  }
+  vector<int> course_ids;
+  for (auto c : courses)
+    course_ids.push_back(c.id);
+  vector<vector<Folder>> folders = this->course_folders(&course_ids);
 
   FileTree *root = new FileTree(0, "root");
-  for (auto fut = futures.begin(); fut < futures.end(); fut++) {
-    FileTree tree = fut->get();
-    root->insert_tree(&tree);
+
+  int n = course_ids.size();
+  for (int i = 0; i < n; i++) {
+    FileTree *tree = new FileTree(&courses[i]);
+    tree->insert_folders(folders[i]);
+    root->insert_tree(tree);
   }
 
   return *root;
