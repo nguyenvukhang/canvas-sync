@@ -19,6 +19,24 @@ MainWindow::MainWindow(QWidget *parent)
       server("", "https://canvas.nus.edu.sg")
 {
   ui->setupUi(this);
+
+  // text inputs
+  connect(ui->lineEdit_accessToken, SIGNAL(textChanged(const QString &)), this,
+          SLOT(accessToken_textChanged(const QString &)));
+
+  // buttons
+  connect(ui->pushButton_pull, SIGNAL(clicked()), this, SLOT(pull_clicked()));
+  connect(ui->pushButton_fetch, SIGNAL(clicked()), this, SLOT(fetch_clicked()));
+
+  connect(ui->treeView, SIGNAL(expanded(const QModelIndex &)), this,
+          SLOT(treeView_expanded(const QModelIndex &)));
+  connect(ui->treeView, SIGNAL(collapsed(const QModelIndex &)), this,
+          SLOT(treeView_collapsed(const QModelIndex &)));
+  connect(ui->treeView, SIGNAL(clicked(const QModelIndex &)), this,
+          SLOT(treeView_clicked(const QModelIndex &)));
+  connect(ui->treeView, SIGNAL(cleared(const QModelIndex &)), this,
+          SLOT(treeView_cleared(const QModelIndex &)));
+
   this->token = settings.value("token").toString();
   this->try_auth(this->token);
 }
@@ -28,7 +46,12 @@ MainWindow::~MainWindow()
   delete ui;
 }
 
-void MainWindow::on_pushButton_pull_clicked()
+void MainWindow::fetch_clicked()
+{
+  qDebug() << "FETCH clicked!";
+}
+
+void MainWindow::pull_clicked()
 {
   auto a = settings.allKeys();
   qDebug() << "STARTING PULL";
@@ -78,7 +101,7 @@ void MainWindow::try_auth(const QString &token)
   }
 }
 
-void MainWindow::on_lineEdit_accessToken_textChanged(const QString &input)
+void MainWindow::accessToken_textChanged(const QString &input)
 {
   this->try_auth(input);
 }
@@ -90,7 +113,7 @@ void to_dir_dialog(QFileDialog *dialog)
   dialog->setOption(QFileDialog::DontUseNativeDialog);
 }
 
-void MainWindow::on_treeView_doubleClicked(const QModelIndex &index)
+void MainWindow::treeView_doubleClicked(const QModelIndex &index)
 {
   // don't do anything to root bois.
   if (!index.parent().isValid()) {
@@ -139,23 +162,23 @@ void MainWindow::on_treeView_doubleClicked(const QModelIndex &index)
   this->start_dir = selected_dir.path();
 }
 
-void MainWindow::on_treeView_expanded(const QModelIndex &index)
+void MainWindow::treeView_expanded(const QModelIndex &index)
 {
   fix_tree(ui);
 }
 
-void MainWindow::on_treeView_collapsed(const QModelIndex &index)
+void MainWindow::treeView_collapsed(const QModelIndex &index)
 {
   fix_tree(ui);
 }
 
-void MainWindow::on_treeView_cleared(const QModelIndex &index)
+void MainWindow::treeView_cleared(const QModelIndex &index)
 {
   settings.remove(get_id(index));
   settings.sync();
 }
 
-void MainWindow::on_treeView_clicked(const QModelIndex &index)
+void MainWindow::treeView_clicked(const QModelIndex &index)
 {
   qDebug() << "[ DEBUG ]\n";
   qDebug() << "id: " << get_id(index);
@@ -164,10 +187,4 @@ void MainWindow::on_treeView_clicked(const QModelIndex &index)
   int count = index.model()->children().size();
   qDebug() << "children: " << get_id(model->index(0, 0, index));
   qDebug() << "count:    " << count;
-}
-
-void MainWindow::on_pushButton_clicked()
-{
-  settings.clear();
-  settings.sync();
 }

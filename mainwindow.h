@@ -22,15 +22,14 @@ public:
   ~MainWindow();
 
 private slots:
-  void on_pushButton_pull_clicked();
-  void on_lineEdit_accessToken_textChanged(const QString &arg1);
-  void on_treeView_doubleClicked(const QModelIndex &index);
-  void on_treeView_expanded(const QModelIndex &index);
-  void on_treeView_collapsed(const QModelIndex &index);
-  void on_treeView_clicked(const QModelIndex &index);
-  void on_treeView_cleared(const QModelIndex &index);
-  void on_pushButton_clicked();
-  // void on_tree();
+  void pull_clicked();
+  void fetch_clicked();
+  void accessToken_textChanged(const QString &arg1);
+  void treeView_doubleClicked(const QModelIndex &index);
+  void treeView_expanded(const QModelIndex &index);
+  void treeView_collapsed(const QModelIndex &index);
+  void treeView_clicked(const QModelIndex &index);
+  void treeView_cleared(const QModelIndex &index);
 
 private:
   QSettings settings;
