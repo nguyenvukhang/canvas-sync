@@ -78,6 +78,11 @@ public:
   TreeItem *itemFromIndex(const QModelIndex &index) const;
   void setReadOnly(bool flag);
   bool isReadOnly() const;
+  // custom functions
+  int childrenCount()
+  {
+    return this->rowCount();
+  }
 
 private:
   TreeItem *rootItem;

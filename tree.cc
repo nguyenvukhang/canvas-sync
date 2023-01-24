@@ -27,13 +27,14 @@ QString get_local_dir(const QModelIndex &index)
 
 bool expand_tracked(ClickableTreeView *tree, QModelIndex &index)
 {
+  if (!index.isValid())
+    return false;
   TreeModel *model = tree->model();
   bool expand = false;
-  int i = 0;
-  QModelIndex child = model->index(i++, 0, index);
-  while (child.isValid()) {
+  int n = model->childrenCount();
+  for (int i = 0; i < n; i++) {
+    QModelIndex child = model->index(i, 0, index);
     expand |= expand_tracked(tree, child);
-    child = model->index(i++, 0, index);
   }
   if (!get_local_dir(index).isEmpty() || expand) {
     tree->expand(index.parent());
@@ -45,13 +46,12 @@ bool expand_tracked(ClickableTreeView *tree, QModelIndex &index)
 void expand_tracked(ClickableTreeView *tree)
 {
   TreeModel *model = tree->model();
-  int i = 0;
-  QModelIndex child = model->index(i++, 0);
-  while (child.isValid()) {
+  int n = model->childrenCount();
+  for (int i = 0; i < n; i++) {
+    QModelIndex child = model->index(i, 0);
     if (expand_tracked(tree, child)) {
       tree->expand(child);
     }
-    child = model->index(i++, 0);
   }
 }
 
