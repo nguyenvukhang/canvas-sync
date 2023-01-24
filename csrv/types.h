@@ -59,6 +59,7 @@ public:
   int folder_id;
   string filename;
   string url;
+  string local_dir;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(File, id, folder_id, filename, url);
 

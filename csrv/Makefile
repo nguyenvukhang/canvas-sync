@@ -11,6 +11,9 @@ develop:
 	@make --no-print-directory build
 	@make run_tests
 	@make save_config
+	@cd debug && make build
+	@echo '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
+	@CANVAS_TOKEN=$(CANVAS_TOKEN) ./debug/build/canvas_debug
 
 build: FORCE
 	# configure the build

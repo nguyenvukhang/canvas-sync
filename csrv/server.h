@@ -12,6 +12,7 @@ class Server
 private:
   CanvasApi *api;
   FileTree tree;
+  vector<Course> courses;
   string base_url;
 
 public:
@@ -25,6 +26,8 @@ public:
   FileTree *get_tree();
 
   bool valid_token();
+
+  vector<File> folder_files(const int *folder_id);
 
   void set_token(string *token);
 };

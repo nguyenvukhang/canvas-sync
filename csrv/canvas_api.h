@@ -20,14 +20,22 @@ private:
 
 public:
   CanvasApi() = delete;
-  CanvasApi(HttpClient *cli) { this->cli = cli; };
+  CanvasApi(HttpClient *cli)
+  {
+    this->cli = cli;
+  };
 
   Profile profile();
+
   vector<Course> courses();
   vector<Folder> course_folders(const int *course_id);
   vector<File> course_files(const int *course_id);
+
+  void download(vector<File>);
   FileTree courses_file_tree();
-  void courses_file_tree(FileTree *tree);
+  void courses_file_tree(FileTree *tree, const vector<Course> *);
+
+  vector<File> folder_files(const int *folder_id);
 
   static const char *get_token_from_env()
   {

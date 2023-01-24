@@ -3,9 +3,14 @@
 
 #include <string>
 
-class HttpClient {
+class HttpClient
+{
 public:
-  virtual std::string get(const char *url) const = 0;
+  using ContentReceiver =
+      std::function<bool(const char *data, size_t data_length)>;
+  virtual std::string get(const std::string &path) const = 0;
+  virtual void get(const std::string &path,
+                   ContentReceiver content_receiver) const = 0;
 };
 
 #endif

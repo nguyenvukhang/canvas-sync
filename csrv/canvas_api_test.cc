@@ -2,16 +2,21 @@
 #include "httpclient.h"
 #include <gtest/gtest.h>
 
-class FakeServer : public HttpClient {
+class FakeServer : public HttpClient
+{
 private:
   std::string token;
   std::string base_url;
 
 public:
-  std::string get(const char *url) const override {
+  void get(const std::string &url, ContentReceiver rec) const override
+  {
+  }
+  std::string get(const std::string &url) const override
+  {
     // Profile of the canvas user.
     // https://canvas.instructure.com/doc/api/users.html#Profile
-    if (strcmp("/api/v1/users/self/profile", url) == 0) {
+    if (url.compare("/api/v1/users/self/profile") == 0) {
       return R"#({
         "id": 12345,
         "name": "MITSUHA MIYAMIZU",
@@ -36,14 +41,21 @@ public:
   }
 };
 
-class CanvasApiTest : public ::testing::Test {
+class CanvasApiTest : public ::testing::Test
+{
 protected:
-  void SetUp() override {}
+  void SetUp() override
+  {
+  }
   // convenience routine to create a fake API.
-  CanvasApi *api() { return new CanvasApi(new FakeServer()); }
+  CanvasApi *api()
+  {
+    return new CanvasApi(new FakeServer());
+  }
 };
 
-TEST_F(CanvasApiTest, Profile) {
+TEST_F(CanvasApiTest, Profile)
+{
   Profile p = api()->profile();
   EXPECT_EQ(p.id, 12345);
   EXPECT_EQ(p.integration_id, "A0000000A");

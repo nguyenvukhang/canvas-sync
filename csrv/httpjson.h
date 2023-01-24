@@ -8,13 +8,13 @@
 
 class HttpJson : public HttpClient
 {
-private:
   std::string token;
   std::string base_url;
 
 public:
   HttpJson(std::string *token, std::string *base_url);
-  std::string get(const char *url) const override;
+  std::string get(const std::string &path) const override;
+  void get(const std::string &path, ContentReceiver) const override;
 };
 
 #endif

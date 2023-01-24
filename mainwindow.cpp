@@ -110,7 +110,20 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_pushButton_pull_clicked()
 {
-  fix_tree(ui);
+  auto a = settings.allKeys();
+  qDebug() << "STARTING PULL";
+  // only folder ids are numbers, and only numbers are folder ids
+  for (auto key : a) {
+    bool ok = false;
+    int id = key.toInt(&ok);
+    if (!ok)
+      continue;
+    vector<File> files = this->server.folder_files(&id);
+    for (auto f : files) {
+      qDebug() << f.filename.c_str();
+    }
+  }
+  qDebug() << "DONE WITH PULL";
 }
 
 void MainWindow::try_auth(const QString &token)
