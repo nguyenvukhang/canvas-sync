@@ -24,6 +24,7 @@ public:
 private slots:
   void pull_clicked();
   void fetch_clicked();
+  void changeToken_clicked();
   void accessToken_textChanged(const QString &arg1);
   void treeView_doubleClicked(const QModelIndex &index);
   void treeView_expanded(const QModelIndex &index);
@@ -39,5 +40,6 @@ private:
   QString start_dir =
       QDir::homePath(); // directory that the file explorer will open with.
   void try_auth(const QString &token);
+  void set_auth_state(bool);
 };
 #endif // MAINWINDOW_H

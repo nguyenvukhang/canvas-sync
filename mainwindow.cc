@@ -27,6 +27,8 @@ MainWindow::MainWindow(QWidget *parent)
   // buttons
   connect(ui->pushButton_pull, SIGNAL(clicked()), this, SLOT(pull_clicked()));
   connect(ui->pushButton_fetch, SIGNAL(clicked()), this, SLOT(fetch_clicked()));
+  connect(ui->pushButton_changeToken, SIGNAL(clicked()), this,
+          SLOT(changeToken_clicked()));
 
   connect(ui->treeView, SIGNAL(expanded(const QModelIndex &)), this,
           SLOT(treeView_expanded(const QModelIndex &)));
@@ -44,11 +46,6 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
   delete ui;
-}
-
-void MainWindow::fetch_clicked()
-{
-  qDebug() << "FETCH clicked!";
 }
 
 void MainWindow::pull_clicked()
@@ -69,6 +66,35 @@ void MainWindow::pull_clicked()
   qDebug() << "DONE WITH PULL";
 }
 
+void MainWindow::fetch_clicked()
+{
+  qDebug() << "FETCH clicked!";
+}
+
+void MainWindow::changeToken_clicked()
+{
+  this->token = "";
+  this->ui->lineEdit_accessToken->setText("");
+  this->ui->lineEdit_accessToken->setReadOnly(false);
+  this->ui->lineEdit_accessToken->setDisabled(false);
+}
+
+void MainWindow::set_auth_state(bool authenticated)
+{
+  if (authenticated) {
+    ui->label_authenticationStatus->setText("authenticated!");
+
+    // disable token entry
+    ui->lineEdit_accessToken->setReadOnly(true);
+    ui->lineEdit_accessToken->setDisabled(true);
+    // show edit token button, in case the user wants to change it
+    this->ui->pushButton_changeToken->setHidden(false);
+    return;
+  }
+  ui->label_authenticationStatus->setText("unauthenticated");
+  this->ui->pushButton_changeToken->setHidden(true);
+}
+
 void MainWindow::try_auth(const QString &token)
 {
   this->token = token;
@@ -79,26 +105,32 @@ void MainWindow::try_auth(const QString &token)
     ui->label_authenticationStatus->repaint();
     qApp->processEvents();
   } else {
-    ui->label_authenticationStatus->setText("unauthenticated");
+    this->set_auth_state(false);
     return;
   }
+
+  // this future has no real impact, tbh, since it is awaited immediately
+  // just gonna leave this here for future reference. geddit.
   QFuture<bool> fut =
       QtConcurrent::run([this, token] { return this->server.valid_token(); });
-  if (fut.result()) {
-    ui->label_authenticationStatus->setText("authenticated!");
-    settings.setValue("token", token);
-    settings.sync();
-    ui->lineEdit_accessToken->setReadOnly(true);
-    ui->lineEdit_accessToken->setDisabled(true);
-    this->server.load_tree();
-    auto tree = this->server.get_tree();
-    TreeModel *model = newTreeModel();
-    insert(model->item(0), tree, &settings);
-    ui->treeView->setModel(model);
-    fix_tree(ui);
-  } else {
-    ui->label_authenticationStatus->setText("unauthenticated");
+
+  if (!fut.result()) {
+    this->set_auth_state(false);
+    return;
   }
+
+  // authenticated!
+  settings.setValue("token", token);
+  settings.sync();
+  this->set_auth_state(true);
+
+  // load the filetree
+  this->server.load_tree();
+  auto tree = this->server.get_tree();
+  TreeModel *model = newTreeModel();
+  insert(model->item(0), tree, &settings);
+  ui->treeView->setModel(model);
+  fix_tree(ui);
 }
 
 void MainWindow::accessToken_textChanged(const QString &input)

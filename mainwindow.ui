@@ -27,16 +27,12 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="QLabel" name="label_accessTokenPrompt">
-        <property name="text">
-         <string>Canvas Access Token</string>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QLineEdit" name="lineEdit_accessToken">
         <property name="echoMode">
          <enum>QLineEdit::Password</enum>
+        </property>
+        <property name="placeholderText">
+         <string>Canvas Access Token</string>
         </property>
        </widget>
       </item>
@@ -44,6 +40,16 @@
        <widget class="QLabel" name="label_authenticationStatus">
         <property name="text">
          <string>unauthenticated</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_changeToken">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="text">
+         <string>Change Token</string>
         </property>
        </widget>
       </item>
@@ -69,19 +75,6 @@
          </size>
         </property>
        </spacer>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pushButton">
-        <property name="minimumSize">
-         <size>
-          <width>80</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Clear</string>
-        </property>
-       </widget>
       </item>
       <item>
        <widget class="QPushButton" name="pushButton_fetch">
