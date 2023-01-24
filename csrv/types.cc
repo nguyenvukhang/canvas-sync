@@ -8,6 +8,31 @@ void eprintln(const char *fmt, ...)
   std::cerr << std::endl;
 }
 
+string normalize_filename(const char *a, int size)
+{
+  string result = "";
+  while (size-- > 0) {
+    if (*a == '+' || *a == '-' || *a == ' ') {
+      result.push_back('_');
+      a++;
+      continue;
+    }
+    if (*a == '_' && *(a + 1) == '_' && size > 0)
+      size--, a++;
+    result.push_back(*a++);
+  }
+  return result;
+}
+
+string normalize_filename(string *v)
+{
+  int n = v->size();
+  string s = normalize_filename(v->c_str(), n);
+  while (s.size() < n)
+    s = normalize_filename(s.c_str(), (n = s.size()));
+  return s;
+}
+
 void debug(Profile *p)
 {
   eprintln("Profile");

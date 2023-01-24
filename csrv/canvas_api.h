@@ -31,11 +31,13 @@ public:
   vector<Folder> course_folders(const int *course_id);
   vector<File> course_files(const int *course_id);
 
-  void download(vector<File>);
+  void download(vector<File> *);
+  void download(File *);
   FileTree courses_file_tree();
   void courses_file_tree(FileTree *tree, const vector<Course> *);
 
-  vector<File> folder_files(const int *folder_id);
+  vector<File> folder_files(const int *);
+  vector<vector<File>> folder_files(const vector<int> *);
 
   static const char *get_token_from_env()
   {

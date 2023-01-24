@@ -1,5 +1,6 @@
 #include "server.h"
 #include "debug.h"
+#include <filesystem>
 #include <map>
 
 using Server = canvas::Server;
@@ -88,30 +89,47 @@ vector<File> Server::folder_files(const int *folder_id)
 
 void Server::run_debug()
 {
-  this->load_tree();
-  const int course_id = 38518; // CS2040
-  int n = this->courses.size();
+  // 142793 /course files
+  // 235231 /course files/Lecture
+  // 270993 /course files/Recitation
+  //
+  // 142803 /course files
+  // 224009 /course files/Labs
+  // 224010 /course files/Lectures
+  // 224013 /course files/Lectures/Java Intro and ADT
+  // 234811 /course files/Lectures/Week1
+  // 260627 /course files/Lectures/Week2
+  // 282247 /course files/Lectures/Week3
+  // 224011 /course files/Tutorials
+  // 282251 /course files/Tutorials/Tutorial1
 
-  // for (int i = 0; i < n; i++) { Course c = this->courses[i];
-  //   vector<File> files = this->api->course_files(&c.id);
-  // }
-  vector<File> files = this->api->course_files(&course_id);
+  namespace fs = std::filesystem;
+  fs::path base = "/Users/khang/uni/CS2040-ta";
+  vector<Update> updates;
+  vector<int> folder_ids;
+  std::function<void(int, string)> f = [&](int i, string s) {
+    updates.push_back(*new Update(i, s));
+    folder_ids.push_back(i);
+  };
+  f(224013, base / "course files/Lectures/Java Intro and ADT");
+  f(234811, base / "course files/Lectures/Week1");
+  f(224011, base / "course files/Tutorials");
 
-  auto m = to_map(&files);
-  // vector<File> downloads;
-  // for (int i = 0; i < 5; i++) {
-  //   downloads.push_back(files[i]);
-  // }
-  // api->download(downloads);
+  vector<vector<File>> all_files = this->api->folder_files(&folder_ids);
 
-  // debug(&this->tree);
-  for (std::map<int, vector<File>>::iterator iter = m.begin(); iter != m.end();
-       ++iter) {
-    int k = iter->first;
-    cout << k << endl;
-    // ignore kvalue
-    // Value v = iter->second;
+  int n = updates.size();
+  for (int i = 0; i < n; i++) {
+    auto u = updates[i];
+    auto f = all_files[i];
+    fs::path local_dir = u.local_dir;
+    cout << u.folder_id << " -> " << u.local_dir << endl;
+    for (auto i : f) {
+      auto target = local_dir / i.filename;
+      cout << target << " ? " << fs::exists(target) << endl;
+      if (!fs::exists(target)) {
+        i.local_dir = local_dir;
+        api->download(&i);
+      }
+    }
   }
-  insert_files(&this->tree, &m);
-  debug(&tree);
 }

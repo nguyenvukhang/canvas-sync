@@ -6,6 +6,7 @@
 #include <fstream>
 
 using json = nlohmann::json;
+namespace fs = std::filesystem;
 
 Profile CanvasApi::profile()
 {
@@ -37,7 +38,31 @@ vector<File> CanvasApi::folder_files(const int *folder_id)
   string url =
       "/api/v1/folders/" + to_string(*folder_id) + "/files?per_page=10000";
   json j = this->get(url.c_str());
-  return to_vec<File>(j);
+  auto v = to_vec<File>(j);
+  int n = v.size();
+  while (n-- > 0)
+    v[n].filename = normalize_filename(&v[n].filename);
+  return v;
+}
+
+vector<vector<File>> CanvasApi::folder_files(const vector<int> *folder_ids)
+{
+  vector<future<vector<File>>> futures;
+  BS::thread_pool pool(5);
+  int n = folder_ids->size();
+  for (int i = 0; i < n; i++) {
+    int folder_id = folder_ids->at(i);
+    future<vector<File>> files = pool.submit(
+        [this, folder_id] { return this->folder_files(&folder_id); });
+    futures.push_back(std::move(files));
+  }
+
+  vector<vector<File>> all;
+  for (auto fut = futures.begin(); fut < futures.end(); fut++) {
+    vector<File> files = fut->get();
+    all.push_back(std::move(files));
+  }
+  return all;
 }
 
 vector<Folder> CanvasApi::course_folders(const int *course_id)
@@ -93,30 +118,36 @@ void CanvasApi::courses_file_tree(FileTree *root, const vector<Course> *courses)
   }
 };
 
-void CanvasApi::download(vector<File> files)
+void CanvasApi::download(vector<File> *files)
 {
   BS::thread_pool pool(5);
   vector<future<void>> futures;
 
-  namespace fs = std::filesystem;
-
-  for (auto file : files) {
-    // create local path
-    fs::path local_path = file.local_dir;
-    local_path.append(file.filename);
-
-    __fs::filesystem::remove(file.local_dir);
-    future<void> dl = pool.submit([file, this, local_path] {
-      std::ofstream of(local_path, std::ios::binary);
-      this->cli->get(file.url, [&](const char *data, size_t data_length) {
-        of.write(data, data_length);
-        return true;
-      });
-      of.close();
+  for (auto file : *files) {
+    future<void> dl = pool.submit([file, this] {
+      File f = file;
+      return this->download(&f);
     });
     futures.push_back(std::move(dl));
   }
-  for (auto fut = futures.begin(); fut < futures.end(); fut++) {
+  for (auto fut = futures.begin(); fut < futures.end(); fut++)
     fut->get();
-  }
+}
+
+void CanvasApi::download(File *file)
+{
+  // create local path
+  fs::path local_path = file->local_dir;
+  bool ok = fs::create_directories(file->local_dir);
+  cout << "MKDIR " << file->local_dir << " -> " << ok << endl;
+  local_path.append(file->filename);
+  cout << "DOWNLOADING" << file->url << "->" << local_path << endl;
+  // clear existing
+  fs::remove(local_path);
+  std::ofstream of(local_path, std::ios::binary);
+  this->cli->get(file->url, [&](const char *data, size_t data_length) {
+    of.write(data, data_length);
+    return true;
+  });
+  of.close();
 }

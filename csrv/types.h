@@ -77,16 +77,18 @@ public:
   // string remote_dir; // can just read from an already-fetched vector<Folder>
   // vector<string> files; // update after running the download's API call
 
-  Update(const int folder_id, const string *local_dir)
+  Update(const int folder_id, const string local_dir)
   {
     this->folder_id = folder_id;
-    this->local_dir.assign(*local_dir);
+    this->local_dir = std::move(local_dir);
   }
   Update(const int folder_id)
   {
     this->folder_id = folder_id;
   }
 };
+
+string normalize_filename(string *);
 
 void debug(Profile *);
 void debug(Course *);
