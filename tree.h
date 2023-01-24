@@ -12,6 +12,9 @@ void insert(TreeItem *item, FileTree *tree, QSettings *settings);
 QString get_id(const QModelIndex &index);
 QString get_local_dir(const QModelIndex &index);
 
+QString get_id(const TreeItem &item);
+QString get_local_dir(const TreeItem &item);
+
 void expand_tracked(ClickableTreeView *tree);
 void fix_tree(Ui::MainWindow *ui);
 

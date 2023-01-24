@@ -112,15 +112,21 @@ void MainWindow::on_treeView_doubleClicked(const QModelIndex &index)
 
   // only set the value if a value was actually chosen.
   if (result == 1) {
-    // update children
-    on_all_children(item, [&](TreeItem *item) {
-      item->setData(1, "");
-      settings.remove(item->data(1).toString());
+    // clears children and parent tracked folders because this might cause
+    // conflicts in downloads.
+
+    // clear children maps
+    on_all_children(item, [&](TreeItem *child) {
+      child->setData(1, "");
+      settings.remove(get_id(*child));
     });
-    on_all_parents(item, [&](TreeItem *item) {
-      item->setData(1, "");
-      settings.remove(item->data(1).toString());
+
+    // clear parent maps
+    on_all_parents(item, [&](TreeItem *parent) {
+      parent->setData(1, "");
+      settings.remove(get_id(*parent));
     });
+
     // update itself
     item->setData(1, local_dir);
     settings.setValue(get_id(index), local_dir);

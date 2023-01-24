@@ -25,6 +25,16 @@ QString get_local_dir(const QModelIndex &index)
   return index.siblingAtColumn(1).data(2).toString();
 }
 
+QString get_local_dir(const TreeItem &item)
+{
+  return item.data(1).toString();
+}
+
+QString get_id(const TreeItem &item)
+{
+  return item.data(2).toString();
+}
+
 bool expand_tracked(ClickableTreeView *tree, QModelIndex &index)
 {
   if (!index.isValid())
