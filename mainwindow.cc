@@ -95,9 +95,6 @@ void MainWindow::fetch_clicked()
   }
   server.fetch_updates(&all);
   debug_updates(&all, true);
-  qDebug() << "FETCH clicked!";
-  QMessageBox a;
-  Updates u;
   QString buffer, tmp;
   int prev_course = -1;
   for (auto u : all) {
@@ -122,8 +119,8 @@ void MainWindow::fetch_clicked()
       tmp.push_back('\n');
     }
   }
-  buffer.push_back(tmp);
-  u.setText(buffer);
+  Updates u;
+  u.setText(buffer + tmp);
   u.setModal(true);
   u.exec();
 }
@@ -216,6 +213,7 @@ void MainWindow::treeView_doubleClicked(const QModelIndex &index)
   to_dir_dialog(&dialog);
   QString home = QDir::homePath();
   dialog.setDirectory(this->start_dir != home ? this->start_dir : home);
+  dialog.setWindowTitle("Select target for " + get_ancestry(index, " / "));
   int result = dialog.exec();
 
   TreeItem *item = ui->treeView->model()->itemFromIndex(index);
