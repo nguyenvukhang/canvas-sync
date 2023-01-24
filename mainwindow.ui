@@ -137,7 +137,7 @@
   <customwidget>
    <class>ClickableTreeView</class>
    <extends>QTreeView</extends>
-   <header>../../clickable_tree_view.h</header>
+   <header>clickable_tree_view.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

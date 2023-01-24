@@ -17,22 +17,27 @@ find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Concurrent)
 
 set(PROJECT_SOURCES
-    main.cpp
-    mainwindow.cpp
+    main.cc
+    mainwindow.cc
     mainwindow.h
     mainwindow.ui
     samplewidget.h
-    samplewidget.cpp
+    samplewidget.cc
     tree_model.h
-    tree_model.cpp
+    tree_model.cc
     clickable_tree_view.h
-    clickable_tree_view.cpp
+    clickable_tree_view.cc
+    tree.h
+    tree.cc
 )
 
 # include the autogen stuff so ui files can be imported
 # for example, `nice_component.ui` can be imported as `ui_nice_component.h`
 # in C++ files.
-include_directories(${PROJECT_SOURCE_DIR}/build/CanvasSync_autogen/include)
+include_directories(
+  ${PROJECT_SOURCE_DIR}
+  ${PROJECT_SOURCE_DIR}/build/CanvasSync_autogen/include
+)
 
 # ultimately run add_executable() and register CanvasSync as The build target
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

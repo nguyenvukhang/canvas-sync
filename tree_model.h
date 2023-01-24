@@ -1,12 +1,13 @@
-#ifndef TREEMODEL_H
-#define TREEMODEL_H
+#ifndef TREE_MODEL_H
+#define TREE_MODEL_H
 
 #include <QAbstractItemModel>
 #include <QModelIndex>
 #include <QVariant>
 #include <QVector>
 
-class TreeItem {
+class TreeItem
+{
 public:
   TreeItem(const QVector<QVariant> &data, TreeItem *parentItem = nullptr);
   TreeItem(const QStringList &data, TreeItem *parentItem = nullptr);
@@ -41,7 +42,8 @@ private:
   QVector<TreeItem *> childItems;
 };
 
-class TreeModel : public QAbstractItemModel {
+class TreeModel : public QAbstractItemModel
+{
   Q_OBJECT
 
 public:

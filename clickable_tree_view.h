@@ -1,3 +1,6 @@
+#ifndef CLICKABLE_TREE_VIEW_H
+#define CLICKABLE_TREE_VIEW_H
+
 #include "tree_model.h"
 #include <QTreeView>
 
@@ -15,3 +18,5 @@ public:
 signals:
   void cleared(const QModelIndex &index);
 };
+
+#endif
