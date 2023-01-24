@@ -167,13 +167,13 @@ void MainWindow::treeView_doubleClicked(const QModelIndex &index)
 
   QFileDialog dialog(this);
   to_dir_dialog(&dialog);
-  auto home = QDir::homePath();
+  QString home = QDir::homePath();
   dialog.setDirectory(this->start_dir != home ? this->start_dir : home);
   int result = dialog.exec();
 
-  auto item = ui->treeView->model()->itemFromIndex(index);
+  TreeItem *item = ui->treeView->model()->itemFromIndex(index);
 
-  auto local_dir = dialog.selectedFiles()[0];
+  QString local_dir = dialog.selectedFiles()[0];
 
   // only set the value if a value was actually chosen.
   if (result == 1) {
@@ -182,13 +182,13 @@ void MainWindow::treeView_doubleClicked(const QModelIndex &index)
 
     // clear children maps
     on_all_children(item, [&](TreeItem *child) {
-      child->setData(1, "");
+      child->setData(TreeCol::LOCAL_DIR, "");
       settings.remove(get_id(*child));
     });
 
     // clear parent maps
     on_all_parents(item, [&](TreeItem *parent) {
-      parent->setData(1, "");
+      parent->setData(TreeCol::LOCAL_DIR, "");
       settings.remove(get_id(*parent));
     });
 
@@ -196,12 +196,11 @@ void MainWindow::treeView_doubleClicked(const QModelIndex &index)
     item->setData(1, local_dir);
     settings.setValue(get_id(index), local_dir);
     settings.sync();
-  }
 
-  // updated last selected dir
-  QDir selected_dir = QDir::fromNativeSeparators(local_dir);
-  selected_dir.cdUp();
-  this->start_dir = selected_dir.path();
+    QDir selected_dir = QDir::fromNativeSeparators(local_dir);
+    selected_dir.cdUp();
+    this->start_dir = selected_dir.path();
+  }
 }
 
 void MainWindow::treeView_expanded(const QModelIndex &index)

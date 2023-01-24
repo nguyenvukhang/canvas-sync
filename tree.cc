@@ -63,8 +63,6 @@ void insert(TreeItem *item, FileTree *tree, QSettings *settings)
   }
 }
 
-enum TreeCol { REMOTE_DIR, LOCAL_DIR, FOLDER_ID };
-
 QString get_id(const QModelIndex &index)
 {
   return index.siblingAtColumn(FOLDER_ID).data().toString();
