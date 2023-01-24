@@ -113,23 +113,41 @@ void Server::run_debug()
   };
   f(224013, base / "course files/Lectures/Java Intro and ADT");
   f(234811, base / "course files/Lectures/Week1");
-  f(224011, base / "course files/Tutorials");
+  // f(224011, base / "course files/Tutorials");
+  f(282251, base / "course files/Tutorials/Tutorial1");
 
   vector<vector<File>> all_files = this->api->folder_files(&folder_ids);
 
+  bool run_download = false;
+
   int n = updates.size();
   for (int i = 0; i < n; i++) {
-    auto u = updates[i];
     auto f = all_files[i];
-    fs::path local_dir = u.local_dir;
-    cout << u.folder_id << " -> " << u.local_dir << endl;
-    for (auto i : f) {
-      auto target = local_dir / i.filename;
-      cout << target << " ? " << fs::exists(target) << endl;
-      if (!fs::exists(target)) {
-        i.local_dir = local_dir;
-        api->download(&i);
+    int fc = f.size();
+    for (int j = 0; j < fc; j++) {
+      if (!fs::exists(updates[i].local_dir / f[j].filename)) {
+        updates[i].files.push_back(f[j]);
       }
+    }
+  }
+
+  for (int i = 0; i < n; i++) {
+    if (!updates[i].files.empty()) {
+      fs::create_directories(updates[i].local_dir);
+    }
+    fs::path local_dir = updates[i].local_dir;
+    for (auto f : updates[i].files) {
+      if (!fs::exists(local_dir / f.filename) && run_download) {
+        f.local_dir = local_dir;
+        api->download(&f);
+      }
+    }
+  }
+
+  for (auto u : updates) {
+    cout << "folder id: " << u.folder_id << endl;
+    for (auto f : u.files) {
+      cout << "  * " << f.filename << endl;
     }
   }
 }

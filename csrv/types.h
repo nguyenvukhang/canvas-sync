@@ -71,11 +71,11 @@ public:
   // using `folder_id`, a list of files can be fetched from the API
   // these files will then be checked against files inside of `local_dir`
   int folder_id;
-  string local_dir;
+  std::filesystem::path local_dir;
 
   // needed for update report
   // string remote_dir; // can just read from an already-fetched vector<Folder>
-  // vector<string> files; // update after running the download's API call
+  vector<File> files; // update after running the download's API call
 
   Update(const int folder_id, const string local_dir)
   {

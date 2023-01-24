@@ -136,17 +136,18 @@ void CanvasApi::download(vector<File> *files)
 
 void CanvasApi::download(File *file)
 {
-  // create local path
+  if (!fs::exists(file->local_dir)) {
+    cerr << "Download's target directory does not exist." << endl;
+    cerr << file->local_dir << endl;
+    std::exit(1);
+  }
   fs::path local_path = file->local_dir;
-  bool ok = fs::create_directories(file->local_dir);
-  cout << "MKDIR " << file->local_dir << " -> " << ok << endl;
   local_path.append(file->filename);
-  cout << "DOWNLOADING" << file->url << "->" << local_path << endl;
   // clear existing
   fs::remove(local_path);
   std::ofstream of(local_path, std::ios::binary);
-  this->cli->get(file->url, [&](const char *data, size_t data_length) {
-    of.write(data, data_length);
+  this->cli->get(file->url, [&](const char *data, size_t len) {
+    of.write(data, len);
     return true;
   });
   of.close();
