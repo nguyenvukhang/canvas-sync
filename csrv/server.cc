@@ -87,6 +87,23 @@ vector<File> Server::folder_files(const int *folder_id)
   return this->api->folder_files(folder_id);
 }
 
+void merge_data(vector<Update> *updates, vector<vector<File>> *files)
+{
+  namespace fs = std::filesystem;
+  int n = updates->size();
+  for (int i = 0; i < n; i++) {
+    vector<File> f = files->at(i);
+    int fc = f.size();
+    fs::path local_dir = updates->at(i).local_dir;
+    for (int j = 0; j < fc; j++) {
+      if (!fs::exists(local_dir / f[j].filename)) {
+        f[j].local_dir = local_dir;
+        (*updates)[i].files.push_back(f[j]);
+      }
+    }
+  }
+}
+
 void Server::run_debug()
 {
   // 142793 /course files
@@ -118,27 +135,18 @@ void Server::run_debug()
 
   vector<vector<File>> all_files = this->api->folder_files(&folder_ids);
 
+  merge_data(&updates, &all_files);
+
   bool run_download = false;
 
   int n = updates.size();
-  for (int i = 0; i < n; i++) {
-    auto f = all_files[i];
-    int fc = f.size();
-    for (int j = 0; j < fc; j++) {
-      if (!fs::exists(updates[i].local_dir / f[j].filename)) {
-        updates[i].files.push_back(f[j]);
-      }
-    }
-  }
 
+  // run the download
   for (int i = 0; i < n; i++) {
-    if (!updates[i].files.empty()) {
-      fs::create_directories(updates[i].local_dir);
-    }
+    fs::create_directories(updates[i].local_dir);
     fs::path local_dir = updates[i].local_dir;
     for (auto f : updates[i].files) {
-      if (!fs::exists(local_dir / f.filename) && run_download) {
-        f.local_dir = local_dir;
+      if (!fs::exists(f.local_dir / f.filename) && run_download) {
         api->download(&f);
       }
     }
