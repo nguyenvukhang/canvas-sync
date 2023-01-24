@@ -15,7 +15,9 @@ QString get_local_dir(const QModelIndex &index);
 void expand_tracked(ClickableTreeView *tree);
 void fix_tree(Ui::MainWindow *ui);
 
-void clear_children(TreeItem *item, int index);
+using ItemOperator = std::function<void(TreeItem *item)>;
+void on_all_children(TreeItem *item, ItemOperator);
+void on_all_parents(TreeItem *item, ItemOperator);
 
 TreeModel *newTreeModel();
 

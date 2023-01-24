@@ -64,12 +64,21 @@ void fix_tree(Ui::MainWindow *ui)
   // // tree_view->setColumnHidden(2, true);
 }
 
-void clear_children(TreeItem *item, int data_index)
+void on_all_parents(TreeItem *item, ItemOperator func)
 {
-  item->setData(data_index, "");
-  int child_count = item->childrenItems().size();
-  for (int i = 0; i < child_count; i++) {
-    clear_children(item->child(i), data_index);
+  TreeItem *p = item->parent();
+  while (p) {
+    func(p);
+    p = p->parent();
+  }
+}
+
+void on_all_children(TreeItem *item, ItemOperator func)
+{
+  int n = item->childrenItems().size();
+  for (int i = 0; i < n; i++) {
+    func(item->child(i));
+    on_all_children(item->child(i), func);
   }
 }
 
