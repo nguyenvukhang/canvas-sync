@@ -4,13 +4,12 @@
 #include "json.hpp"
 #include <iostream> // for std::cout and std::cerr in the .cc file
 
-using namespace std;
 using json = nlohmann::json;
 
 // extract all valid sub-json to form a vec. ignore invalids.
-template <typename T> vector<T> to_vec(json j)
+template <typename T> std::vector<T> to_vec(json j)
 {
-  vector<T> v;
+  std::vector<T> v;
   for (json::iterator it = j.begin(); it != j.end(); ++it)
     try {
       v.push_back(it->get<T>());
@@ -23,10 +22,10 @@ class Profile
 {
 public:
   int id;
-  string name;
-  string primary_email;
-  string login_id;
-  string integration_id;
+  std::string name;
+  std::string primary_email;
+  std::string login_id;
+  std::string integration_id;
   Profile()
   {
     this->id = -1;
@@ -39,7 +38,7 @@ class Course
 {
 public:
   int id;
-  string name;
+  std::string name;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Course, id, name);
 
@@ -47,8 +46,8 @@ class Folder
 {
 public:
   int id;
-  string name;
-  string full_name;
+  std::string name;
+  std::string full_name;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Folder, id, name, full_name);
 
@@ -57,8 +56,8 @@ class File
 public:
   int id;
   int folder_id;
-  string filename;
-  string url;
+  std::string filename;
+  std::string url;
   std::filesystem::path local_dir;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(File, id, folder_id, filename, url);
@@ -75,10 +74,10 @@ public:
 
   // needed for update report
   int course_id;
-  string remote_dir; // can just read from an already-fetched vector<Folder>
-  vector<File> files; // update after running the download's API call
+  std::string remote_dir; // can just read from an already-fetched vector<Folder>
+  std::vector<File> files; // update after running the download's API call
 
-  Update(const int folder_id, const string local_dir)
+  Update(const int folder_id, const std::string local_dir)
   {
     this->folder_id = folder_id;
     this->local_dir = std::move(local_dir);
@@ -89,7 +88,7 @@ public:
   }
 };
 
-string normalize_filename(string *);
+std::string normalize_filename(std::string *);
 
 void debug(Profile *);
 void debug(Course *);

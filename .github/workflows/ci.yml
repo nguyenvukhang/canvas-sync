@@ -1,0 +1,26 @@
+name: ci
+
+on:
+  push:
+    branches: ["main", "dev", "min"]
+
+jobs:
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: choco install openssl
+      - uses: jurplel/install-qt-action@v3
+        with:
+          version: "6.4.0"
+      - run: make ci
+  mac:
+    name: Mac
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: jurplel/install-qt-action@v3
+        with:
+          version: "6.4.0"
+      - run: make ci

@@ -1,6 +1,7 @@
 #ifndef CANVAS_SYNC_HTTPCLIENT_H
 #define CANVAS_SYNC_HTTPCLIENT_H
 
+#include <functional>
 #include <string>
 
 class HttpClient

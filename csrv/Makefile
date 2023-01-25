@@ -18,8 +18,6 @@ develop:
 build: FORCE
 	# configure the build
 	@$(CMAKE_PRG) \
-		-DWITH_TESTS=OFF \
-		-DDEBUG_BIN=ON \
 		-B $(MAKEFILE_DIR)/build -S $(MAKEFILE_DIR) $(CMAKE_FLAGS)
 	# run the build
 	@$(CMAKE_PRG) --build $(MAKEFILE_DIR)/build

@@ -72,6 +72,9 @@ CMakeLists.txt.user*
 *.exe
 
 # additional user-set ignores
-build*
 .cache
 .env
+
+/compile_commands.json
+build/
+build.qt/

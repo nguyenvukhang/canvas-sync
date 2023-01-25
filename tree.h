@@ -24,7 +24,7 @@ QString get_remote_dir(const TreeItem &);
 void expand_tracked(ClickableTreeView *tree);
 void fix_tree(Ui::MainWindow *ui);
 
-vector<Update> resolve_all_folders(TreeItem *item);
+std::vector<Update> resolve_all_folders(TreeItem *item);
 
 using ItemOperator = std::function<void(TreeItem *item)>;
 void on_all_children(TreeItem *item, ItemOperator);

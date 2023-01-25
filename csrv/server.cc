@@ -2,19 +2,19 @@
 #include "debug.h"
 #include <algorithm>
 #include <filesystem>
+#include <functional>
 #include <map>
 
 using Server = canvas::Server;
-using namespace std;
 
 Server::Server(const char *token, const char *base_url)
 {
-  string token_s = token;
+  std::string token_s = token;
   this->base_url.assign(base_url);
   this->api = new CanvasApi(new HttpJson(&token_s, &this->base_url));
 }
 
-Server::Server(string *token, string *base_url)
+Server::Server(std::string *token, std::string *base_url)
 {
   this->base_url.assign(*base_url);
   this->api = new CanvasApi(new HttpJson(token, base_url));
@@ -29,7 +29,7 @@ void Server::run()
 void Server::load_tree()
 {
   this->courses = api->courses();
-  // vector<Course> courses = api->course_folders();
+  // std::vector<Course> courses = api->course_folders();
   api->courses_file_tree(&this->tree, &this->courses);
 }
 
@@ -38,23 +38,23 @@ void Server::load()
   api->load(&this->tree, &this->courses, &this->folder_names);
 }
 
-void Server::fetch_updates(vector<Update> *u)
+void Server::fetch_updates(std::vector<Update> *u)
 {
-  vector<int> folder_ids;
-  int n = u->size();
-  for (int i = 0; i < n; i++) {
+  std::vector<int> folder_ids;
+  size_t n = u->size();
+  for (size_t i = 0; i < n; i++) {
     folder_ids.push_back(u->at(i).folder_id);
   }
-  vector<vector<File>> af = this->api->folder_files(&folder_ids);
+  std::vector<std::vector<File>> af = this->api->folder_files(&folder_ids);
   this->merge_data(u, &af);
 }
 
-void Server::download_updates(const vector<Update> *u)
+void Server::download_updates(const std::vector<Update> *u)
 {
-  int n = u->size();
-  for (int i = 0; i < n; i++) {
-    filesystem::create_directories(u->at(i).local_dir);
-    vector<File> files = u->at(i).files;
+  size_t n = u->size();
+  for (size_t i = 0; i < n; i++) {
+    std::filesystem::create_directories(u->at(i).local_dir);
+    std::vector<File> files = u->at(i).files;
     api->download(&files);
   }
 }
@@ -64,12 +64,12 @@ FileTree *Server::get_tree()
   return &this->tree;
 }
 
-string Server::dump_tree()
+std::string Server::dump_tree()
 {
   return this->tree.to_string();
 }
 
-void Server::set_token(string *token)
+void Server::set_token(std::string *token)
 {
   this->api = new CanvasApi(new HttpJson(token, &this->base_url));
 }
@@ -79,16 +79,16 @@ bool Server::valid_token()
   return this->api->profile().id > 0;
 }
 
-std::map<int, vector<File>> to_map(vector<File> *files)
+std::map<int, std::vector<File>> to_map(std::vector<File> *files)
 {
-  std::map<int, vector<File>> m;
+  std::map<int, std::vector<File>> m;
   for (auto f : *files) {
     auto key = m.find(f.folder_id);
     // already exists
     if (key != m.end()) {
       key->second.push_back(f);
     } else {
-      vector<File> files;
+      std::vector<File> files;
       files.push_back(f);
       m.insert(std::pair(f.folder_id, files));
     }
@@ -96,35 +96,36 @@ std::map<int, vector<File>> to_map(vector<File> *files)
   return m;
 }
 
-void insert_files(FileTree *tree, std::map<int, vector<File>> *files)
+void insert_files(FileTree *tree, std::map<int, std::vector<File>> *files)
 {
   auto key = files->extract(tree->id);
   if (!key.empty()) {
-    cout << "hit! " << tree->id << " @ " << tree->name << endl;
-    vector<File> v = key.mapped();
+    std::cout << "hit! " << tree->id << " @ " << tree->name << std::endl;
+    std::vector<File> v = key.mapped();
     tree->files.assign(v.begin(), v.end());
   }
-  int n = tree->folders.size();
-  for (int i = 0; i < n; i++) {
+  size_t n = tree->folders.size();
+  for (size_t i = 0; i < n; i++) {
     insert_files(&tree->folders[i], files);
   }
 }
 
-vector<File> Server::folder_files(const int *folder_id)
+std::vector<File> Server::folder_files(const int *folder_id)
 {
   return this->api->folder_files(folder_id);
 }
 
-void Server::merge_data(vector<Update> *updates, vector<vector<File>> *files)
+void Server::merge_data(std::vector<Update> *updates,
+                        std::vector<std::vector<File>> *files)
 {
   namespace fs = std::filesystem;
-  int n = updates->size();
-  for (int i = 0; i < n; i++) {
-    vector<File> f = files->at(i);
-    int fc = f.size();
+  size_t n = updates->size();
+  for (size_t i = 0; i < n; i++) {
+    std::vector<File> f = files->at(i);
+    size_t fc = f.size();
     fs::path local_dir = updates->at(i).local_dir;
     (*updates)[i].remote_dir = this->folder_name(updates->at(i).folder_id);
-    for (int j = 0; j < fc; j++) {
+    for (size_t j = 0; j < fc; j++) {
       if (!fs::exists(local_dir / f[j].filename)) {
         f[j].local_dir = local_dir;
         (*updates)[i].files.push_back(f[j]);
@@ -133,15 +134,15 @@ void Server::merge_data(vector<Update> *updates, vector<vector<File>> *files)
   }
 }
 
-string Server::folder_name(int folder_id)
+std::string Server::folder_name(int folder_id)
 {
   return this->folder_names.at(folder_id);
 }
 
-string Server::course_name(int course_id)
+std::string Server::course_name(int course_id)
 {
   auto c = this->courses;
-  int i = this->courses.size();
+  size_t i = this->courses.size();
   while (i-- > 0) {
     if (this->courses[i].id == course_id) {
       return this->courses[i].name;
@@ -152,57 +153,4 @@ string Server::course_name(int course_id)
 
 void Server::run_debug()
 {
-  // 142793 /course files
-  // 235231 /course files/Lecture
-  // 270993 /course files/Recitation
-  //
-  // 142803 /course files
-  // 224009 /course files/Labs
-  // 224010 /course files/Lectures
-  // 224013 /course files/Lectures/Java Intro and ADT
-  // 234811 /course files/Lectures/Week1
-  // 260627 /course files/Lectures/Week2
-  // 282247 /course files/Lectures/Week3
-  // 224011 /course files/Tutorials
-  // 282251 /course files/Tutorials/Tutorial1
-
-  namespace fs = std::filesystem;
-  fs::path base = "/Users/khang/uni/CS2040-ta";
-  vector<Update> updates;
-  vector<int> folder_ids;
-  std::function<void(int, string)> f = [&](int i, string s) {
-    updates.push_back(*new Update(i, s));
-    folder_ids.push_back(i);
-  };
-  this->load();
-  f(224013, base / "course files/Lectures/Java Intro and ADT");
-  f(234811, base / "course files/Lectures/Week1");
-  // f(224011, base / "course files/Tutorials");
-  f(282251, base / "course files/Tutorials/Tutorial1");
-
-  vector<vector<File>> all_files = this->api->folder_files(&folder_ids);
-
-  this->merge_data(&updates, &all_files);
-
-  bool run_download = false;
-
-  int n = updates.size();
-
-  // run the download
-  for (int i = 0; i < n; i++) {
-    fs::create_directories(updates[i].local_dir);
-    fs::path local_dir = updates[i].local_dir;
-    for (auto f : updates[i].files) {
-      if (!fs::exists(f.local_dir / f.filename) && run_download) {
-        api->download(&f);
-      }
-    }
-  }
-
-  for (auto u : updates) {
-    cout << "folder id: " << u.folder_id << u.remote_dir << endl;
-    for (auto f : u.files) {
-      cout << "  * " << f.filename << endl;
-    }
-  }
 }

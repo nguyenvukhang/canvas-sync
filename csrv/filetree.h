@@ -4,13 +4,11 @@
 #include "types.h"
 #include <vector> // for std::vector
 
-using namespace std;
-
 class FileTree {
 private:
   // for recursion with the public variant
-  void insert_tree(FileTree *, string);
-  void to_string(string *);
+  void insert_tree(FileTree *, std::string);
+  void to_string(std::string *);
 
 public:
   FileTree() {
@@ -18,18 +16,18 @@ public:
     this->name = "root";
   }
   FileTree(const int, const char *);
-  FileTree(const int, const string);
+  FileTree(const int, const std::string);
   FileTree(Folder *);
   FileTree(Course *);
   int id; // either course id or folder id.
-  string name;
-  vector<FileTree> folders;
-  vector<File> files;
+  std::string name;
+  std::vector<FileTree> folders;
+  std::vector<File> files;
   void insert_folder(Folder *);
-  void insert_folders(vector<Folder>);
+  void insert_folders(std::vector<Folder>);
   void insert_tree(FileTree *);
   void insert_file(File *);
-  string to_string();
+  std::string to_string();
 };
 void debug(FileTree *);
 

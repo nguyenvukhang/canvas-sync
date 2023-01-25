@@ -1,8 +1,6 @@
 #include <csrv.h>
 #include <iostream>
 
-using namespace std;
-
 int main()
 {
   canvas::Server server(CanvasApi::get_token_from_env(),

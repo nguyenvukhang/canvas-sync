@@ -10,13 +10,13 @@ protected:
     f.full_name = full_name;
     f.id = id;
     int idx = f.full_name.rfind('/');
-    f.name = idx == string::npos ? full_name : f.full_name.substr(idx + 1);
+    f.name = idx == std::string::npos ? full_name : f.full_name.substr(idx + 1);
     return f;
   }
   // create a tree from the list of folders
   FileTree t(Folder *f, int arr_len) {
     FileTree *tree = new FileTree(0, "root");
-    vector<Folder> folders;
+    std::vector<Folder> folders;
     for (int i = 0; i < arr_len; i++)
       folders.push_back(f[i]);
     tree->insert_folders(folders);

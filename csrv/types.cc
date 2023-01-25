@@ -1,4 +1,5 @@
 #include "types.h"
+#include <cstdarg>
 
 void eprintln(const char *fmt, ...)
 {
@@ -8,9 +9,9 @@ void eprintln(const char *fmt, ...)
   std::cerr << std::endl;
 }
 
-string normalize_filename(const char *a, int size)
+std::string normalize_filename(const char *a, size_t size)
 {
-  string result = "";
+  std::string result = "";
   while (size-- > 0) {
     if (*a == '+' || *a == '-' || *a == ' ') {
       result.push_back('_');
@@ -24,10 +25,10 @@ string normalize_filename(const char *a, int size)
   return result;
 }
 
-string normalize_filename(string *v)
+std::string normalize_filename(std::string *v)
 {
-  int n = v->size();
-  string s = normalize_filename(v->c_str(), n);
+  size_t n = v->size();
+  std::string s = normalize_filename(v->c_str(), n);
   while (s.size() < n)
     s = normalize_filename(s.c_str(), (n = s.size()));
   return s;

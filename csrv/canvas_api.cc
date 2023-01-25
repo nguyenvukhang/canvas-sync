@@ -4,24 +4,25 @@
 #include "filetree.h"
 #include <filesystem>
 #include <fstream>
+#include <functional>
 
 using json = nlohmann::json;
 namespace fs = std::filesystem;
 
 template <typename T, typename I>
-vector<T> get_many(const vector<I> *input, function<T(I)> func,
-                   int parallel = 5)
+std::vector<T> get_many(const std::vector<I> *input, std::function<T(I)> func,
+                        int parallel = 5)
 {
-  vector<future<T>> futures;
+  std::vector<std::future<T>> futures;
   BS::thread_pool pool(parallel);
-  int n = input->size();
-  for (int i = 0; i < n; i++) {
+  size_t n = input->size();
+  for (size_t i = 0; i < n; i++) {
     I input_value = input->at(i);
-    future<T> fut =
+    std::future<T> fut =
         pool.submit([func, input_value] { return func(input_value); });
     futures.push_back(std::move(fut));
   }
-  vector<T> all;
+  std::vector<T> all;
   for (auto fut = futures.begin(); fut < futures.end(); fut++) {
     T f = fut->get();
     all.push_back(std::move(f));
@@ -40,51 +41,53 @@ Profile CanvasApi::profile()
   }
 }
 
-vector<Course> CanvasApi::courses()
+std::vector<Course> CanvasApi::courses()
 {
   json j = this->get("/api/v1/users/self/courses?per_page=118");
   return to_vec<Course>(j);
 }
 
-vector<File> CanvasApi::course_files(const int *course_id)
+std::vector<File> CanvasApi::course_files(const int *course_id)
 {
-  string url =
-      "/api/v1/courses/" + to_string(*course_id) + "/files?per_page=10000";
+  std::string url =
+      "/api/v1/courses/" + std::to_string(*course_id) + "/files?per_page=10000";
   json j = this->get(url.c_str());
   return to_vec<File>(j);
 }
 
-vector<File> CanvasApi::folder_files(const int *folder_id)
+std::vector<File> CanvasApi::folder_files(const int *folder_id)
 {
-  string url =
-      "/api/v1/folders/" + to_string(*folder_id) + "/files?per_page=10000";
+  std::string url =
+      "/api/v1/folders/" + std::to_string(*folder_id) + "/files?per_page=10000";
   json j = this->get(url.c_str());
   auto v = to_vec<File>(j);
-  int n = v.size();
+  size_t n = v.size();
   while (n-- > 0)
     v[n].filename = normalize_filename(&v[n].filename);
   return v;
 }
 
-vector<vector<File>> CanvasApi::folder_files(const vector<int> *folder_ids)
+std::vector<std::vector<File>>
+CanvasApi::folder_files(const std::vector<int> *folder_ids)
 {
-  function<vector<File>(int)> get = [this](int folder_id) {
+  std::function<std::vector<File>(int)> get = [this](int folder_id) {
     return this->folder_files(&folder_id);
   };
   return get_many(folder_ids, get);
 }
 
-vector<Folder> CanvasApi::course_folders(const int *course_id)
+std::vector<Folder> CanvasApi::course_folders(const int *course_id)
 {
-  string url =
-      "/api/v1/courses/" + to_string(*course_id) + "/folders?per_page=10000";
+  std::string url = "/api/v1/courses/" + std::to_string(*course_id) +
+                    "/folders?per_page=10000";
   json j = this->get(url.c_str());
   return to_vec<Folder>(j);
 }
 
-vector<vector<Folder>> CanvasApi::course_folders(const vector<int> *course_ids)
+std::vector<std::vector<Folder>>
+CanvasApi::course_folders(const std::vector<int> *course_ids)
 {
-  function<vector<Folder>(int)> b = [this](int course_id) {
+  std::function<std::vector<Folder>(int)> b = [this](int course_id) {
     return this->course_folders(&course_id);
   };
   return get_many(course_ids, b);
@@ -92,16 +95,16 @@ vector<vector<Folder>> CanvasApi::course_folders(const vector<int> *course_ids)
 
 FileTree CanvasApi::courses_file_tree()
 {
-  vector<Course> courses = this->courses();
-  vector<int> course_ids;
+  std::vector<Course> courses = this->courses();
+  std::vector<int> course_ids;
   for (auto c : courses)
     course_ids.push_back(c.id);
-  vector<vector<Folder>> folders = this->course_folders(&course_ids);
+  std::vector<std::vector<Folder>> folders = this->course_folders(&course_ids);
 
   FileTree *root = new FileTree(0, "root");
 
-  int n = course_ids.size();
-  for (int i = 0; i < n; i++) {
+  size_t n = course_ids.size();
+  for (size_t i = 0; i < n; i++) {
     FileTree *tree = new FileTree(&courses[i]);
     tree->insert_folders(folders[i]);
     root->insert_tree(tree);
@@ -110,16 +113,17 @@ FileTree CanvasApi::courses_file_tree()
   return *root;
 };
 
-void CanvasApi::load(FileTree *t, vector<Course> *c, map<int, string> *m)
+void CanvasApi::load(FileTree *t, std::vector<Course> *c,
+                     std::map<int, std::string> *m)
 {
   *c = this->courses();
-  vector<int> c_ids;
+  std::vector<int> c_ids;
   for (auto c : *c)
     c_ids.push_back(c.id);
-  vector<vector<Folder>> folders = this->course_folders(&c_ids);
+  std::vector<std::vector<Folder>> folders = this->course_folders(&c_ids);
 
-  int n = c_ids.size();
-  for (int i = 0; i < n; i++) {
+  size_t n = c_ids.size();
+  for (size_t i = 0; i < n; i++) {
     FileTree *tree = new FileTree(&c->at(i));
     tree->insert_folders(folders[i]);
     t->insert_tree(tree);
@@ -130,15 +134,16 @@ void CanvasApi::load(FileTree *t, vector<Course> *c, map<int, string> *m)
       m->insert(std::pair(f.id, f.full_name));
 }
 
-void CanvasApi::courses_file_tree(FileTree *root, const vector<Course> *courses)
+void CanvasApi::courses_file_tree(FileTree *root,
+                                  const std::vector<Course> *courses)
 {
-  vector<future<FileTree>> futures;
+  std::vector<std::future<FileTree>> futures;
   BS::thread_pool pool(5);
 
   for (auto it = courses->begin(); it < courses->end(); it++) {
     Course course = *it;
     FileTree *tree = new FileTree(&course);
-    future<FileTree> course_tree = pool.submit([tree, this] {
+    std::future<FileTree> course_tree = pool.submit([tree, this] {
       tree->insert_folders(this->course_folders(&tree->id));
       return *tree;
     });
@@ -151,13 +156,13 @@ void CanvasApi::courses_file_tree(FileTree *root, const vector<Course> *courses)
   }
 };
 
-void CanvasApi::download(vector<File> *files)
+void CanvasApi::download(std::vector<File> *files)
 {
   BS::thread_pool pool(5);
-  vector<future<void>> futures;
+  std::vector<std::future<void>> futures;
 
   for (auto file : *files) {
-    future<void> dl = pool.submit([file, this] {
+    std::future<void> dl = pool.submit([file, this] {
       File f = file;
       return this->download(&f);
     });
@@ -170,8 +175,8 @@ void CanvasApi::download(vector<File> *files)
 void CanvasApi::download(File *file)
 {
   if (!fs::exists(file->local_dir)) {
-    cerr << "Download's target directory does not exist." << endl;
-    cerr << file->local_dir << endl;
+    std::cerr << "Download's target directory does not exist." << std::endl;
+    std::cerr << file->local_dir << std::endl;
     std::exit(1);
   }
   fs::path local_path = file->local_dir;

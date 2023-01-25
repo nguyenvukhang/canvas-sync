@@ -51,12 +51,12 @@ MainWindow::~MainWindow()
   delete ui;
 }
 
-vector<Update> gather_tracked(TreeModel *model)
+std::vector<Update> gather_tracked(TreeModel *model)
 {
-  vector<Update> all;
+  std::vector<Update> all;
   int n = model->childrenCount();
   for (int i = 0; i < n; i++) {
-    vector<Update> updates = resolve_all_folders(model->item(i));
+    std::vector<Update> updates = resolve_all_folders(model->item(i));
     for (auto u : updates) {
       all.push_back(std::move(u));
     }
@@ -64,7 +64,7 @@ vector<Update> gather_tracked(TreeModel *model)
   return all;
 }
 
-void MainWindow::show_updates(const vector<Update> &u)
+void MainWindow::show_updates(const std::vector<Update> &u)
 {
   QString buffer, tmp;
   int prev_course = -1;
@@ -107,12 +107,11 @@ void MainWindow::fetch_clicked()
   ui->pushButton_fetch->setText("Fetching...");
   ui->pushButton_fetch->repaint();
   qApp->processEvents();
-  vector<Update> all = gather_tracked(ui->treeView->model());
+  std::vector<Update> all = gather_tracked(ui->treeView->model());
   server.fetch_updates(&all);
   ui->pushButton_fetch->setText("Fetch");
   ui->pushButton_fetch->setDisabled(false);
   this->show_updates(all);
-
 }
 
 void MainWindow::pull_clicked()
@@ -121,9 +120,11 @@ void MainWindow::pull_clicked()
   ui->pushButton_pull->setText("Pulling...");
   ui->pushButton_pull->repaint();
   qApp->processEvents();
-  vector<Update> all = gather_tracked(ui->treeView->model());
+  std::vector<Update> all = gather_tracked(ui->treeView->model());
   server.fetch_updates(&all);
-  server.download_updates(&all);
+  QFuture<void> fut =
+      QtConcurrent::run([this, all] { return server.download_updates(&all); });
+  fut.waitForFinished();
   ui->pushButton_pull->setText("Pull");
   ui->pushButton_pull->setDisabled(false);
   this->show_updates(all);
@@ -157,7 +158,7 @@ void MainWindow::try_auth(const QString &token)
 {
   this->token = token;
   if (token.size() > 20) {
-    string token_s = token.toStdString();
+    std::string token_s = token.toStdString();
     this->server.set_token(&token_s);
     ui->label_authenticationStatus->setText("authenticating...");
     ui->label_authenticationStatus->repaint();

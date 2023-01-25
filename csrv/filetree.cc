@@ -4,13 +4,13 @@
 
 void debug(FileTree *t, int level)
 {
-  string indent = string(2 * (level + 1), ' ');
-  cout << indent << t->id << ", " << t->name << endl;
+  std::string indent = std::string(2 * (level + 1), ' ');
+  std::cout << indent << t->id << ", " << t->name << std::endl;
   for (FileTree nested : t->folders) {
     debug(&nested, level + 1);
   }
   for (auto file : t->files) {
-    cout << indent << file.filename << endl;
+    std::cout << indent << file.filename << std::endl;
   }
   // if (t->files.empty()) {
   //   cout << indent << "[no files]" << endl;
@@ -18,7 +18,7 @@ void debug(FileTree *t, int level)
 }
 void debug(FileTree *t)
 {
-  cerr << "FileTree" << endl;
+  std::cerr << "FileTree" << std::endl;
   debug(t, 0);
 }
 
@@ -28,7 +28,7 @@ FileTree::FileTree(const int id, const char *name)
   this->id = id;
 }
 
-FileTree::FileTree(const int id, const string name)
+FileTree::FileTree(const int id, const std::string name)
 {
   this->name = name;
   this->id = id;
@@ -46,7 +46,7 @@ FileTree::FileTree(Course *c)
   this->id = c->id;
 }
 
-void FileTree::to_string(string *state)
+void FileTree::to_string(std::string *state)
 {
   *state += "{(" + std::to_string(this->id) + ',' + this->name + "):";
   for (FileTree nested : this->folders) {
@@ -55,9 +55,9 @@ void FileTree::to_string(string *state)
   *state += '}';
 }
 
-string FileTree::to_string()
+std::string FileTree::to_string()
 {
-  string state = "";
+  std::string state = "";
   this->to_string(&state);
   return state;
 }
@@ -72,27 +72,27 @@ void FileTree::insert_folder(Folder *f)
   this->insert_tree(new FileTree(f), f->full_name);
 }
 
-void FileTree::insert_folders(vector<Folder> folders)
+void FileTree::insert_folders(std::vector<Folder> folders)
 {
   sort(folders.begin(), folders.end(), compareFolderPath);
   for (Folder f : folders)
     this->insert_folder(&f);
 }
 
-void FileTree::insert_tree(FileTree *t, string state)
+void FileTree::insert_tree(FileTree *t, std::string state)
 {
-  int slash_idx = state.find('/');
+  size_t slash_idx = state.find('/');
 
   // no more folders to traverse. insert here.
-  if (slash_idx == string::npos) {
+  if (slash_idx == std::string::npos) {
     this->folders.push_back(*t);
     return;
   }
 
   // find the next folder to go recurse into.
-  string query = state.substr(0, slash_idx);
-  int size = this->folders.size();
-  for (int i = 0; i < size; i++) {
+  std::string query = state.substr(0, slash_idx);
+  size_t size = this->folders.size();
+  for (size_t i = 0; i < size; i++) {
     if (this->folders[i].name != query)
       continue;
     this->folders[i].insert_tree(t, state.substr(slash_idx + 1));

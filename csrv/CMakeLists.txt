@@ -5,9 +5,6 @@ project(CanvasServer VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1) # to build compile_commands.json
 
-option(WITH_TESTS "Compile a test binary to run separately" OFF)
-option(DEBUG_BIN "Compile a debug binary to run separately" OFF)
-
 # `CanvasServer` as main output library
 set(SOURCES 
   types.cc
@@ -17,20 +14,24 @@ set(SOURCES
   httpjson.cc
   server.cc
 )
-
-# link openssl stuff so `https` requests are handled properly
-set(OPENSSL_DIR /opt/homebrew/Cellar/openssl@3/3.0.7)
-set(OPENSSL_LIB ${OPENSSL_DIR}/lib/libssl.a ${OPENSSL_DIR}/lib/libcrypto.a)
-set(LINK_LIBS ${OPENSSL_LIB})
-set(INCLUDE_DIRS
-  ${OPENSSL_DIR}/include
+add_library(CanvasServer ${SOURCES})
+if (APPLE AND NOT DEFINED OPENSSL_ROOT_DIR)
+  execute_process(
+    COMMAND brew --prefix openssl@3
+    RESULT_VARIABLE OPENSSL_ROOT_DIR_R
+    OUTPUT_VARIABLE OPENSSL_ROOT_DIR
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  if (NOT OPENSSL_ROOT_DIR_R EQUAL 0 OR NOT EXISTS "${OPENSSL_ROOT_DIR}")
+    message(SEND_ERROR "csrv on MacOS: Unable to locate OpenSSL installation.")
+  endif()
+endif()
+find_package(OpenSSL REQUIRED)
+target_link_libraries(CanvasServer OpenSSL::SSL)
+target_include_directories(CanvasServer PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
-
-add_library(CanvasServer ${SOURCES})
-target_link_libraries(CanvasServer ${LINK_LIBS})
-target_include_directories(CanvasServer PUBLIC ${INCLUDE_DIRS})
 
 # get GoogleTest suite
 include(FetchContent)

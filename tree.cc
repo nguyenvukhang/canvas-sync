@@ -4,9 +4,9 @@
 namespace fs = std::filesystem;
 
 void resolve_all_folders(TreeItem *item, fs::path *local_base_dir,
-                         fs::path *cwd, vector<Update> *list)
+                         fs::path *cwd, std::vector<Update> *list)
 {
-  string local_dir = get_local_dir(*item).toStdString();
+  std::string local_dir = get_local_dir(*item).toStdString();
 
   if (!cwd->empty() && !local_dir.empty()) {
     qDebug() << "NOT SUPPOSED TO REACH HERE";
@@ -39,9 +39,9 @@ void resolve_all_folders(TreeItem *item, fs::path *local_base_dir,
 
 // assume here that `item` contains information about the module itself,
 // and thus is not included in the resolution of the path.
-vector<Update> resolve_all_folders(TreeItem *item)
+std::vector<Update> resolve_all_folders(TreeItem *item)
 {
-  vector<Update> list;
+  std::vector<Update> list;
   auto children = item->childrenItems();
   for (auto child : children) {
     fs::path p = "";
@@ -62,7 +62,7 @@ void insert(TreeItem *item, FileTree *tree, QSettings *settings)
     return;
   for (int i = 0; i < child_count; i++) {
     auto f = tree->folders[i];
-    QString id = QString::fromStdString(to_string(f.id));
+    QString id = QString::fromStdString(std::to_string(f.id));
     QString name = QString::fromStdString(f.name);
     QString dir = settings->value(id).toString();
     item->appendChild(new TreeItem(QStringList() << name << dir << id));
