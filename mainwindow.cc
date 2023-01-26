@@ -5,6 +5,7 @@
 #include "tree_model.h"
 #include "ui_mainwindow.h"
 #include "updates.h"
+#include <algorithm>
 #include <csrv.h>
 
 #include <QApplication>
@@ -84,6 +85,7 @@ MainWindow::MainWindow(QWidget *parent)
 
   this->token = settings.value("token").toString().toStdString();
   this->ui->pushButton_changeToken->setHidden(true);
+  this->ui->treeView->setModel(newTreeModel());
 }
 
 MainWindow::~MainWindow()
@@ -146,17 +148,15 @@ void MainWindow::courses_fetched(QNetworkReply *r)
   }
   auto j = to_json(r);
   this->user_courses = to_courses(j);
-  for (auto c : this->user_courses) {
-    this->fetch_course_folders(c.id);
-  }
+  for (auto c : this->user_courses)
+    this->fetch_course_folders(c);
   r->deleteLater();
 }
 
-void MainWindow::course_folders_fetched()
+void MainWindow::course_folders_fetched(const Course &c)
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
-  // disconnect(&this->nw, SIGNAL(finished(QNetworkReply *)), this,
-  //            SLOT(course_folders_fetched(QNetworkReply *)));
+  disconnect(r);
   if (r->error() != QNetworkReply::NoError) {
     r->deleteLater();
     qDebug() << "Network Error: " << r->errorString();
@@ -164,11 +164,14 @@ void MainWindow::course_folders_fetched()
   }
   auto j = to_json(r);
   std::vector<Folder> f = to_folders(j);
-  for (auto f : f) {
-    qDebug() << "Folder -> " << f.name.c_str();
-  }
+  qDebug() << c.name.c_str() << "has" << f.size() << "folders";
+  FileTree t(&c);
+  t.insert_folders(f);
+  tree_mtx.lock();
+  tree.insert_tree(&t);
+  this->refresh_tree();
+  tree_mtx.unlock();
   r->deleteLater();
-  qDebug() << "RESPONSE:" << r->readAll();
 }
 
 /// TREEVIEW SLOTS ---
@@ -255,6 +258,17 @@ void MainWindow::treeView_collapsed(const QModelIndex &index)
 /// HELPER FUNCTIONS
 //////////////////////////////////////////////////////////////////////
 
+void MainWindow::refresh_tree()
+{
+  TreeModel *model = newTreeModel();
+  insert(model->item(0), &tree, &settings); // buggy line
+  ui->treeView->setModel(model);
+  ui->treeView->resizeColumnToContents(0);
+  expand_tracked(ui->treeView);
+  // FIXME: after debugging, hide ids from user
+  // ui->treeView->setColumnHidden(FOLDER_ID, true);
+}
+
 void MainWindow::set_auth_state(bool authenticated)
 {
   qDebug() << "MainWindow::set_auth_state -> " << authenticated;
@@ -293,14 +307,12 @@ void MainWindow::fetch_courses()
   this->nw.get(r);
 }
 
-void MainWindow::fetch_course_folders(int course_id)
+void MainWindow::fetch_course_folders(const Course &c)
 {
-  std::string url = "/api/v1/courses/" + std::to_string(course_id) + "/folders";
+  std::string url = "/api/v1/courses/" + std::to_string(c.id) + "/folders";
   qDebug() << "[" << url.c_str() << "]";
   QNetworkRequest r = req(url);
-  QByteArray c_id = std::to_string(course_id).c_str();
-  r.setRawHeader("course_id", c_id);
   QNetworkReply *a = this->nw.get(r);
   connect(a, &QNetworkReply::finished, this,
-          &MainWindow::course_folders_fetched);
+          [=]() { this->course_folders_fetched(c); });
 }

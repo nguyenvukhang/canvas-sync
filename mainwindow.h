@@ -8,6 +8,7 @@
 #include <QNetworkRequest>
 #include <QSettings>
 #include <csrv.h>
+#include <mutex>
 
 class Network : public QNetworkAccessManager
 {
@@ -75,7 +76,7 @@ private slots:
   // network stuff
   void check_auth_fetched(QNetworkReply *);
   void courses_fetched(QNetworkReply *);
-  void course_folders_fetched();
+  void course_folders_fetched(const Course &);
   // tree stuff
   void treeView_clicked(const QModelIndex &);
   void treeView_doubleClicked(const QModelIndex &);
@@ -84,15 +85,20 @@ private slots:
   void treeView_collapsed(const QModelIndex &);
 
 public:
+  bool has_fetched_course(int course_id);
+  void refresh_tree();
   void set_auth_state(bool);
   void show_updates(const std::vector<Update> &);
   void check_auth(const QString &token);
   void fetch_courses();
-  void fetch_course_folders(int course_id);
+  void fetch_course_folders(const Course &);
 
   // data
   bool authenticated = false;
+  std::mutex tree_mtx;
+  std::vector<int> fetched_course_ids;
   QSettings settings;
+  FileTree tree;
   std::vector<Course> user_courses;
   std::string token, base_url = "https://canvas.nus.edu.sg";
   Ui::MainWindow *ui;
