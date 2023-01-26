@@ -126,15 +126,48 @@ void MainWindow::check_auth_fetched(QNetworkReply *r)
              SLOT(check_auth_fetched(QNetworkReply *)));
   if (r->error() != QNetworkReply::NoError) {
     r->deleteLater();
+    qDebug() << "Network Error: " << r->errorString();
     return;
   }
   auto j = to_json(r);
-  this->set_auth_state(is_valid_profile(j));
+  this->set_auth_state(is_valid_profile(j.object()));
+  this->fetch_courses();
   r->deleteLater();
 }
 
-void MainWindow::treeData_fetched(QNetworkReply *r)
+void MainWindow::courses_fetched(QNetworkReply *r)
 {
+  disconnect(&this->nw, SIGNAL(finished(QNetworkReply *)), this,
+             SLOT(courses_fetched(QNetworkReply *)));
+  if (r->error() != QNetworkReply::NoError) {
+    r->deleteLater();
+    qDebug() << "Network Error: " << r->errorString();
+    return;
+  }
+  auto j = to_json(r);
+  this->user_courses = to_courses(j);
+  for (auto c : this->user_courses) {
+    this->fetch_course_folders(c.id);
+  }
+  r->deleteLater();
+}
+
+void MainWindow::course_folders_fetched()
+{
+  QNetworkReply *r = (QNetworkReply *)this->sender();
+  // disconnect(&this->nw, SIGNAL(finished(QNetworkReply *)), this,
+  //            SLOT(course_folders_fetched(QNetworkReply *)));
+  if (r->error() != QNetworkReply::NoError) {
+    r->deleteLater();
+    qDebug() << "Network Error: " << r->errorString();
+    return;
+  }
+  auto j = to_json(r);
+  std::vector<Folder> f = to_folders(j);
+  for (auto f : f) {
+    qDebug() << "Folder -> " << f.name.c_str();
+  }
+  r->deleteLater();
   qDebug() << "RESPONSE:" << r->readAll();
 }
 
@@ -250,4 +283,24 @@ void MainWindow::check_auth(const QString &token)
   connect(&this->nw, SIGNAL(finished(QNetworkReply *)), this,
           SLOT(check_auth_fetched(QNetworkReply *)));
   this->nw.get(r);
+}
+
+void MainWindow::fetch_courses()
+{
+  QNetworkRequest r = req("/api/v1/courses");
+  connect(&this->nw, SIGNAL(finished(QNetworkReply *)), this,
+          SLOT(courses_fetched(QNetworkReply *)));
+  this->nw.get(r);
+}
+
+void MainWindow::fetch_course_folders(int course_id)
+{
+  std::string url = "/api/v1/courses/" + std::to_string(course_id) + "/folders";
+  qDebug() << "[" << url.c_str() << "]";
+  QNetworkRequest r = req(url);
+  QByteArray c_id = std::to_string(course_id).c_str();
+  r.setRawHeader("course_id", c_id);
+  QNetworkReply *a = this->nw.get(r);
+  connect(a, &QNetworkReply::finished, this,
+          &MainWindow::course_folders_fetched);
 }

@@ -56,7 +56,6 @@ class MainWindow : public QMainWindow
 private:
   QNetworkRequest req(std::string url)
   {
-    qDebug() << "MainWindow::req with token " << this->token.c_str();
     QUrl qrl((this->base_url + url).c_str());
     QNetworkRequest r(qrl);
     r.setRawHeader("Authorization",
@@ -75,7 +74,8 @@ private slots:
   void accessToken_textChanged(const QString &);
   // network stuff
   void check_auth_fetched(QNetworkReply *);
-  void treeData_fetched(QNetworkReply *);
+  void courses_fetched(QNetworkReply *);
+  void course_folders_fetched();
   // tree stuff
   void treeView_clicked(const QModelIndex &);
   void treeView_doubleClicked(const QModelIndex &);
@@ -87,10 +87,13 @@ public:
   void set_auth_state(bool);
   void show_updates(const std::vector<Update> &);
   void check_auth(const QString &token);
+  void fetch_courses();
+  void fetch_course_folders(int course_id);
 
   // data
   bool authenticated = false;
   QSettings settings;
+  std::vector<Course> user_courses;
   std::string token, base_url = "https://canvas.nus.edu.sg";
   Ui::MainWindow *ui;
   Network nw;
