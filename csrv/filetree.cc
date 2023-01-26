@@ -22,30 +22,6 @@ void debug(FileTree *t)
   debug(t, 0);
 }
 
-FileTree::FileTree(const int id, const char *name)
-{
-  this->name = name;
-  this->id = id;
-}
-
-FileTree::FileTree(const int id, const std::string name)
-{
-  this->name = name;
-  this->id = id;
-}
-
-FileTree::FileTree(Folder *f)
-{
-  this->name = f->name;
-  this->id = f->id;
-}
-
-FileTree::FileTree(Course *c)
-{
-  this->name = c->name;
-  this->id = c->id;
-}
-
 void FileTree::to_string(std::string *state)
 {
   *state += "{(" + std::to_string(this->id) + ',' + this->name + "):";

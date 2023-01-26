@@ -25,6 +25,7 @@ void expand_tracked(ClickableTreeView *tree);
 void fix_tree(Ui::MainWindow *ui);
 
 std::vector<Update> resolve_all_folders(TreeItem *item);
+std::vector<Update> gather_tracked(TreeModel *model);
 
 using ItemOperator = std::function<void(TreeItem *item)>;
 void on_all_children(TreeItem *item, ItemOperator);

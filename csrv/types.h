@@ -6,6 +6,8 @@
 
 using json = nlohmann::json;
 
+template <typename T> using Vec = std::vector<T>;
+
 // extract all valid sub-json to form a vec. ignore invalids.
 template <typename T> std::vector<T> to_vec(json j)
 {
@@ -26,9 +28,8 @@ public:
   std::string primary_email;
   std::string login_id;
   std::string integration_id;
-  Profile()
+  Profile() : id(-1)
   {
-    this->id = -1;
   }
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Profile, id, name, login_id, integration_id,
@@ -74,7 +75,8 @@ public:
 
   // needed for update report
   int course_id;
-  std::string remote_dir; // can just read from an already-fetched vector<Folder>
+  std::string
+      remote_dir; // can just read from an already-fetched vector<Folder>
   std::vector<File> files; // update after running the download's API call
 
   Update(const int folder_id, const std::string local_dir)

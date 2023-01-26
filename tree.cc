@@ -48,19 +48,31 @@ std::vector<Update> resolve_all_folders(TreeItem *item)
     fs::path base = "";
     resolve_all_folders(child, &base, &p, &list);
   }
-  int n = list.size(), id = get_id(*item).toInt();
-  for (int i = 0; i < n; i++) {
+  size_t n = list.size(), id = get_id(*item).toInt();
+  for (size_t i = 0; i < n; i++) {
     list[i].course_id = id;
   }
   return list;
 }
 
+std::vector<Update> gather_tracked(TreeModel *model)
+{
+  std::vector<Update> all;
+  size_t n = model->childrenCount();
+  for (size_t i = 0; i < n; i++) {
+    Vec<Update> u = resolve_all_folders(model->item(i));
+    for (auto u : u)
+      all.push_back(std::move(u));
+  }
+  return all;
+}
+
 void insert(TreeItem *item, FileTree *tree, QSettings *settings)
 {
-  int child_count = tree->folders.size();
+  size_t child_count = tree->folders.size();
   if (child_count == 0)
     return;
-  for (int i = 0; i < child_count; i++) {
+  for (size_t i = 0; i < child_count; i++) {
     auto f = tree->folders[i];
     QString id = QString::fromStdString(std::to_string(f.id));
     QString name = QString::fromStdString(f.name);
@@ -158,11 +170,12 @@ void expand_tracked(ClickableTreeView *tree)
 
 void fix_tree(Ui::MainWindow *ui)
 {
-  auto tree_view = ui->treeView;
-  tree_view->resizeColumnToContents(0);
-  expand_tracked(tree_view);
+  if (ui->treeView == nullptr)
+    return;
+  ui->treeView->resizeColumnToContents(0);
+  expand_tracked(ui->treeView);
   // // FIXME: after debugging, hide ids from user
-  tree_view->setColumnHidden(FOLDER_ID, true);
+  ui->treeView->setColumnHidden(FOLDER_ID, true);
 }
 
 void on_all_parents(TreeItem *item, ItemOperator func)

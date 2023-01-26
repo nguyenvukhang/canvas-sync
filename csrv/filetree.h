@@ -4,21 +4,23 @@
 #include "types.h"
 #include <vector> // for std::vector
 
-class FileTree {
+class FileTree
+{
 private:
   // for recursion with the public variant
   void insert_tree(FileTree *, std::string);
   void to_string(std::string *);
 
 public:
-  FileTree() {
+  FileTree()
+  {
     this->id = 0;
     this->name = "root";
   }
-  FileTree(const int, const char *);
-  FileTree(const int, const std::string);
-  FileTree(Folder *);
-  FileTree(Course *);
+  FileTree(const int id, const char *n) : id(id), name(n){};
+  FileTree(const int id, const std::string n) : id(id), name(n){};
+  FileTree(const Folder *f) : id(f->id), name(f->name){};
+  FileTree(const Course *c) : id(c->id), name(c->name){};
   int id; // either course id or folder id.
   std::string name;
   std::vector<FileTree> folders;

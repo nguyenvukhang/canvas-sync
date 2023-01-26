@@ -1,9 +1,11 @@
 #include "mainwindow.h"
+#include "convert.h"
 #include "filetree.h"
 #include "tree.h"
 #include "tree_model.h"
 #include "ui_mainwindow.h"
 #include "updates.h"
+#include <csrv.h>
 
 #include <QApplication>
 #include <QDebug>
@@ -11,13 +13,51 @@
 #include <QFileDialog>
 #include <QFuture>
 #include <QMessageBox>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QObject>
 #include <QPromise>
 #include <QtConcurrent>
-#include <csrv.h>
+
+/**
+ * This class will support a https GET request
+ */
+class RealClient : public HttpClient
+{
+private:
+  QNetworkAccessManager *nm;
+  QNetworkRequest req;
+  const std::string base_url;
+  std::string token;
+
+public:
+  RealClient(QNetworkAccessManager *nm, const std::string base_url,
+             const std::string token)
+      : base_url(base_url)
+  {
+    this->token = token;
+    this->nm = nm;
+  };
+  std::string get(const std::string &url) override
+  {
+
+    std::string full_url = this->base_url + url;
+    qDebug() << "[->]" << full_url.c_str();
+    req.setUrl(QUrl(full_url.c_str()));
+    std::string htoken = "Bearer " + this->token;
+    req.setRawHeader("Authorization", QByteArray::fromStdString(htoken));
+    QNetworkReply *reply = nm->get(this->req);
+    qDebug() << "REPLY" << reply->readAll();
+    std::string body = reply->readAll().toStdString();
+    qDebug() << "REPLY:parsed" << body.c_str();
+    return body;
+  };
+};
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow),
-      server("", "https://canvas.nus.edu.sg")
+      nw("https://canvas.nus.edu.sg")
 {
   ui->setupUi(this);
 
@@ -42,8 +82,8 @@ MainWindow::MainWindow(QWidget *parent)
   connect(ui->treeView, SIGNAL(cleared(const QModelIndex &)), this,
           SLOT(treeView_cleared(const QModelIndex &)));
 
-  this->token = settings.value("token").toString();
-  this->try_auth(this->token);
+  this->token = settings.value("token").toString().toStdString();
+  this->ui->pushButton_changeToken->setHidden(true);
 }
 
 MainWindow::~MainWindow()
@@ -51,83 +91,16 @@ MainWindow::~MainWindow()
   delete ui;
 }
 
-std::vector<Update> gather_tracked(TreeModel *model)
-{
-  std::vector<Update> all;
-  int n = model->childrenCount();
-  for (int i = 0; i < n; i++) {
-    std::vector<Update> updates = resolve_all_folders(model->item(i));
-    for (auto u : updates) {
-      all.push_back(std::move(u));
-    }
-  }
-  return all;
-}
+//////////////////////////////////////////////////////////////////////
+/// SLOTS
+//////////////////////////////////////////////////////////////////////
 
-void MainWindow::show_updates(const std::vector<Update> &u)
+void MainWindow::pull_clicked()
 {
-  QString buffer, tmp;
-  int prev_course = -1;
-  for (auto u : u) {
-    if (u.course_id != prev_course) {
-      if (!tmp.isEmpty()) {
-        buffer.push_back("## ");
-        buffer.push_back(server.course_name(prev_course).c_str());
-        buffer.push_back('\n');
-        buffer.push_back(tmp);
-        tmp.clear();
-      }
-      prev_course = u.course_id;
-    }
-    if (!u.files.empty()) {
-      tmp.push_back("#### ");
-      tmp.push_back(u.remote_dir.c_str());
-      tmp.push_back('\n');
-    }
-    for (auto f : u.files) {
-      tmp.push_back(f.filename.c_str());
-      tmp.push_back('\n');
-      tmp.push_back('\n');
-    }
-  }
-  buffer += tmp;
-  if (buffer.isEmpty()) {
-    QMessageBox::information(this, "Update", "All up to date!");
-  } else {
-    Updates w;
-    w.setText(buffer);
-    w.setModal(true);
-    w.exec();
-  }
 }
 
 void MainWindow::fetch_clicked()
 {
-  ui->pushButton_fetch->setDisabled(true);
-  ui->pushButton_fetch->setText("Fetching...");
-  ui->pushButton_fetch->repaint();
-  qApp->processEvents();
-  std::vector<Update> all = gather_tracked(ui->treeView->model());
-  server.fetch_updates(&all);
-  ui->pushButton_fetch->setText("Fetch");
-  ui->pushButton_fetch->setDisabled(false);
-  this->show_updates(all);
-}
-
-void MainWindow::pull_clicked()
-{
-  ui->pushButton_pull->setDisabled(true);
-  ui->pushButton_pull->setText("Pulling...");
-  ui->pushButton_pull->repaint();
-  qApp->processEvents();
-  std::vector<Update> all = gather_tracked(ui->treeView->model());
-  server.fetch_updates(&all);
-  QFuture<void> fut =
-      QtConcurrent::run([this, all] { return server.download_updates(&all); });
-  fut.waitForFinished();
-  ui->pushButton_pull->setText("Pull");
-  ui->pushButton_pull->setDisabled(false);
-  this->show_updates(all);
 }
 
 void MainWindow::changeToken_clicked()
@@ -136,72 +109,47 @@ void MainWindow::changeToken_clicked()
   this->ui->lineEdit_accessToken->setText("");
   this->ui->lineEdit_accessToken->setReadOnly(false);
   this->ui->lineEdit_accessToken->setDisabled(false);
-}
-
-void MainWindow::set_auth_state(bool authenticated)
-{
-  if (authenticated) {
-    ui->label_authenticationStatus->setText("authenticated!");
-
-    // disable token entry
-    ui->lineEdit_accessToken->setReadOnly(true);
-    ui->lineEdit_accessToken->setDisabled(true);
-    // show edit token button, in case the user wants to change it
-    this->ui->pushButton_changeToken->setHidden(false);
-    return;
-  }
-  ui->label_authenticationStatus->setText("unauthenticated");
   this->ui->pushButton_changeToken->setHidden(true);
-}
-
-void MainWindow::try_auth(const QString &token)
-{
-  this->token = token;
-  if (token.size() > 20) {
-    std::string token_s = token.toStdString();
-    this->server.set_token(&token_s);
-    ui->label_authenticationStatus->setText("authenticating...");
-    ui->label_authenticationStatus->repaint();
-    qApp->processEvents();
-  } else {
-    this->set_auth_state(false);
-    return;
-  }
-
-  // this future has no real impact, tbh, since it is awaited immediately
-  // just gonna leave this here for future reference. geddit.
-  QFuture<bool> fut =
-      QtConcurrent::run([this, token] { return this->server.valid_token(); });
-
-  if (!fut.result()) {
-    this->set_auth_state(false);
-    return;
-  }
-
-  // authenticated!
-  settings.setValue("token", token);
-  settings.sync();
-  this->set_auth_state(true);
-
-  // load the filetree
-  this->server.load();
-  auto tree = this->server.get_tree();
-  TreeModel *model = newTreeModel();
-  insert(model->item(0), tree, &settings);
-  ui->treeView->setModel(model);
-  fix_tree(ui);
+  this->ui->label_authenticationStatus->setText("unauthenticated");
 }
 
 void MainWindow::accessToken_textChanged(const QString &input)
 {
-  this->try_auth(input);
+  this->check_auth(input);
 }
 
-void to_dir_dialog(QFileDialog *dialog)
+/// NETWORK SLOTS ---
+
+void MainWindow::check_auth_fetched(QNetworkReply *r)
 {
-  dialog->setFileMode(QFileDialog::Directory);
-  // because for some reason it crashes on macOS
-  dialog->setOption(QFileDialog::DontUseNativeDialog);
+  disconnect(&this->nw, SIGNAL(finished(QNetworkReply *)), this,
+             SLOT(check_auth_fetched(QNetworkReply *)));
+  if (r->error() != QNetworkReply::NoError) {
+    r->deleteLater();
+    return;
+  }
+  auto j = to_json(r);
+  this->set_auth_state(is_valid_profile(j));
+  r->deleteLater();
+}
+
+void MainWindow::treeData_fetched(QNetworkReply *r)
+{
+  qDebug() << "RESPONSE:" << r->readAll();
+}
+
+/// TREEVIEW SLOTS ---
+
+void MainWindow::treeView_clicked(const QModelIndex &index)
+{
+  TreeModel *model = ui->treeView->model();
+  qDebug() << "[ DEBUG ]\n";
+  qDebug() << "id:     " << get_id(index);
+  qDebug() << "remote: " << get_remote_dir(index);
+  qDebug() << "local : " << get_local_dir(index);
+  int count = index.model()->children().size();
+  qDebug() << "children: " << get_id(model->index(0, 0, index));
+  qDebug() << "count:    " << count;
 }
 
 void MainWindow::treeView_doubleClicked(const QModelIndex &index)
@@ -215,7 +163,8 @@ void MainWindow::treeView_doubleClicked(const QModelIndex &index)
     return;
 
   QFileDialog dialog(this);
-  to_dir_dialog(&dialog);
+  dialog.setFileMode(QFileDialog::Directory);
+  dialog.setOption(QFileDialog::DontUseNativeDialog);
   QString home = QDir::homePath();
   dialog.setDirectory(this->start_dir != home ? this->start_dir : home);
   dialog.setWindowTitle("Select target for " + get_ancestry(index, " / "));
@@ -253,6 +202,12 @@ void MainWindow::treeView_doubleClicked(const QModelIndex &index)
   }
 }
 
+void MainWindow::treeView_cleared(const QModelIndex &index)
+{
+  settings.remove(get_id(index));
+  settings.sync();
+}
+
 void MainWindow::treeView_expanded(const QModelIndex &index)
 {
   fix_tree(ui);
@@ -263,20 +218,36 @@ void MainWindow::treeView_collapsed(const QModelIndex &index)
   fix_tree(ui);
 }
 
-void MainWindow::treeView_cleared(const QModelIndex &index)
+//////////////////////////////////////////////////////////////////////
+/// HELPER FUNCTIONS
+//////////////////////////////////////////////////////////////////////
+
+void MainWindow::set_auth_state(bool authenticated)
 {
-  settings.remove(get_id(index));
-  settings.sync();
+  qDebug() << "MainWindow::set_auth_state -> " << authenticated;
+  this->authenticated = authenticated;
+  if (authenticated) {
+    ui->label_authenticationStatus->setText("authenticated!");
+    // disable token entry
+    ui->lineEdit_accessToken->setReadOnly(true);
+    ui->lineEdit_accessToken->setDisabled(true);
+    // show edit token button, in case the user wants to change it
+    this->ui->pushButton_changeToken->setHidden(false);
+    return;
+  }
+  ui->label_authenticationStatus->setText("unauthenticated");
+  this->ui->pushButton_changeToken->setHidden(true);
 }
 
-void MainWindow::treeView_clicked(const QModelIndex &index)
+void MainWindow::show_updates(const std::vector<Update> &u)
 {
-  TreeModel *model = ui->treeView->model();
-  qDebug() << "[ DEBUG ]\n";
-  qDebug() << "id:     " << get_id(index);
-  qDebug() << "remote: " << get_remote_dir(index);
-  qDebug() << "local : " << get_local_dir(index);
-  int count = index.model()->children().size();
-  qDebug() << "children: " << get_id(model->index(0, 0, index));
-  qDebug() << "count:    " << count;
+}
+
+void MainWindow::check_auth(const QString &token)
+{
+  this->token = token.toStdString();
+  QNetworkRequest r = req("/api/v1/users/self/profile");
+  connect(&this->nw, SIGNAL(finished(QNetworkReply *)), this,
+          SLOT(check_auth_fetched(QNetworkReply *)));
+  this->nw.get(r);
 }
