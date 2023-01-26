@@ -74,7 +74,7 @@ private slots:
   void changeToken_clicked();
   void accessToken_textChanged(const QString &);
   // network stuff
-  void check_auth_fetched(QNetworkReply *);
+  void check_auth_fetched();
   void courses_fetched(QNetworkReply *);
   void course_folders_fetched(const Course &);
   // tree stuff

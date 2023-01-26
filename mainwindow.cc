@@ -83,9 +83,15 @@ MainWindow::MainWindow(QWidget *parent)
   connect(ui->treeView, SIGNAL(cleared(const QModelIndex &)), this,
           SLOT(treeView_cleared(const QModelIndex &)));
 
-  this->token = settings.value("token").toString().toStdString();
   ui->pushButton_changeToken->setHidden(true);
   ui->treeView->setModel(newTreeModel());
+
+  if (settings.contains("access-token")) {
+    QString t = settings.value("access-token").toString();
+    ui->lineEdit_accessToken->setText(t);
+    this->token = t.toStdString();
+    this->check_auth(t);
+  }
 }
 
 MainWindow::~MainWindow()
@@ -122,10 +128,10 @@ void MainWindow::accessToken_textChanged(const QString &input)
 
 /// NETWORK SLOTS ---
 
-void MainWindow::check_auth_fetched(QNetworkReply *r)
+void MainWindow::check_auth_fetched()
 {
-  disconnect(&this->nw, SIGNAL(finished(QNetworkReply *)), this,
-             SLOT(check_auth_fetched(QNetworkReply *)));
+  QNetworkReply *r = (QNetworkReply *)this->sender();
+  disconnect(r);
   if (r->error() != QNetworkReply::NoError) {
     r->deleteLater();
     qDebug() << "Network Error: " << r->errorString();
@@ -148,8 +154,10 @@ void MainWindow::courses_fetched(QNetworkReply *r)
   }
   auto j = to_json(r);
   this->user_courses = to_courses(j);
-  for (auto c : this->user_courses)
+  for (auto c : this->user_courses) {
+    qDebug() << c.name.c_str();
     this->fetch_course_folders(c);
+  }
   r->deleteLater();
 }
 
@@ -281,6 +289,8 @@ void MainWindow::set_auth_state(bool authenticated)
     ui->lineEdit_accessToken->setDisabled(true);
     // show edit token button, in case the user wants to change it
     this->ui->pushButton_changeToken->setHidden(false);
+    this->settings.setValue("access-token",
+                            QString::fromStdString(this->token));
     return;
   }
   ui->label_authenticationStatus->setText("unauthenticated");
@@ -295,9 +305,9 @@ void MainWindow::check_auth(const QString &token)
 {
   this->token = token.toStdString();
   QNetworkRequest r = req("/api/v1/users/self/profile");
-  connect(&this->nw, SIGNAL(finished(QNetworkReply *)), this,
-          SLOT(check_auth_fetched(QNetworkReply *)));
-  this->nw.get(r);
+  QNetworkReply *a = this->nw.get(r);
+  connect(a, &QNetworkReply::finished, this,
+          [=]() { this->check_auth_fetched(); });
 }
 
 void MainWindow::fetch_courses()
