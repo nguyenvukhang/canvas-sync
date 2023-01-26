@@ -85,7 +85,6 @@ private slots:
   void treeView_collapsed(const QModelIndex &);
 
 public:
-  bool has_fetched_course(int course_id);
   void refresh_tree();
   void set_auth_state(bool);
   void show_updates(const std::vector<Update> &);
@@ -95,10 +94,11 @@ public:
 
   // data
   bool authenticated = false;
-  std::mutex tree_mtx;
+  std::mutex tree_mtx, ctree_mtx;
   std::vector<int> fetched_course_ids;
   QSettings settings;
   FileTree tree;
+  std::vector<FileTree> course_trees;
   std::vector<Course> user_courses;
   std::string token, base_url = "https://canvas.nus.edu.sg";
   Ui::MainWindow *ui;

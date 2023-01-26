@@ -43,6 +43,11 @@ bool compareFolderPath(Folder f1, Folder f2)
   return f1.full_name < f2.full_name;
 }
 
+bool compareTreeName(FileTree f1, FileTree f2)
+{
+  return f1.name < f2.name;
+}
+
 void FileTree::insert_folder(Folder *f)
 {
   this->insert_tree(new FileTree(f), f->full_name);
@@ -79,4 +84,12 @@ void FileTree::insert_tree(FileTree *t, std::string state)
 void FileTree::insert_tree(FileTree *t)
 {
   this->insert_tree(t, t->name);
+}
+
+void FileTree::insert_trees(std::vector<FileTree> trees)
+{
+  sort(trees.begin(), trees.end(), compareTreeName);
+  for (FileTree t : trees) {
+    this->insert_tree(&t);
+  }
 }

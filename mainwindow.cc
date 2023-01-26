@@ -84,8 +84,8 @@ MainWindow::MainWindow(QWidget *parent)
           SLOT(treeView_cleared(const QModelIndex &)));
 
   this->token = settings.value("token").toString().toStdString();
-  this->ui->pushButton_changeToken->setHidden(true);
-  this->ui->treeView->setModel(newTreeModel());
+  ui->pushButton_changeToken->setHidden(true);
+  ui->treeView->setModel(newTreeModel());
 }
 
 MainWindow::~MainWindow()
@@ -165,10 +165,9 @@ void MainWindow::course_folders_fetched(const Course &c)
   auto j = to_json(r);
   std::vector<Folder> f = to_folders(j);
   qDebug() << c.name.c_str() << "has" << f.size() << "folders";
-  FileTree t(&c);
-  t.insert_folders(f);
+  FileTree t(&c, f);
   tree_mtx.lock();
-  tree.insert_tree(&t);
+  this->course_trees.push_back(t);
   this->refresh_tree();
   tree_mtx.unlock();
   r->deleteLater();
@@ -261,7 +260,9 @@ void MainWindow::treeView_collapsed(const QModelIndex &index)
 void MainWindow::refresh_tree()
 {
   TreeModel *model = newTreeModel();
-  insert(model->item(0), &tree, &settings); // buggy line
+  FileTree t;
+  t.insert_trees(this->course_trees);
+  insert(model->item(0), &t, &settings);
   ui->treeView->setModel(model);
   ui->treeView->resizeColumnToContents(0);
   expand_tracked(ui->treeView);

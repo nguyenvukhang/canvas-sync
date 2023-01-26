@@ -21,6 +21,11 @@ public:
   FileTree(const int id, const std::string n) : id(id), name(n){};
   FileTree(const Folder *f) : id(f->id), name(f->name){};
   FileTree(const Course *c) : id(c->id), name(c->name){};
+  FileTree(const Course *c, const std::vector<Folder> f)
+      : id(c->id), name(c->name)
+  {
+    this->insert_folders(f);
+  };
   int id; // either course id or folder id.
   std::string name;
   std::vector<FileTree> folders;
@@ -28,6 +33,7 @@ public:
   void insert_folder(Folder *);
   void insert_folders(std::vector<Folder>);
   void insert_tree(FileTree *);
+  void insert_trees(std::vector<FileTree>);
   void insert_file(File *);
   std::string to_string();
 };
