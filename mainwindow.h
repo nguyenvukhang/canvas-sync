@@ -8,6 +8,7 @@
 #include <QNetworkRequest>
 #include <QSettings>
 #include <csrv.h>
+#include <map>
 #include <mutex>
 
 class Network : public QNetworkAccessManager
@@ -75,8 +76,9 @@ private slots:
   void accessToken_textChanged(const QString &);
   // network stuff
   void check_auth_fetched();
-  void courses_fetched(QNetworkReply *);
+  void courses_fetched();
   void course_folders_fetched(const Course &);
+  void folder_files_fetched(Update u, size_t c);
   // tree stuff
   void treeView_clicked(const QModelIndex &);
   void treeView_doubleClicked(const QModelIndex &);
@@ -85,21 +87,25 @@ private slots:
   void treeView_collapsed(const QModelIndex &);
 
 public:
+  std::string folder_name(const int folder_id);
+  std::string course_name(const int course_id);
   void refresh_tree();
   void set_auth_state(bool);
   void show_updates(const std::vector<Update> &);
   void check_auth(const QString &token);
   void fetch_courses();
   void fetch_course_folders(const Course &);
+  void fetch_folder_files(Update u, size_t c);
+  std::vector<Update> gather_tracked();
 
   // data
   bool authenticated = false;
-  std::mutex tree_mtx, ctree_mtx;
-  std::vector<int> fetched_course_ids;
+  std::mutex tree_mtx, update_mtx;
   QSettings settings;
-  FileTree tree;
+  std::vector<Update> updates;
   std::vector<FileTree> course_trees;
   std::vector<Course> user_courses;
+  std::map<int, std::string> folder_names;
   std::string token, base_url = "https://canvas.nus.edu.sg";
   Ui::MainWindow *ui;
   Network nw;

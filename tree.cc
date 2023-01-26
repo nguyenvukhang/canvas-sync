@@ -29,6 +29,8 @@ void resolve_all_folders(TreeItem *item, fs::path *local_base_dir,
   if (!new_base.empty()) {
     Update u(get_id(*item).toInt());
     u.local_dir = new_base / new_cwd;
+    u.folder_id = get_id(*item).toInt();
+    u.course_id = -1;
     list->push_back(u);
   }
 
@@ -39,20 +41,22 @@ void resolve_all_folders(TreeItem *item, fs::path *local_base_dir,
 
 // assume here that `item` contains information about the module itself,
 // and thus is not included in the resolution of the path.
+//
+// All updates from one call of this function belongs to the same course
 std::vector<Update> resolve_all_folders(TreeItem *item)
 {
-  std::vector<Update> list;
+  std::vector<Update> ul;
   auto children = item->childrenItems();
   for (auto child : children) {
     fs::path p = "";
     fs::path base = "";
-    resolve_all_folders(child, &base, &p, &list);
+    resolve_all_folders(child, &base, &p, &ul);
   }
-  size_t n = list.size(), id = get_id(*item).toInt();
+  size_t n = ul.size(), id = get_id(*item).toInt();
   for (size_t i = 0; i < n; i++) {
-    list[i].course_id = id;
+    ul[i].course_id = id;
   }
-  return list;
+  return ul;
 }
 
 std::vector<Update> gather_tracked(TreeModel *model)
