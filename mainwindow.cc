@@ -12,6 +12,7 @@
 #include <QApplication>
 #include <QDebug>
 #include <QDir>
+#include <QFile>
 #include <QFileDialog>
 #include <QFuture>
 #include <QMessageBox>
@@ -68,6 +69,12 @@ MainWindow::~MainWindow()
 
 void MainWindow::pull_clicked()
 {
+  this->updates.clear();
+  std::vector<Update> all = gather_tracked();
+  size_t c = all.size();
+  for (Update u : all) {
+    this->fetch_folder_files(u, c, true);
+  }
 }
 
 void MainWindow::fetch_clicked()
@@ -78,7 +85,7 @@ void MainWindow::fetch_clicked()
   std::vector<Update> all = gather_tracked();
   size_t c = all.size();
   for (Update u : all) {
-    this->fetch_folder_files(u, c);
+    this->fetch_folder_files(u, c, false);
   }
   ui->pushButton_fetch->setText("Fetch");
   ui->pushButton_fetch->setDisabled(false);
@@ -154,7 +161,7 @@ void MainWindow::course_folders_fetched(const Course &c)
   r->deleteLater();
 }
 
-void MainWindow::folder_files_fetched(Update u, size_t c)
+void MainWindow::folder_files_fetched(Update u, size_t c, bool download)
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
   disconnect(r);
@@ -167,10 +174,6 @@ void MainWindow::folder_files_fetched(Update u, size_t c)
   // merge data into master updates
   size_t fc = f.size();
   std::filesystem::path local_dir = u.local_dir;
-  debug(&u);
-  qDebug() << "Update:" << u.local_dir.c_str() << u.folder_id << u.course_id;
-  qDebug() << "len" << u.files.size();
-
   u.remote_dir = this->folder_name(u.folder_id);
   for (int j = 0; j < fc; j++) {
     if (!std::filesystem::exists(local_dir / f[j].filename)) {
@@ -178,13 +181,40 @@ void MainWindow::folder_files_fetched(Update u, size_t c)
       u.files.push_back(f[j]);
     }
   }
-  bool show = false;
+  qDebug() << "download?" << download;
+  if (download) {
+    for (auto f : u.files) {
+      qDebug() << "sending download:" << f.filename.c_str();
+      this->download_file(f);
+    }
+  }
+  bool done = false;
   update_mtx.lock();
   this->updates.push_back(std::move(u));
-  show = updates.size() == c;
+  done = updates.size() == c;
   update_mtx.unlock();
-  if (show)
+  if (done)
     show_updates(this->updates);
+  r->deleteLater();
+}
+
+void MainWindow::file_downloaded(File f)
+{
+  QNetworkReply *r = (QNetworkReply *)this->sender();
+  disconnect(r);
+  if (r->error() != QNetworkReply::NoError) {
+    r->deleteLater();
+    qDebug() << "Network Error: " << r->errorString();
+    return;
+  }
+  std::filesystem::path local_path = f.local_dir;
+  local_path.append(f.filename);
+  QFile::remove(local_path.c_str());
+  QSaveFile file(local_path.c_str());
+  file.open(QIODevice::WriteOnly);
+  file.write(r->readAll());
+  file.commit();
+  r->deleteLater();
 }
 
 /// TREEVIEW SLOTS ---
@@ -388,13 +418,27 @@ void MainWindow::fetch_course_folders(const Course &c)
           [=]() { this->course_folders_fetched(c); });
 }
 
-void MainWindow::fetch_folder_files(Update u, size_t c)
+void MainWindow::fetch_folder_files(Update u, size_t c, bool download)
 {
   std::string url = "/api/v1/folders/" + std::to_string(u.folder_id) + "/files";
   QNetworkRequest r = req(url);
   QNetworkReply *a = this->nw.get(r);
   connect(a, &QNetworkReply::finished, this,
-          [=]() { this->folder_files_fetched(std::move(u), c); });
+          [=]() { this->folder_files_fetched(std::move(u), c, download); });
+}
+
+void MainWindow::download_file(File f)
+{
+  if (!std::filesystem::exists(f.local_dir)) {
+    std::filesystem::create_directories(f.local_dir);
+    qDebug() << "Download's target directory does not exist."
+             << f.local_dir.c_str();
+    return;
+  }
+  QNetworkRequest r = download_req(f.url);
+  QNetworkReply *a = this->nw.get(r);
+  connect(a, &QNetworkReply::finished, this,
+          [=]() { this->file_downloaded(std::move(f)); });
 }
 
 std::vector<Update> MainWindow::gather_tracked()

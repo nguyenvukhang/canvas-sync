@@ -65,6 +65,14 @@ private:
     return r;
   }
 
+  QNetworkRequest download_req(std::string full_url)
+  {
+    QNetworkRequest r(*new QUrl(full_url.c_str()));
+    r.setRawHeader("Authorization",
+                   QByteArray::fromStdString("Bearer " + token));
+    return r;
+  }
+
 public:
   MainWindow(QWidget *parent = nullptr);
   ~MainWindow();
@@ -78,7 +86,8 @@ private slots:
   void check_auth_fetched();
   void courses_fetched();
   void course_folders_fetched(const Course &);
-  void folder_files_fetched(Update u, size_t c);
+  void folder_files_fetched(Update u, size_t c, bool download);
+  void file_downloaded(File f);
   // tree stuff
   void treeView_clicked(const QModelIndex &);
   void treeView_doubleClicked(const QModelIndex &);
@@ -95,7 +104,8 @@ public:
   void check_auth(const QString &token);
   void fetch_courses();
   void fetch_course_folders(const Course &);
-  void fetch_folder_files(Update u, size_t c);
+  void fetch_folder_files(Update u, size_t c, bool download);
+  void download_file(File f);
   std::vector<Update> gather_tracked();
 
   // data
