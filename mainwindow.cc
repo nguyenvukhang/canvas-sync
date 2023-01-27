@@ -14,13 +14,12 @@
 #include <QDir>
 #include <QFile>
 #include <QFileDialog>
-#include <QFuture>
 #include <QMessageBox>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QObject>
-#include <QPromise>
+#include <QSaveFile>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow),

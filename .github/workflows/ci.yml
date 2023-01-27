@@ -4,27 +4,27 @@ on:
   push:
     branches: ["main", "dev", "ci"]
 
+env:
+  QT_SRC_DIR: ~/Qt/git/src
+  QT_OUTPUT_DIR: ~/Qt/git/output
+
 jobs:
-  windows:
-    name: Windows
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v3
-      - run: choco install openssl
-      - uses: jurplel/install-qt-action@v3
-        with:
-          version: "6.4.0"
-      - run: make ci
-      - run: ls
-      - run: ls build
   mac:
     name: Mac
-    runs-on: macos-latest
+    runs-on: macos-12
     steps:
       - uses: actions/checkout@v3
-      - uses: jurplel/install-qt-action@v3
-        with:
-          version: "6.4.0"
-      - run: make ci
-      - run: ls
-      - run: ls build
+      - run: |
+          curl -fLo qt_static.tar.gz \
+          https://github.com/nguyenvukhang/qt-static/releases/latest/download/qt-static-macOS-6.4.2.tar.gz
+          mkdir -p ${{ env.QT_OUTPUT_DIR }}
+          tar -xvzf qt_static.tar.gz && mv qt_output/* ${{ env.QT_OUTPUT_DIR }}
+          xattr -cr ${{ env.QT_OUTPUT_DIR }}
+
+      - run: |
+          ls ${{ env.QT_OUTPUT_DIR }}
+
+      # build canvas-sync
+      - run: make build
+        env:
+          QT_OUTPUT_DIR: ${{ env.QT_OUTPUT_DIR }}

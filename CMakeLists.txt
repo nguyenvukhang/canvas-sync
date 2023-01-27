@@ -5,8 +5,9 @@ message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 # additional flags set for canvas-sync development
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1) # to build compile_commands.json
-# set(CMAKE_PREFIX_PATH ~/Qt/6.4.2/macos)
-set(CMAKE_PREFIX_PATH /usr/local/Qt-6.4.2)
+# note that CMAKE_PREFIX_PATH must contain a Qt directory. Meaning that
+# if you `ls` on this directory then stuff like bin/ and include/ shows
+set(CMAKE_PREFIX_PATH ${QT_OUTPUT_DIR})
 
 # auto-generated flags
 set(CMAKE_AUTOUIC ON)
