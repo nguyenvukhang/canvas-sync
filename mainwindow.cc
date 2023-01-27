@@ -21,7 +21,6 @@
 #include <QNetworkRequest>
 #include <QObject>
 #include <QPromise>
-#include <QtConcurrent>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow),

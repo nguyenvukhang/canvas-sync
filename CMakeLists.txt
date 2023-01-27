@@ -15,7 +15,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent)
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
 set(PROJECT_SOURCES
     main.cc
@@ -44,7 +44,7 @@ option(BUILD_SHARED_LIBS OFF)
 
 qt_standard_project_setup()
 qt_add_executable(CanvasSync MANUAL_FINALIZATION ${PROJECT_SOURCES})
-target_link_libraries(CanvasSync PRIVATE Qt6::Widgets Qt6::Concurrent Qt6::Network)
+target_link_libraries(CanvasSync PRIVATE Qt6::Widgets Qt6::Network)
 set_target_properties(CanvasSync PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER canvassync.nguyenvukhang.com
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
