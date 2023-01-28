@@ -7,7 +7,7 @@ on:
 
 env:
   QT_SRC_DIR: ~/Qt/git/src
-  QT_OUTPUT_DIR: ~/Qt/git/output
+  QT_STATIC_DIR: ~/Qt/git/output
 
 jobs:
   mac:
@@ -24,4 +24,4 @@ jobs:
       - uses: actions/cache/save@v3
         with:
           key: ${{ runner.os }}-qt-static
-          path: ${{ env.QT_OUTPUT_DIR }} ${{ env.QT_SRC_DIR }}
+          path: ${{ env.QT_STATIC_DIR }} ${{ env.QT_SRC_DIR }}

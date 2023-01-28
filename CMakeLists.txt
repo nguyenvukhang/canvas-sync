@@ -7,7 +7,7 @@ message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1) # to build compile_commands.json
 # note that CMAKE_PREFIX_PATH must contain a Qt directory. Meaning that
 # if you `ls` on this directory then stuff like bin/ and include/ shows
-set(CMAKE_PREFIX_PATH ${QT_OUTPUT_DIR})
+set(CMAKE_PREFIX_PATH ${QT_STATIC_DIR})
 
 # auto-generated flags
 set(CMAKE_AUTOUIC ON)

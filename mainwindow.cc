@@ -174,7 +174,9 @@ void MainWindow::folder_files_fetched(Update u, size_t c, bool download)
   std::filesystem::path local_dir = u.local_dir;
   u.remote_dir = this->folder_name(u.folder_id);
   for (int j = 0; j < fc; j++) {
+    auto a = local_dir / f[j].filename;
     if (!std::filesystem::exists(local_dir / f[j].filename)) {
+      qDebug() << a.c_str() << "does not exist";
       f[j].local_dir = u.local_dir;
       u.files.push_back(f[j]);
     }
@@ -402,14 +404,15 @@ void MainWindow::check_auth(const QString &token)
 
 void MainWindow::fetch_courses()
 {
-  QNetworkRequest r = req("/api/v1/courses");
+  QNetworkRequest r = req("/api/v1/courses?per_page=1180");
   QNetworkReply *a = this->nw.get(r);
   connect(a, &QNetworkReply::finished, this, &MainWindow::courses_fetched);
 }
 
 void MainWindow::fetch_course_folders(const Course &c)
 {
-  std::string url = "/api/v1/courses/" + std::to_string(c.id) + "/folders";
+  std::string url =
+      "/api/v1/courses/" + std::to_string(c.id) + "/folders?per_page=1180";
   QNetworkRequest r = req(url);
   QNetworkReply *a = this->nw.get(r);
   connect(a, &QNetworkReply::finished, this,
@@ -418,7 +421,8 @@ void MainWindow::fetch_course_folders(const Course &c)
 
 void MainWindow::fetch_folder_files(Update u, size_t c, bool download)
 {
-  std::string url = "/api/v1/folders/" + std::to_string(u.folder_id) + "/files";
+  std::string url =
+      "/api/v1/folders/" + std::to_string(u.folder_id) + "/files?per_page=1180";
   QNetworkRequest r = req(url);
   QNetworkReply *a = this->nw.get(r);
   connect(a, &QNetworkReply::finished, this,
