@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.22)
 project(CanvasSync VERSION 0.1 LANGUAGES CXX)
 
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "RECEIVED QT_STATIC type: ${QT_STATIC_DIR}")
 
 # additional flags set for canvas-sync development
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1) # to build compile_commands.json
