@@ -1,5 +1,2 @@
-#include "canvas_api.h"
-#include "errors.h"
 #include "filetree.h"
 #include "types.h"
-#include "server.h"

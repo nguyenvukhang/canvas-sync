@@ -37,10 +37,7 @@ elseif (NOT USE_DEBUG)
   # `CanvasServer` as main output library
   set(SOURCES 
     types.cc
-    errors.cc
-    canvas_api.cc
     filetree.cc
-    server.cc
   )
   add_library(CanvasServer STATIC ${SOURCES})
   target_link_libraries(CanvasServer OpenSSL::SSL)
