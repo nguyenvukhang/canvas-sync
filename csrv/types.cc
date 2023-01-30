@@ -56,7 +56,7 @@ void debug(File *c)
 void debug(Update *c)
 {
   eprintln("Update { folder_id: %d, local_dir: %s }", c->folder_id,
-           c->local_dir.c_str());
+           c->local_dir.string().c_str());
 }
 void debug(Folder *c)
 {

@@ -56,7 +56,6 @@ jobs:
           mkdir -p ${{ env.QT_STATIC_DIR }}
           tar -xvzf qt_static.tar.gz && mv qt_output/* ${{ env.QT_STATIC_DIR }}
 
-      - run: cd ${{ env.QT_STATIC_DIR }} && ls
       - run: xattr -cr ${{ env.QT_STATIC_DIR }}
         if: startsWith(matrix.os, 'macos')
 
