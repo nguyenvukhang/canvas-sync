@@ -44,7 +44,6 @@ include_directories(
 option(BUILD_STATIC_LIBS ON)
 option(BUILD_SHARED_LIBS OFF)
 
-qt_standard_project_setup()
 qt_add_executable(CanvasSync MANUAL_FINALIZATION ${PROJECT_SOURCES})
 target_link_libraries(CanvasSync PRIVATE Qt6::Widgets Qt6::Network)
 set_target_properties(CanvasSync PROPERTIES
