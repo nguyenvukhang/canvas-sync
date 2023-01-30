@@ -18,12 +18,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-11, macos-12, windows-2019]
         include:
           - os: macos-11
-            version: 6.4.2
+            version: 6.4.0
           - os: macos-12
-            version: 6.4.2
+            version: 6.4.0
           - os: windows-2019
             version: 6.2.0
           - os: windows-2019
@@ -37,7 +36,9 @@ jobs:
       # end of experiments
       - run: echo "ASSET=CanvasSync-${{ matrix.os }}.tar.gz">>$GITHUB_ENV
         if: startsWith(matrix.os, 'windows') == false
-      - run: echo "ASSET=CanvasSync-${{ matrix.os }}.tar.gz">>$env:GITHUB_ENV
+      - run: |
+          echo "ASSET=CanvasSync-${{ matrix.os }}.tar.gz">>$env:GITHUB_ENV
+          Add-Content $env:GITHUB_PATH 'C:/ProgramData/chocolatey/lib/mingw/tools/install/mingw64/bin'
         if: startsWith(matrix.os, 'windows')
 
       - uses: actions/checkout@v3
