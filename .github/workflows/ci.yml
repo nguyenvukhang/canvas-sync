@@ -76,7 +76,7 @@ jobs:
                   -volname CanvasSync \
                   -srcfolder dmg \
                   -ov -format UDBZ \
-                  CanvasSync.dmg
+                  CanvasSync-${{ matrix.os }}.dmg
 
       # upload release package
       - name: Release
