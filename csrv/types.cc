@@ -5,7 +5,7 @@ std::string normalize_filename(const char *a, size_t size)
 {
   std::string result = "";
   while (size-- > 0) {
-    if (*a == '+' || *a == '-' || *a == ' ') {
+    if (*a == '+' || *a == '-') {
       result.push_back('_');
       a++;
       continue;
