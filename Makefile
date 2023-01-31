@@ -18,6 +18,10 @@ build: FORCE
 		-S . -B build
 	cmake --build build # alternatively: cd build && make
 
+build-win: FORCE
+	cmake -DCMAKE_BUILD_TYPE=Release -S . -B build -G Ninja
+	cmake --build build
+
 qt-setup:
 	make clone-qt
 	make init-qt

@@ -8,7 +8,9 @@ message(STATUS "RECEIVED QT_STATIC type: ${QT_STATIC_DIR}")
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1) # to build compile_commands.json
 # note that CMAKE_PREFIX_PATH must contain a Qt directory. Meaning that
 # if you `ls` on this directory then stuff like bin/ and include/ shows
-set(CMAKE_PREFIX_PATH ${QT_STATIC_DIR})
+if (EXISTS ${QT_STATIC_DIR})
+  set(CMAKE_PREFIX_PATH ${QT_STATIC_DIR})
+endif()
 
 # auto-generated flags
 set(CMAKE_AUTOUIC ON)
@@ -17,7 +19,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Network)
 
 set(PROJECT_SOURCES
     main.cc

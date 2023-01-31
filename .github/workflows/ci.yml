@@ -63,3 +63,42 @@ jobs:
         with:
           files: ${{ env.ASSET }}
           generate_release_notes: true
+
+  win:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2019
+            version: 6.4.2
+          - os: windows-2022
+            version: 6.4.2
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Set environment variables
+        shell: bash
+        run: |
+          echo "ASSET=CanvasSync-${{ github.ref_name }}-${{ matrix.os }}.exe" >>$GITHUB_ENV
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          arch: win64_msvc2019_64
+          version: ${{ matrix.version }}
+
+      - name: Install MSVC 2022
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Install build dependencies
+        shell: bash
+        run: cinst -y ninja
+
+      - uses: actions/checkout@v3
+
+      - name: Build
+        run: |
+          cmake -DCMAKE_BUILD_TYPE=Release -S . -B build -G Ninja `
+            -DCMAKE_PREFIX_PATH=${{ env.Qt6_DIR }}
+          cmake --build build
+          

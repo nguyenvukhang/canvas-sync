@@ -188,12 +188,15 @@ void MainWindow::file_downloaded(File f)
   }
   std::filesystem::path local_path = f.local_dir;
   local_path.append(f.filename);
-  local_path.string();
-  QFile::remove(local_path.c_str());
-  QSaveFile file(local_path.c_str());
+
+  QString filepath = QString::fromStdString(local_path.string());
+
+  QFile::remove(filepath);
+  QSaveFile file(filepath);
   file.open(QIODevice::WriteOnly);
   file.write(r->readAll());
   file.commit();
+
   r->deleteLater();
 }
 
