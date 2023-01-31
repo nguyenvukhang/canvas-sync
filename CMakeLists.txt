@@ -23,14 +23,12 @@ set(PROJECT_SOURCES
     main.cc
     mainwindow.cc mainwindow.h mainwindow.ui
     updates.cc updates.h updates.ui
-    tree_model.h
-    tree_model.cc
-    convert.h
-    convert.cc
-    clickable_tree_view.h
-    clickable_tree_view.cc
-    tree.h
-    tree.cc
+    tree_model.h tree_model.cc
+    convert.h convert.cc
+    clickable_tree_view.h clickable_tree_view.cc
+    tree.h tree.cc
+    filetree.h filetree.cc
+    types.h types.cc
 )
 
 # include the autogen stuff so ui files can be imported
@@ -55,10 +53,6 @@ set_target_properties(CanvasSync PROPERTIES
 install(TARGETS CanvasSync
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
-# pull in the canvas server library
-add_subdirectory(csrv)
-target_link_libraries(CanvasSync PUBLIC CanvasServer)
 
 qt_finalize_executable(CanvasSync)
 

@@ -1,25 +1,4 @@
 #include "mainwindow.h"
-#include "convert.h"
-#include "filetree.h"
-#include "tree.h"
-#include "tree_model.h"
-#include "ui_mainwindow.h"
-#include "updates.h"
-#include <algorithm>
-#include <csrv.h>
-#include <filesystem>
-
-#include <QApplication>
-#include <QDebug>
-#include <QDir>
-#include <QFile>
-#include <QFileDialog>
-#include <QMessageBox>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QNetworkRequest>
-#include <QObject>
-#include <QSaveFile>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow),

@@ -1,25 +1,11 @@
 #ifndef CANVAS_SYNC_TYPES_H
 #define CANVAS_SYNC_TYPES_H
 
-#include "json.hpp"
 #include <filesystem>
 #include <iostream> // for std::cout and std::cerr in the .cc file
-
-using json = nlohmann::json;
+#include <vector>
 
 template <typename T> using Vec = std::vector<T>;
-
-// extract all valid sub-json to form a vec. ignore invalids.
-template <typename T> std::vector<T> to_vec(json j)
-{
-  std::vector<T> v;
-  for (json::iterator it = j.begin(); it != j.end(); ++it)
-    try {
-      v.push_back(it->get<T>());
-    } catch (json::exception) {
-    }
-  return v;
-}
 
 class Profile
 {
@@ -33,8 +19,6 @@ public:
   {
   }
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Profile, id, name, login_id, integration_id,
-                                   primary_email);
 
 class Course
 {
@@ -42,7 +26,6 @@ public:
   int id;
   std::string name;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Course, id, name);
 
 class Folder
 {
@@ -51,7 +34,6 @@ public:
   std::string name;
   std::string full_name;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Folder, id, name, full_name);
 
 class File
 {
@@ -62,7 +44,6 @@ public:
   std::string url;
   std::filesystem::path local_dir;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(File, id, folder_id, filename, url);
 
 // enough information to execute a download + display updates
 class Update
