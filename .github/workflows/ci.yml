@@ -68,10 +68,23 @@ jobs:
       - run: cd build && tar -zcvf ${{ env.ASSET }} CanvasSync.exe && mv ${{ env.ASSET }} ..
         if: startsWith(matrix.os, 'windows')
 
+      - name: Create disk image
+        run: |
+          mkdir dmg
+          cp -a ${{ env.ASSET }} dmg/CanvasSync.app
+          codesign -s - --deep -f dmg/CanvasSync.app
+          ln -s /Applications dmg/Applications
+          hdiutil create \
+                  -fs HFS+ \
+                  -volname CanvasSync \
+                  -srcfolder dmg \
+                  -ov -format UDBZ \
+                  CanvasSync.dmg
+
       # upload release package
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: ${{ env.ASSET }}
+          files: CanvasSync.dmg
           generate_release_notes: true
