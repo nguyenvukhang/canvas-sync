@@ -93,7 +93,7 @@ jobs:
 
       - name: Install build dependencies
         shell: bash
-        run: cinst -y ninja ilmerge
+        run: cinst -y ninja
 
       - uses: actions/checkout@v3
 
@@ -108,14 +108,6 @@ jobs:
         run: |
           cd build
           $Qt6_DIR/bin/windeployqt.exe CanvasSync.exe
-
-      - name: Collect everything in one .exe
-        shell: bash
-        run: |
-          cd build
-          mv CanvasSync.exe Raw.exe
-          ilmerge /target:winexe /out:CanvasSync.exe Raw.exe *.dll
-
 
       # collect app
       - shell: bash
