@@ -2,6 +2,7 @@
 #define CANVAS_SYNC_TYPES_H
 
 #include "json.hpp"
+#include <filesystem>
 #include <iostream> // for std::cout and std::cerr in the .cc file
 
 using json = nlohmann::json;
