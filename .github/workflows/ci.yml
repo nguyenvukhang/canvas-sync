@@ -70,6 +70,7 @@ jobs:
           mkdir dmg
           cp -a build/CanvasSync.app dmg/CanvasSync.app
           codesign -s - --deep -f dmg/CanvasSync.app
+          xattr -c CanvasSync.app
           ln -s /Applications dmg/Applications
           hdiutil create \
                   -fs HFS+ \
