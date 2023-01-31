@@ -13,11 +13,13 @@ permissions:
   contents: write
 
 env:
-  QT_SRC_DIR: ~/Qt/git/src
-  QT_STATIC_DIR: ~/Qt/git/output
+  QT_STATIC_DIR: Qt/static
+
+# Standard format of uploaded asset:
+# CanvasSync-${{ github.ref_name }}-${{ matrix.os }}.{app,exe,deb}
 
 jobs:
-  build:
+  mac:
     strategy:
       fail-fast: false
       matrix:
@@ -28,61 +30,36 @@ jobs:
             version: 6.4.2
     runs-on: ${{ matrix.os }}
     steps:
-      # end of experiments
-      - run: echo "ASSET=CanvasSync-${{ matrix.os }}.tar.gz">>$GITHUB_ENV
-        if: startsWith(matrix.os, 'windows') == false
-      - run: |
-          echo "ASSET=CanvasSync-${{ matrix.os }}.tar.gz">>$env:GITHUB_ENV
-          Add-Content $env:GITHUB_PATH 'C:/ProgramData/Chocolatey/bin'
-          Add-Content $env:GITHUB_PATH 'C:/Strawberry/perl/bin'
-          Add-Content $env:GITHUB_PATH 'C:/hostedtoolcache/windows/Ruby/2.5.9/x64/bin'
-          Add-Content $env:GITHUB_PATH 'C:/hostedtoolcache/windows/Python/3.7.9/x64/bin'
-          Add-Content $env:GITHUB_PATH 'C:/Program Files/CMake/bin'
-          Add-Content $env:GITHUB_PATH 'C:/ProgramData/chocolatey/lib/zstandard/tools'
-          Add-Content $env:GITHUB_PATH 'C:/ProgramData/chocolatey/lib/mingw/tools/install/mingw64/bin'
-          choco install ninja mingw zstandard
-        if: startsWith(matrix.os, 'windows')
+      - name: Set environment variables
+        run: |
+          echo "ASSET=CanvasSync-${{ github.ref_name }}-${{ matrix.os }}.dmg" >>$GITHUB_ENV
+          echo "QT_STATIC_DIR=$PWD/${{ env.QT_STATIC_DIR }}" >>$GITHUB_ENV
 
       - uses: actions/checkout@v3
 
-      # download pre-build static Qt libraries
-      - run: |
-          curl -fLo qt_static.tar.gz https://github.com/nguyenvukhang/qt-static/releases/download/v0.0.18/qt-${{ matrix.version }}-${{ matrix.os }}.tar.gz
+      - name: download pre-build static Qt libraries
+        run: |
+          curl -fLo qt.tar.gz https://github.com/nguyenvukhang/qt-static/releases/download/v0.0.18/qt-${{ matrix.version }}-${{ matrix.os }}.tar.gz
           mkdir -p ${{ env.QT_STATIC_DIR }}
-          tar -xvzf qt_static.tar.gz && mv qt_output/* ${{ env.QT_STATIC_DIR }}
+          tar -xvzf qt.tar.gz && mv qt_output/* ${{ env.QT_STATIC_DIR }}
 
       # build canvas-sync
-      - run: cmake -DQT_STATIC_DIR=${{ env.QT_STATIC_DIR }} -DCMAKE_BUILD_TYPE=Release -S . -B build
-        if: startsWith(matrix.os, 'windows') == false
-      - run: cmake -DQT_STATIC_DIR=${{ env.QT_STATIC_DIR }} -DCMAKE_BUILD_TYPE=Release -S . -B build -G 'MinGW Makefiles'
-        if: startsWith(matrix.os, 'windows')
-
-      - run: cmake --build build
+      - run: make build
 
       # package app
-      - run: cd build && tar -zcvf ${{ env.ASSET }} CanvasSync.app && mv ${{ env.ASSET }} ..
-        if: startsWith(matrix.os, 'macos')
-      - run: cd build && tar -zcvf ${{ env.ASSET }} CanvasSync.exe && mv ${{ env.ASSET }} ..
-        if: startsWith(matrix.os, 'windows')
-
-      - name: Create disk image
-        run: |
+      - run: |
           mkdir dmg
           cp -a build/CanvasSync.app dmg/CanvasSync.app
-          codesign -s - --deep -f dmg/CanvasSync.app
-          xattr -c CanvasSync.app
           ln -s /Applications dmg/Applications
-          hdiutil create \
-                  -fs HFS+ \
-                  -volname CanvasSync \
-                  -srcfolder dmg \
-                  -ov -format UDBZ \
-                  CanvasSync-${{ matrix.os }}.dmg
+          hdiutil create -volname CanvasSync \
+            -srcfolder dmg \
+            -fs HFS+ -ov -format UDBZ \
+            ${{ env.ASSET }}
 
       # upload release package
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: CanvasSync-${{ matrix.os }}.dmg
+          files: ${{ env.ASSET }}
           generate_release_notes: true
