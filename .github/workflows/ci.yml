@@ -68,7 +68,7 @@ jobs:
       - name: Create disk image
         run: |
           mkdir dmg
-          cp -a ${{ env.ASSET }} dmg/CanvasSync.app
+          cp -a build/CanvasSync.app dmg/CanvasSync.app
           codesign -s - --deep -f dmg/CanvasSync.app
           ln -s /Applications dmg/Applications
           hdiutil create \
