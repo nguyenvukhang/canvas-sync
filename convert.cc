@@ -61,7 +61,7 @@ File to_file(const QJsonObject &j)
   File f;
   f.id = j["id"].toInt(BAD_ID);
   f.folder_id = j["folder_id"].toInt();
-  f.filename = j["filename"].toString().toStdString();
+  f.filename = j["display_name"].toString().toStdString();
   f.filename = normalize_filename(&f.filename);
   f.url = j["url"].toString().toStdString();
   return f;
