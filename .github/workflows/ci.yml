@@ -79,6 +79,7 @@ jobs:
         shell: bash
         run: |
           echo "ASSET=CanvasSync-${{ github.ref_name }}-${{ matrix.os }}.exe" >>$GITHUB_ENV
+
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
         with:
@@ -92,7 +93,7 @@ jobs:
 
       - name: Install build dependencies
         shell: bash
-        run: cinst -y ninja
+        run: cinst -y ninja ilmerge
 
       - uses: actions/checkout@v3
 
@@ -102,14 +103,52 @@ jobs:
             -DCMAKE_PREFIX_PATH=${{ env.Qt6_DIR }}
           cmake --build build
 
+      - name: Use windeployqt to add libraries
+        shell: bash
+        run: |
+          cd build
+          $Qt6_DIR/bin/windeployqt.exe CanvasSync.exe
+
+      - name: Collect everything in one .exe
+        shell: bash
+        run: |
+          cd build
+          mv CanvasSync.exe Raw.exe
+          ilmerge /target:winexe /out:CanvasSync.exe Raw.exe *.dll
+
+
       # collect app
       - shell: bash
-        run: cp build/CanvasSync.exe ${{ env.ASSET }}
+        run: |
+          ls build
+          cp build/CanvasSync.exe ${{ env.ASSET }}
+          cd build
+          tar -zcvf pack-${{ matrix.os }}.tar.gz *
+          mv pack-${{ matrix.os }}.tar.gz ..
 
       # upload release package
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: ${{ env.ASSET }}
+          files: |
+            ${{ env.ASSET }}
+            pack-${{ matrix.os }}.tar.gz
           generate_release_notes: true
+
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2019
+          - os: windows-2022
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install build dependencies
+        shell: bash
+        run: cinst -y ninja ilmerge
+      - run: ilmerge
+        if: ${{ always() }}
+      - run: ilmerge.exe
+        if: ${{ always() }}
