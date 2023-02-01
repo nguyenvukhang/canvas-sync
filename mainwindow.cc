@@ -46,6 +46,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::pull_clicked()
 {
+  this->received_downloads = 0;
+  this->updates_done = false;
   this->updates.clear();
   std::vector<Update> all = gather_tracked();
   size_t c = all.size();
@@ -162,22 +164,28 @@ void MainWindow::folder_files_fetched(Update u, size_t c, bool download)
   }
   qDebug() << "download?" << download;
   if (download) {
+    dl_e_mtx.lock();
+    expected_downloads += u.files.size();
+    dl_e_mtx.unlock();
     for (auto f : u.files) {
       qDebug() << "sending download:" << f.filename.c_str();
-      this->download_file(f);
+      this->download_file(f, u.files.size());
     }
   }
   bool done = false;
+
   update_mtx.lock();
   this->updates.push_back(std::move(u));
   done = updates.size() == c;
+  this->updates_done = done;
   update_mtx.unlock();
-  if (done)
+
+  if (done && !download)
     show_updates(this->updates);
   r->deleteLater();
 }
 
-void MainWindow::file_downloaded(File f)
+void MainWindow::file_downloaded(File f, size_t c)
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
   disconnect(r);
@@ -196,6 +204,15 @@ void MainWindow::file_downloaded(File f)
   file.open(QIODevice::WriteOnly);
   file.write(r->readAll());
   file.commit();
+
+  bool show_downloads = false;
+  dl_r_mtx.lock();
+  received_downloads++;
+  show_downloads = updates_done && received_downloads == expected_downloads;
+  dl_r_mtx.unlock();
+
+  if (show_downloads)
+    show_updates(this->updates);
 
   r->deleteLater();
 }
@@ -411,7 +428,7 @@ void MainWindow::fetch_folder_files(Update u, size_t c, bool download)
           [=]() { this->folder_files_fetched(std::move(u), c, download); });
 }
 
-void MainWindow::download_file(File f)
+void MainWindow::download_file(File f, size_t c)
 {
   if (!std::filesystem::exists(f.local_dir)) {
     std::filesystem::create_directories(f.local_dir);
@@ -422,7 +439,7 @@ void MainWindow::download_file(File f)
   QNetworkRequest r = download_req(f.url);
   QNetworkReply *a = this->nw.get(r);
   connect(a, &QNetworkReply::finished, this,
-          [=]() { this->file_downloaded(std::move(f)); });
+          [=]() { this->file_downloaded(std::move(f), c); });
 }
 
 std::vector<Update> MainWindow::gather_tracked()
