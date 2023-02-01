@@ -120,6 +120,7 @@ private slots:
 public:
   std::string folder_name(const int folder_id);
   std::string course_name(const int course_id);
+  void terminate(QNetworkReply *);
   void enable_pull();
   void disable_pull();
   void enable_fetch();

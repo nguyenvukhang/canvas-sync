@@ -99,24 +99,19 @@ void MainWindow::accessToken_textChanged(const QString &input)
 void MainWindow::check_auth_fetched()
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
-  disconnect(r);
   if (r->error() != QNetworkReply::NoError) {
-    r->deleteLater();
     qDebug() << "Network Error: " << r->errorString();
     return;
   }
   auto j = to_json(r);
   this->set_auth_state(is_valid_profile(j.object()));
   this->fetch_courses();
-  r->deleteLater();
 }
 
 void MainWindow::courses_fetched()
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
-  disconnect(r);
   if (r->error() != QNetworkReply::NoError) {
-    r->deleteLater();
     qDebug() << "Network Error: " << r->errorString();
     return;
   }
@@ -124,7 +119,6 @@ void MainWindow::courses_fetched()
   this->user_courses = to_courses(j);
   for (auto c : this->user_courses)
     this->fetch_course_folders(c);
-  r->deleteLater();
 }
 
 void MainWindow::course_folders_fetched(const Course &c)
@@ -349,6 +343,12 @@ std::string MainWindow::course_name(const int course_id)
   return "[course not found]";
 }
 
+void MainWindow::terminate(QNetworkReply *r)
+{
+  disconnect(r);
+  r->deleteLater();
+}
+
 void MainWindow::enable_pull()
 {
   ui->pushButton_pull->setText("Pull");
@@ -448,14 +448,20 @@ void MainWindow::check_auth(const QString &token)
   this->course_trees.clear();
   QNetworkRequest r = req("/api/v1/users/self/profile");
   QNetworkReply *a = this->nw.get(r);
-  connect(a, &QNetworkReply::finished, this, &MainWindow::check_auth_fetched);
+  connect(a, &QNetworkReply::finished, this, [=]() {
+    check_auth_fetched();
+    terminate(a);
+  });
 }
 
 void MainWindow::fetch_courses()
 {
   QNetworkRequest r = req("/api/v1/courses?per_page=1180");
   QNetworkReply *a = this->nw.get(r);
-  connect(a, &QNetworkReply::finished, this, &MainWindow::courses_fetched);
+  connect(a, &QNetworkReply::finished, this, [=]() {
+    courses_fetched();
+    terminate(a);
+  });
 }
 
 void MainWindow::fetch_course_folders(const Course &c)
@@ -464,8 +470,10 @@ void MainWindow::fetch_course_folders(const Course &c)
       "/api/v1/courses/" + std::to_string(c.id) + "/folders?per_page=1180";
   QNetworkRequest r = req(url);
   QNetworkReply *a = this->nw.get(r);
-  connect(a, &QNetworkReply::finished, this,
-          [=]() { this->course_folders_fetched(c); });
+  connect(a, &QNetworkReply::finished, this, [=]() {
+    course_folders_fetched(c);
+    terminate(a);
+  });
 }
 
 void MainWindow::fetch_folder_files(Update u, size_t c, bool download)
@@ -474,8 +482,10 @@ void MainWindow::fetch_folder_files(Update u, size_t c, bool download)
       "/api/v1/folders/" + std::to_string(u.folder_id) + "/files?per_page=1180";
   QNetworkRequest r = req(url);
   QNetworkReply *a = this->nw.get(r);
-  connect(a, &QNetworkReply::finished, this,
-          [=]() { this->folder_files_fetched(std::move(u), c, download); });
+  connect(a, &QNetworkReply::finished, this, [=]() {
+    folder_files_fetched(std::move(u), c, download);
+    terminate(a);
+  });
 }
 
 void MainWindow::download_file(File f, size_t c)
@@ -485,8 +495,10 @@ void MainWindow::download_file(File f, size_t c)
   }
   QNetworkRequest r = download_req(f.url);
   QNetworkReply *a = this->nw.get(r);
-  connect(a, &QNetworkReply::finished, this,
-          [=]() { this->file_downloaded(std::move(f), c); });
+  connect(a, &QNetworkReply::finished, this, [=]() {
+    file_downloaded(std::move(f), c);
+    terminate(a);
+  });
 }
 
 std::vector<Update> MainWindow::gather_tracked()
