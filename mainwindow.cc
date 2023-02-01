@@ -47,6 +47,7 @@ MainWindow::~MainWindow()
 void MainWindow::pull_clicked()
 {
   this->received_downloads = 0;
+  this->expected_downloads = 0;
   this->updates_done = false;
   this->updates.clear();
   std::vector<Update> all = gather_tracked();
@@ -157,18 +158,16 @@ void MainWindow::folder_files_fetched(Update u, size_t c, bool download)
   for (int j = 0; j < fc; j++) {
     auto a = local_dir / f[j].filename;
     if (!std::filesystem::exists(local_dir / f[j].filename)) {
-      qDebug() << a.c_str() << "does not exist";
       f[j].local_dir = u.local_dir;
       u.files.push_back(f[j]);
     }
   }
-  qDebug() << "download?" << download;
   if (download) {
     dl_e_mtx.lock();
-    expected_downloads += u.files.size();
+    this->expected_downloads += u.files.size();
+    qDebug() << "Total expected downloads is now" << expected_downloads;
     dl_e_mtx.unlock();
     for (auto f : u.files) {
-      qDebug() << "sending download:" << f.filename.c_str();
       this->download_file(f, u.files.size());
     }
   }
@@ -207,7 +206,8 @@ void MainWindow::file_downloaded(File f, size_t c)
 
   bool show_downloads = false;
   dl_r_mtx.lock();
-  received_downloads++;
+  received_downloads += 1;
+  qDebug() << "received_downloads:" << received_downloads << f.filename.c_str();
   show_downloads = updates_done && received_downloads == expected_downloads;
   dl_r_mtx.unlock();
 
@@ -432,9 +432,6 @@ void MainWindow::download_file(File f, size_t c)
 {
   if (!std::filesystem::exists(f.local_dir)) {
     std::filesystem::create_directories(f.local_dir);
-    qDebug() << "Download's target directory does not exist."
-             << f.local_dir.c_str();
-    return;
   }
   QNetworkRequest r = download_req(f.url);
   QNetworkReply *a = this->nw.get(r);
