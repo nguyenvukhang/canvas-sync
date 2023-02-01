@@ -29,39 +29,6 @@
 #include <QSettings>
 #include <QStandardPaths>
 
-class Network : public QNetworkAccessManager
-{
-  Q_OBJECT
-
-private:
-  std::string base_url;
-
-private slots:
-  void replyFinished(QNetworkReply *r)
-  {
-    qDebug() << r->readAll();
-  }
-
-public:
-  Network(std::string base_url) : base_url(base_url){};
-  void get(std::string &url)
-  {
-  }
-  QNetworkReply *get(QNetworkRequest q)
-  {
-    return QNetworkAccessManager::get(q);
-  }
-  void ping()
-  {
-    QUrl qrl("https://nguyenvukhang.com/api/nus");
-    connect(this, SIGNAL(finished(QNetworkReply *)), this,
-            SLOT(replyFinished(QNetworkReply *)));
-    QNetworkRequest r(qrl);
-    r.setRawHeader("Authorization", "Bearer token");
-    this->get(r);
-  }
-};
-
 QT_BEGIN_NAMESPACE
 namespace Ui
 {
@@ -86,6 +53,15 @@ private:
     return this->nw.get(r);
   }
 
+  bool has_network_err(QNetworkReply *r)
+  {
+    if (r->error() != QNetworkReply::NoError) {
+      qDebug() << "Network Error: " << r->errorString();
+      return true;
+    }
+    return false;
+  }
+
 public:
   MainWindow(QWidget *parent = nullptr);
   ~MainWindow();
@@ -103,10 +79,10 @@ private slots:
   void file_downloaded(File f);
   // tree stuff
   void treeView_clicked(const QModelIndex &);
-  void treeView_doubleClicked(const QModelIndex &);
   void treeView_cleared(const QModelIndex &);
   void treeView_expanded(const QModelIndex &);
   void treeView_collapsed(const QModelIndex &);
+  void track_folder_requested(const QModelIndex &);
 
 public:
   std::string folder_name(const int folder_id);
@@ -142,6 +118,6 @@ public:
   QString start_dir = QDir::homePath();
 
 private:
-  Network nw;
+  QNetworkAccessManager nw;
 };
 #endif // MAINWINDOW_H

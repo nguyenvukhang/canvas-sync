@@ -147,8 +147,11 @@
     </item>
     <item>
      <widget class="ClickableTreeView" name="treeView">
+      <property name="editTriggers">
+       <set>QAbstractItemView::NoEditTriggers</set>
+      </property>
       <property name="selectionBehavior">
-       <enum>QAbstractItemView::SelectItems</enum>
+       <enum>QAbstractItemView::SelectRows</enum>
       </property>
       <property name="uniformRowHeights">
        <bool>true</bool>

@@ -2,7 +2,6 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow),
-      nw("https://canvas.nus.edu.sg"),
       settings(
           QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) +
               "/canvas-sync-settings.ini",
@@ -11,25 +10,29 @@ MainWindow::MainWindow(QWidget *parent)
   ui->setupUi(this);
 
   // text inputs
-  connect(ui->lineEdit_accessToken, SIGNAL(textChanged(const QString &)), this,
-          SLOT(accessToken_textChanged(const QString &)));
+  connect(ui->lineEdit_accessToken, &QLineEdit::textChanged, this,
+          &MainWindow::accessToken_textChanged);
 
   // buttons
-  connect(ui->pushButton_pull, SIGNAL(clicked()), this, SLOT(pull_clicked()));
-  connect(ui->pushButton_fetch, SIGNAL(clicked()), this, SLOT(fetch_clicked()));
-  connect(ui->pushButton_changeToken, SIGNAL(clicked()), this,
-          SLOT(changeToken_clicked()));
+  connect(ui->pushButton_pull, &QPushButton::clicked, this,
+          &MainWindow::pull_clicked);
+  connect(ui->pushButton_fetch, &QPushButton::clicked, this,
+          &MainWindow::fetch_clicked);
+  connect(ui->pushButton_changeToken, &QPushButton::clicked, this,
+          &MainWindow::changeToken_clicked);
 
-  connect(ui->treeView, SIGNAL(expanded(const QModelIndex &)), this,
-          SLOT(treeView_expanded(const QModelIndex &)));
-  connect(ui->treeView, SIGNAL(collapsed(const QModelIndex &)), this,
-          SLOT(treeView_collapsed(const QModelIndex &)));
-  connect(ui->treeView, SIGNAL(clicked(const QModelIndex &)), this,
-          SLOT(treeView_clicked(const QModelIndex &)));
-  connect(ui->treeView, SIGNAL(doubleClicked(const QModelIndex &)), this,
-          SLOT(treeView_doubleClicked(const QModelIndex &)));
-  connect(ui->treeView, SIGNAL(cleared(const QModelIndex &)), this,
-          SLOT(treeView_cleared(const QModelIndex &)));
+  connect(ui->treeView, &ClickableTreeView::expanded, this,
+          &MainWindow::treeView_expanded);
+  connect(ui->treeView, &ClickableTreeView::collapsed, this,
+          &MainWindow::treeView_collapsed);
+
+  connect(ui->treeView, &ClickableTreeView::clicked, this,
+          &MainWindow::treeView_clicked);
+
+  connect(ui->treeView, &ClickableTreeView::cleared, this,
+          &MainWindow::treeView_cleared);
+  connect(ui->treeView, &ClickableTreeView::track_folder, this,
+          &MainWindow::track_folder_requested);
 
   // scripted views
   ui->pushButton_changeToken->setHidden(true);
@@ -93,10 +96,8 @@ void MainWindow::accessToken_textChanged(const QString &input)
 void MainWindow::check_auth_fetched()
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
-  if (r->error() != QNetworkReply::NoError) {
-    qDebug() << "Network Error: " << r->errorString();
+  if (has_network_err(r))
     return;
-  }
   auto j = to_json(r);
   this->set_auth_state(is_valid_profile(j.object()));
   this->fetch_courses();
@@ -105,10 +106,8 @@ void MainWindow::check_auth_fetched()
 void MainWindow::courses_fetched()
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
-  if (r->error() != QNetworkReply::NoError) {
-    qDebug() << "Network Error: " << r->errorString();
+  if (has_network_err(r))
     return;
-  }
   auto j = to_json(r);
   this->user_courses = to_courses(j);
   for (auto c : this->user_courses)
@@ -118,10 +117,8 @@ void MainWindow::courses_fetched()
 void MainWindow::course_folders_fetched(const Course &c)
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
-  if (r->error() != QNetworkReply::NoError) {
-    qDebug() << "Network Error: " << r->errorString();
+  if (has_network_err(r))
     return;
-  }
   std::vector<Folder> f = to_folders(to_json(r));
   FileTree t(&c, f);
   tree_mtx.lock();
@@ -138,10 +135,8 @@ void MainWindow::folder_files_fetched(Update u, size_t total_expected_updates,
                                       bool download)
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
-  if (r->error() != QNetworkReply::NoError) {
-    qDebug() << "Network Error: " << r->errorString();
+  if (has_network_err(r))
     return;
-  }
   std::vector<File> f = to_files(to_json(r));
   remove_existing_files(&f, u.local_dir);
 
@@ -177,12 +172,9 @@ void MainWindow::folder_files_fetched(Update u, size_t total_expected_updates,
 
 void MainWindow::file_downloaded(File f)
 {
-  qDebug() << "downloaded" << f.filename.c_str();
   QNetworkReply *r = (QNetworkReply *)this->sender();
-  if (r->error() != QNetworkReply::NoError) {
-    qDebug() << "Network Error: " << r->errorString();
+  if (has_network_err(r))
     return;
-  }
   std::filesystem::path local_path = f.local_dir;
   local_path.append(f.filename);
 
@@ -212,38 +204,37 @@ void MainWindow::file_downloaded(File f)
 
 void MainWindow::treeView_clicked(const QModelIndex &index)
 {
-  TreeModel *model = ui->treeView->model();
-  qDebug() << "[ DEBUG ]\n";
-  qDebug() << "id:     " << get_id(index);
-  qDebug() << "remote: " << get_remote_dir(index);
-  qDebug() << "local : " << get_local_dir(index);
-  int count = index.model()->children().size();
-  qDebug() << "children: " << get_id(model->index(0, 0, index));
-  qDebug() << "count:    " << count;
-  for (auto a : this->updates) {
-    qDebug() << "update: " << folder_name(a.folder_id).c_str();
-    for (auto a : a.files) {
-      qDebug() << "file: " << a.filename.c_str();
-    }
-  }
 }
 
-void MainWindow::treeView_doubleClicked(const QModelIndex &index)
+void MainWindow::treeView_cleared(const QModelIndex &index)
 {
-  // don't do anything to root bois.
-  if (!index.parent().isValid()) {
-    return;
-  }
-  // go home for non-localdir bois
-  if (index.column() != 1)
+  settings.remove(get_id(index));
+  settings.sync();
+  ui->guideText->setHidden(!this->gather_tracked().empty());
+}
+
+void MainWindow::treeView_expanded(const QModelIndex &index)
+{
+  ui->treeView->resizeColumnToContents(0);
+}
+
+void MainWindow::treeView_collapsed(const QModelIndex &index)
+{
+  ui->treeView->resizeColumnToContents(0);
+}
+
+void MainWindow::track_folder_requested(const QModelIndex &index)
+{
+  if (!index.parent().isValid())
     return;
 
   QFileDialog dialog(this);
   dialog.setFileMode(QFileDialog::Directory);
   QString home = QDir::homePath();
   dialog.setDirectory(this->start_dir != home ? this->start_dir : home);
-  dialog.setWindowTitle("Select target for " + get_ancestry(index, " / "));
+  dialog.setWindowTitle("Target for " + get_ancestry(index, " / "));
   int result = dialog.exec();
+  grabKeyboard();
 
   TreeItem *item = ui->treeView->model()->itemFromIndex(index);
 
@@ -277,23 +268,6 @@ void MainWindow::treeView_doubleClicked(const QModelIndex &index)
     selected_dir.cdUp();
     this->start_dir = selected_dir.path();
   }
-}
-
-void MainWindow::treeView_cleared(const QModelIndex &index)
-{
-  settings.remove(get_id(index));
-  settings.sync();
-  ui->guideText->setHidden(!this->gather_tracked().empty());
-}
-
-void MainWindow::treeView_expanded(const QModelIndex &index)
-{
-  fix_tree(ui);
-}
-
-void MainWindow::treeView_collapsed(const QModelIndex &index)
-{
-  fix_tree(ui);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -351,9 +325,6 @@ void MainWindow::refresh_tree()
   t.insert_trees(this->course_trees);
   insert(model->item(0), &t, &settings);
   ui->treeView->setModel(model);
-  ui->treeView->resizeColumnToContents(0);
-  expand_tracked(ui->treeView);
-  ui->treeView->setColumnHidden(FOLDER_ID, true);
 }
 
 void MainWindow::set_auth_state(bool authenticated)
@@ -482,10 +453,8 @@ void MainWindow::download_file(File f)
 
 void MainWindow::download_files(std::vector<File> f)
 {
-  for (File f : f) {
-    qDebug() << "kick off" << f.filename.c_str();
+  for (File f : f)
     this->download_file(f);
-  }
 }
 
 std::vector<Update> MainWindow::gather_tracked()

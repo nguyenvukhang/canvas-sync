@@ -1,5 +1,4 @@
 #include "tree.h"
-#include <filesystem>
 
 namespace fs = std::filesystem;
 
@@ -140,46 +139,6 @@ QString get_local_dir(const TreeItem &item)
 QString get_remote_dir(const TreeItem &item)
 {
   return item.data(REMOTE_DIR).toString();
-}
-
-bool expand_tracked(ClickableTreeView *tree, QModelIndex &index)
-{
-  if (!index.isValid())
-    return false;
-  TreeModel *model = tree->model();
-  bool expand = false;
-  int n = model->childrenCount();
-  for (int i = 0; i < n; i++) {
-    QModelIndex child = model->index(i, 0, index);
-    expand |= expand_tracked(tree, child);
-  }
-  if (!get_local_dir(index).isEmpty() || expand) {
-    tree->expand(index.parent());
-    return true;
-  }
-  return expand;
-}
-
-void expand_tracked(ClickableTreeView *tree)
-{
-  TreeModel *model = tree->model();
-  int n = model->childrenCount();
-  for (int i = 0; i < n; i++) {
-    QModelIndex child = model->index(i, 0);
-    if (expand_tracked(tree, child)) {
-      tree->expand(child);
-    }
-  }
-}
-
-void fix_tree(Ui::MainWindow *ui)
-{
-  if (ui->treeView == nullptr)
-    return;
-  ui->treeView->resizeColumnToContents(0);
-  expand_tracked(ui->treeView);
-  // // FIXME: after debugging, hide ids from user
-  ui->treeView->setColumnHidden(FOLDER_ID, true);
 }
 
 void on_all_parents(TreeItem *item, ItemOperator func)

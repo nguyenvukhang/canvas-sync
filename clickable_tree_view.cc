@@ -1,48 +1,89 @@
 #include "clickable_tree_view.h"
+#include "tree.h"
+#include "tree_model.h"
+
 #include <QAction>
 #include <QMenu>
 
-ClickableTreeView::ClickableTreeView(QWidget *parent) : QTreeView(parent)
+void ClickableTreeView::context_menu(const QPoint &pos)
 {
+  const QModelIndex index = indexAt(pos);
+  if (!index.isValid() || !index.parent().isValid())
+    return;
 
-  setContextMenuPolicy(Qt::CustomContextMenu);
-  connect(this, &ClickableTreeView::customContextMenuRequested, this,
-          [&](const QPoint &pos) {
-            QModelIndex index = indexAt(pos);
-            if (!index.isValid())
-              return;
-            QMenu menu;
-            auto addChildAction = menu.addAction("Clear");
-            auto selectedAction = menu.exec(mapToGlobal(pos));
-            switch (menu.actions().indexOf(selectedAction)) {
-            case 0:
-              clear(index);
-              break;
-            default:
-              break;
-            }
-          });
+  // create menu
+  QMenu menu;
+  menu.addAction("Track Folder");
+  if (!get_local_dir(index).isEmpty()) {
+    menu.addAction("Clear");
+  }
+  auto e = menu.exec(mapToGlobal(pos));
+  if (e == nullptr)
+    return;
 
-  setEditTriggers(QAbstractItemView::NoEditTriggers);
+  // get selected item
+  QString target = e->text();
+
+  if (target == "Track Folder") {
+    emit track_folder(index);
+  }
+  if (target == "Clear") {
+    clear(index);
+  }
 }
 
-ClickableTreeView::~ClickableTreeView()
+ClickableTreeView::ClickableTreeView(QWidget *parent) : QTreeView(parent)
 {
+  setContextMenuPolicy(Qt::CustomContextMenu);
+  connect(this, &QTreeView::customContextMenuRequested, this,
+          [&](const QPoint &pos) { this->context_menu(pos); });
+}
+
+void ClickableTreeView::clear(const QModelIndex index)
+{
+  this->model()->itemFromIndex(index)->setData(TreeCol::LOCAL_DIR, "");
+  emit cleared(index);
 }
 
 TreeModel *ClickableTreeView::model() const
 {
   return static_cast<TreeModel *>(QTreeView::model());
-}
+};
 
 void ClickableTreeView::setModel(TreeModel *model)
 {
   QTreeView::setModel(model);
+  this->setColumnHidden(TreeCol::FOLDER_ID, true);
+  this->resizeColumnToContents(TreeCol::REMOTE_DIR);
+  this->expand_tracked();
+};
+
+bool expand_tracked_inner(ClickableTreeView *tv, const QModelIndex &index)
+{
+  if (!index.isValid())
+    return false;
+  TreeModel *model = tv->model();
+  bool expand = false;
+  int n = model->childrenCount();
+  for (int i = 0; i < n; i++) {
+    QModelIndex child = model->index(i, 0, index);
+    expand |= expand_tracked_inner(tv, child);
+  }
+  if (!get_local_dir(index).isEmpty() || expand) {
+    tv->expand(index.parent());
+    return true;
+  }
+  return expand;
 }
 
-void ClickableTreeView::clear(QModelIndex index)
+void ClickableTreeView::expand_tracked()
 {
-  auto model = this->model();
-  model->itemFromIndex(index)->setData(1, "");
-  emit cleared(index);
+  TreeModel *model = this->model();
+  int n = model->childrenCount();
+  for (int i = 0; i < n; i++) {
+    QModelIndex child = model->index(i, 0);
+    if (expand_tracked_inner(this, child)) {
+      this->expand(child);
+    }
+  }
 }
