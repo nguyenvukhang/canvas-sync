@@ -79,6 +79,7 @@ void MainWindow::fetch_clicked()
 void MainWindow::changeToken_clicked()
 {
   this->token = "";
+  this->settings.setValue("access-token", this->token);
   this->ui->lineEdit_accessToken->setText("");
   this->ui->lineEdit_accessToken->setReadOnly(false);
   this->ui->lineEdit_accessToken->setDisabled(false);
