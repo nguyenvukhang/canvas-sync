@@ -118,8 +118,8 @@ jobs:
         run: |
           cd deploy/windows
           $IQTA_TOOLS/QtInstallerFramework/4.5/bin/binarycreator.exe \
-            -c config/config.xml -p packages CanvasSyncInstaller-${{ matrix.os }}.exe
-          mv CanvasSyncInstaller-${{ matrix.os }}.exe ../..
+            -c config/config.xml -p packages CanvasSyncInstaller.exe
+          mv CanvasSyncInstaller.exe ../..
 
       # upload release package
       - name: Release
