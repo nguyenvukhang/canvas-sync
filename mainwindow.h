@@ -100,7 +100,7 @@ private slots:
   void courses_fetched();
   void course_folders_fetched(const Course &);
   void folder_files_fetched(Update u, size_t c, bool download);
-  void file_downloaded(File f, size_t c);
+  void file_downloaded(File f);
   // tree stuff
   void treeView_clicked(const QModelIndex &);
   void treeView_doubleClicked(const QModelIndex &);
@@ -123,7 +123,8 @@ public:
   void fetch_courses();
   void fetch_course_folders(const Course &);
   void fetch_folder_files(Update u, size_t c, bool download);
-  void download_file(File f, size_t c);
+  void fetch_folder_files(std::vector<Update>, bool download);
+  void download_file(File f);
   std::vector<Update> gather_tracked();
 
 public:

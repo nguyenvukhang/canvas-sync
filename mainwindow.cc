@@ -61,22 +61,16 @@ void MainWindow::pull_clicked()
   this->updates.clear();
   ui->progressBar->setMaximum(0);
   ui->progressBar->setValue(0);
-  std::vector<Update> all = gather_tracked();
-  size_t c = all.size();
-  for (Update u : all) {
-    this->fetch_folder_files(u, c, true);
-  }
+  std::vector<Update> tracked_folders = gather_tracked();
+  this->fetch_folder_files(tracked_folders, true);
 }
 
 void MainWindow::fetch_clicked()
 {
   this->disable_fetch();
   this->updates.clear();
-  std::vector<Update> all = gather_tracked();
-  size_t c = all.size();
-  for (Update u : all) {
-    this->fetch_folder_files(u, c, false);
-  }
+  std::vector<Update> tracked_folders = gather_tracked();
+  this->fetch_folder_files(tracked_folders, false);
 }
 
 void MainWindow::changeToken_clicked()
@@ -148,6 +142,7 @@ void MainWindow::folder_files_fetched(Update u, size_t c, bool download)
     return;
   }
   std::vector<File> f = to_files(to_json(r));
+
   // merge data into master updates
   size_t fc = f.size();
   std::filesystem::path local_dir = u.local_dir;
@@ -173,7 +168,7 @@ void MainWindow::folder_files_fetched(Update u, size_t c, bool download)
     qDebug() << "Total expected downloads is now" << expected_downloads;
     dl_e_mtx.unlock();
     for (auto f : u.files) {
-      this->download_file(f, u.files.size());
+      this->download_file(f);
     }
   }
   bool updates_done = false;
@@ -194,7 +189,7 @@ void MainWindow::folder_files_fetched(Update u, size_t c, bool download)
   }
 }
 
-void MainWindow::file_downloaded(File f, size_t c)
+void MainWindow::file_downloaded(File f)
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
   if (r->error() != QNetworkReply::NoError) {
@@ -473,14 +468,20 @@ void MainWindow::fetch_folder_files(Update u, size_t c, bool download)
   });
 }
 
-void MainWindow::download_file(File f, size_t c)
+void MainWindow::fetch_folder_files(std::vector<Update> u, bool download)
+{
+  for (Update tracked_folder : u)
+    this->fetch_folder_files(tracked_folder, u.size(), download);
+}
+
+void MainWindow::download_file(File f)
 {
   if (!std::filesystem::exists(f.local_dir)) {
     std::filesystem::create_directories(f.local_dir);
   }
   QNetworkReply *a = this->get_full(QString::fromStdString(f.url));
   connect(a, &QNetworkReply::finished, this, [=]() {
-    file_downloaded(std::move(f), c);
+    file_downloaded(std::move(f));
     terminate(a);
   });
 }
