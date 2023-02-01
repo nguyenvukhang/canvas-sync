@@ -3,6 +3,6 @@
     <DisplayName>Canvas Sync</DisplayName>
     <Description>Syncs local folders with folders on canvas.</Description>
     <Version>0.1.1</Version>
-    <ReleaseDate>2023-02-1</ReleaseDate>
+    <ReleaseDate>2023-02-01</ReleaseDate>
     <Default>true</Default>
 </Package>
