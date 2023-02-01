@@ -126,7 +126,7 @@ public:
   void download_file(File f, size_t c);
   std::vector<Update> gather_tracked();
 
-  // data
+public:
   bool authenticated = false, updates_done;
   std::mutex tree_mtx, update_mtx, dl_e_mtx, dl_r_mtx;
   QSettings settings;
@@ -137,7 +137,9 @@ public:
   std::map<int, std::string> folder_names;
   QString token, base_url = "https://canvas.nus.edu.sg";
   Ui::MainWindow *ui;
-  Network nw;
   QString start_dir = QDir::homePath();
+
+private:
+  Network nw;
 };
 #endif // MAINWINDOW_H
