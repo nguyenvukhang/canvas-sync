@@ -15,7 +15,7 @@ For **macOS** users, after dragging CanvasSync.app into your
 `/Applications` folder, you have to open Terminal and run
 
 ```
-xattr -c /Applications/CanvasSync.app
+xattr -c '/Applications/Canvas Sync.app'
 ```
 
 in order to be able to open the app.
