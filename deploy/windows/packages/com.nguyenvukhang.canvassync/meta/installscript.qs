@@ -1,3 +1,5 @@
+function Component() {}
+
 Component.prototype.createOperations = function()
 {
     if (systemInfo.productType === "windows") {

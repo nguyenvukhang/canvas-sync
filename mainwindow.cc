@@ -181,7 +181,9 @@ void MainWindow::file_downloaded(File f)
 
   QString filepath = QString::fromStdString(local_path.string());
 
-  QFile::remove(filepath);
+  if (!filepath.isEmpty()) {
+    QFile::remove(filepath);
+  }
   QSaveFile file(filepath);
   file.open(QIODevice::WriteOnly);
   file.write(r->readAll());
