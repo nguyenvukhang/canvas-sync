@@ -1,10 +1,11 @@
 function Component()
 {
-    component.loaded.connect(this, Component.prototype.loaded);
 }
 
 Component.prototype.createOperations = function()
 {
+    component.createOperations();
+
     if (systemInfo.productType === "windows") {
         component.addOperation("CreateShortcut",
                 "@TargetDir@/Canvas Sync.exe",
@@ -13,6 +14,3 @@ Component.prototype.createOperations = function()
                 "workingDirectory=@TargetDir@");
     }
 }
-
-
-Component.prototype.isDefault = function() { return true; }
