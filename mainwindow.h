@@ -74,25 +74,16 @@ class MainWindow : public QMainWindow
   Q_OBJECT
 
 private:
-  QNetworkRequest req(std::string url)
+  QNetworkReply *get(QString url)
   {
-    QString q = this->base_url;
-    q.append(QString::fromStdString(url));
-    QUrl qrl(q);
-    QNetworkRequest r(qrl);
-    QString bearer = "Bearer ";
-    bearer += this->token;
-    r.setRawHeader("Authorization", bearer.toUtf8());
-    return r;
+    return this->get_full(this->base_url + url);
   }
 
-  QNetworkRequest download_req(std::string full_url)
+  QNetworkReply *get_full(QString url)
   {
-    QNetworkRequest r(*new QUrl(full_url.c_str()));
-    QString bearer = "Bearer ";
-    bearer += this->token;
-    r.setRawHeader("Authorization", bearer.toUtf8());
-    return r;
+    QNetworkRequest r(*new QUrl(url));
+    r.setRawHeader("Authorization", ("Bearer " + this->token).toUtf8());
+    return this->nw.get(r);
   }
 
 public:

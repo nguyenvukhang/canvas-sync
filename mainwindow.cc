@@ -446,8 +446,7 @@ void MainWindow::check_auth(const QString &token)
   this->token = token;
   ui->treeView->setModel(newTreeModel());
   this->course_trees.clear();
-  QNetworkRequest r = req("/api/v1/users/self/profile");
-  QNetworkReply *a = this->nw.get(r);
+  QNetworkReply *a = this->get("/api/v1/users/self/profile");
   connect(a, &QNetworkReply::finished, this, [=]() {
     check_auth_fetched();
     terminate(a);
@@ -456,8 +455,7 @@ void MainWindow::check_auth(const QString &token)
 
 void MainWindow::fetch_courses()
 {
-  QNetworkRequest r = req("/api/v1/courses?per_page=1180");
-  QNetworkReply *a = this->nw.get(r);
+  QNetworkReply *a = this->get("/api/v1/courses?per_page=1180");
   connect(a, &QNetworkReply::finished, this, [=]() {
     courses_fetched();
     terminate(a);
@@ -466,10 +464,8 @@ void MainWindow::fetch_courses()
 
 void MainWindow::fetch_course_folders(const Course &c)
 {
-  std::string url =
-      "/api/v1/courses/" + std::to_string(c.id) + "/folders?per_page=1180";
-  QNetworkRequest r = req(url);
-  QNetworkReply *a = this->nw.get(r);
+  QNetworkReply *a = this->get("/api/v1/courses/" + QString::number(c.id) +
+                               "/folders?per_page=1180");
   connect(a, &QNetworkReply::finished, this, [=]() {
     course_folders_fetched(c);
     terminate(a);
@@ -478,10 +474,9 @@ void MainWindow::fetch_course_folders(const Course &c)
 
 void MainWindow::fetch_folder_files(Update u, size_t c, bool download)
 {
-  std::string url =
-      "/api/v1/folders/" + std::to_string(u.folder_id) + "/files?per_page=1180";
-  QNetworkRequest r = req(url);
-  QNetworkReply *a = this->nw.get(r);
+  QNetworkReply *a =
+      this->get("/api/v1/folders/" + QString::number(u.folder_id) +
+                "/files?per_page=1180");
   connect(a, &QNetworkReply::finished, this, [=]() {
     folder_files_fetched(std::move(u), c, download);
     terminate(a);
@@ -493,8 +488,7 @@ void MainWindow::download_file(File f, size_t c)
   if (!std::filesystem::exists(f.local_dir)) {
     std::filesystem::create_directories(f.local_dir);
   }
-  QNetworkRequest r = download_req(f.url);
-  QNetworkReply *a = this->nw.get(r);
+  QNetworkReply *a = this->get_full(QString::fromStdString(f.url));
   connect(a, &QNetworkReply::finished, this, [=]() {
     file_downloaded(std::move(f), c);
     terminate(a);
@@ -508,8 +502,8 @@ std::vector<Update> MainWindow::gather_tracked()
   std::vector<Update> all;
   while (n-- > 0) {
     std::vector<Update> u = resolve_all_folders(model->item(n));
-    for (auto i : u)
-      all.push_back(i);
+    all.reserve(all.size() + std::distance(u.begin(), u.end()));
+    all.insert(all.end(), u.begin(), u.end());
   }
   return all;
 }
