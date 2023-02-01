@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+rm -rf win mac win-tmp mac-tmp pp
+
 cp -r export win-tmp
 cp -r export mac-tmp
 
@@ -24,7 +26,8 @@ send 128
 send 256
 send 512
 cd win
-convert *.png canvas-sync.ico
-mv canvas-sync.ico ..
+convert *.png appicon.ico
+mv appicon.ico ../..
+
 cd ..
-rm -rf win win-tmp pp
+rm -rf win mac win-tmp mac-tmp pp

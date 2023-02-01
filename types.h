@@ -5,8 +5,6 @@
 #include <iostream> // for std::cout and std::cerr in the .cc file
 #include <vector>
 
-template <typename T> using Vec = std::vector<T>;
-
 class Profile
 {
 public:
@@ -73,6 +71,8 @@ public:
 };
 
 std::string normalize_filename(std::string *);
+template <typename T> void swap_remove(std::vector<T> *, size_t);
+void remove_existing_files(std::vector<File> *, const std::filesystem::path &);
 
 void debug(Profile *);
 void debug(Course *);

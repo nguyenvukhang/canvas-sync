@@ -2,7 +2,6 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow),
-      nw("https://canvas.nus.edu.sg"),
       settings(
           QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) +
               "/canvas-sync-settings.ini",
@@ -11,25 +10,29 @@ MainWindow::MainWindow(QWidget *parent)
   ui->setupUi(this);
 
   // text inputs
-  connect(ui->lineEdit_accessToken, SIGNAL(textChanged(const QString &)), this,
-          SLOT(accessToken_textChanged(const QString &)));
+  connect(ui->lineEdit_accessToken, &QLineEdit::textChanged, this,
+          &MainWindow::accessToken_textChanged);
 
   // buttons
-  connect(ui->pushButton_pull, SIGNAL(clicked()), this, SLOT(pull_clicked()));
-  connect(ui->pushButton_fetch, SIGNAL(clicked()), this, SLOT(fetch_clicked()));
-  connect(ui->pushButton_changeToken, SIGNAL(clicked()), this,
-          SLOT(changeToken_clicked()));
+  connect(ui->pushButton_pull, &QPushButton::clicked, this,
+          &MainWindow::pull_clicked);
+  connect(ui->pushButton_fetch, &QPushButton::clicked, this,
+          &MainWindow::fetch_clicked);
+  connect(ui->pushButton_changeToken, &QPushButton::clicked, this,
+          &MainWindow::changeToken_clicked);
 
-  connect(ui->treeView, SIGNAL(expanded(const QModelIndex &)), this,
-          SLOT(treeView_expanded(const QModelIndex &)));
-  connect(ui->treeView, SIGNAL(collapsed(const QModelIndex &)), this,
-          SLOT(treeView_collapsed(const QModelIndex &)));
-  connect(ui->treeView, SIGNAL(clicked(const QModelIndex &)), this,
-          SLOT(treeView_clicked(const QModelIndex &)));
-  connect(ui->treeView, SIGNAL(doubleClicked(const QModelIndex &)), this,
-          SLOT(treeView_doubleClicked(const QModelIndex &)));
-  connect(ui->treeView, SIGNAL(cleared(const QModelIndex &)), this,
-          SLOT(treeView_cleared(const QModelIndex &)));
+  connect(ui->treeView, &ClickableTreeView::expanded, this,
+          &MainWindow::treeView_expanded);
+  connect(ui->treeView, &ClickableTreeView::collapsed, this,
+          &MainWindow::treeView_collapsed);
+
+  connect(ui->treeView, &ClickableTreeView::clicked, this,
+          &MainWindow::treeView_clicked);
+
+  connect(ui->treeView, &ClickableTreeView::cleared, this,
+          &MainWindow::treeView_cleared);
+  connect(ui->treeView, &ClickableTreeView::track_folder, this,
+          &MainWindow::track_folder_requested);
 
   // scripted views
   ui->pushButton_changeToken->setHidden(true);
@@ -37,6 +40,7 @@ MainWindow::MainWindow(QWidget *parent)
   ui->progressBar->setHidden(true);
   ui->treeView->setModel(newTreeModel());
   ui->guideText->hide();
+  ui->label_accessTokenHelp->hide();
 
   if (settings.contains("access-token")) {
     this->check_auth(settings.value("access-token").toString());
@@ -61,32 +65,28 @@ void MainWindow::pull_clicked()
   this->updates.clear();
   ui->progressBar->setMaximum(0);
   ui->progressBar->setValue(0);
-  std::vector<Update> all = gather_tracked();
-  size_t c = all.size();
-  for (Update u : all) {
-    this->fetch_folder_files(u, c, true);
-  }
+  std::vector<Update> tracked_folders = gather_tracked();
+  this->fetch_folder_files(tracked_folders, true);
 }
 
 void MainWindow::fetch_clicked()
 {
   this->disable_fetch();
   this->updates.clear();
-  std::vector<Update> all = gather_tracked();
-  size_t c = all.size();
-  for (Update u : all) {
-    this->fetch_folder_files(u, c, false);
-  }
+  std::vector<Update> tracked_folders = gather_tracked();
+  this->fetch_folder_files(tracked_folders, false);
 }
 
 void MainWindow::changeToken_clicked()
 {
+  // reset access token entry
+  ui->lineEdit_accessToken->setText("");
+  ui->lineEdit_accessToken->setReadOnly(false);
+  ui->lineEdit_accessToken->setDisabled(false);
+
   this->token = "";
-  this->ui->lineEdit_accessToken->setText("");
-  this->ui->lineEdit_accessToken->setReadOnly(false);
-  this->ui->lineEdit_accessToken->setDisabled(false);
-  this->ui->pushButton_changeToken->setHidden(true);
-  this->ui->label_authenticationStatus->setText("unauthenticated");
+  this->settings.setValue("access-token", this->token);
+  this->set_auth_state(false);
 }
 
 void MainWindow::accessToken_textChanged(const QString &input)
@@ -99,43 +99,33 @@ void MainWindow::accessToken_textChanged(const QString &input)
 void MainWindow::check_auth_fetched()
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
-  disconnect(r);
-  if (r->error() != QNetworkReply::NoError) {
-    r->deleteLater();
-    qDebug() << "Network Error: " << r->errorString();
+  if (r->error() == QNetworkReply::AuthenticationRequiredError) {
+    this->set_auth_state(false);
     return;
   }
+  if (has_network_err(r))
+    return;
   auto j = to_json(r);
   this->set_auth_state(is_valid_profile(j.object()));
   this->fetch_courses();
-  r->deleteLater();
 }
 
 void MainWindow::courses_fetched()
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
-  disconnect(r);
-  if (r->error() != QNetworkReply::NoError) {
-    r->deleteLater();
-    qDebug() << "Network Error: " << r->errorString();
+  if (has_network_err(r))
     return;
-  }
   auto j = to_json(r);
   this->user_courses = to_courses(j);
   for (auto c : this->user_courses)
     this->fetch_course_folders(c);
-  r->deleteLater();
 }
 
 void MainWindow::course_folders_fetched(const Course &c)
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
-  disconnect(r);
-  if (r->error() != QNetworkReply::NoError) {
-    r->deleteLater();
-    qDebug() << "Network Error: " << r->errorString();
+  if (has_network_err(r))
     return;
-  }
   std::vector<Folder> f = to_folders(to_json(r));
   FileTree t(&c, f);
   tree_mtx.lock();
@@ -146,81 +136,60 @@ void MainWindow::course_folders_fetched(const Course &c)
   this->refresh_tree();
   tree_mtx.unlock();
   ui->guideText->setHidden(!this->gather_tracked().empty());
-  r->deleteLater();
 }
 
-void MainWindow::folder_files_fetched(Update u, size_t c, bool download)
+void MainWindow::folder_files_fetched(Update u, size_t total_expected_updates,
+                                      bool download)
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
-  disconnect(r);
-  if (r->error() != QNetworkReply::NoError) {
-    r->deleteLater();
-    qDebug() << "Network Error: " << r->errorString();
+  if (has_network_err(r))
     return;
-  }
   std::vector<File> f = to_files(to_json(r));
-  // merge data into master updates
-  size_t fc = f.size();
-  std::filesystem::path local_dir = u.local_dir;
-  u.remote_dir = this->folder_name(u.folder_id);
-  for (int j = 0; j < fc; j++) {
-    auto a = local_dir / f[j].filename;
-    if (!std::filesystem::exists(local_dir / f[j].filename)) {
-      f[j].local_dir = u.local_dir;
-      u.files.push_back(f[j]);
-    }
-  }
+  remove_existing_files(&f, u.local_dir);
 
-  int ed = 0;
+  size_t n = f.size();
+  while (n-- > 0)
+    f[n].local_dir = u.local_dir;
+
+  u.files = std::move(f);
+  // u.files now contains a list of files that the user does not have
+
+  bool updates_done = false, has_downloads = false;
 
   if (download) {
     dl_e_mtx.lock();
-    if (this->expected_downloads == 0 && u.files.size() > 0) {
-      ui->progressBar->show();
-    }
     this->expected_downloads += u.files.size();
-    ed = this->expected_downloads;
-    ui->progressBar->setMaximum(expected_downloads);
-    qDebug() << "Total expected downloads is now" << expected_downloads;
+    has_downloads = this->expected_downloads > 0;
+    ui->progressBar->setMaximum(this->expected_downloads);
     dl_e_mtx.unlock();
-    for (auto f : u.files) {
-      this->download_file(f, u.files.size());
-    }
+    this->download_files(u.files);
+    ui->progressBar->setHidden(!has_downloads);
   }
-  bool updates_done = false;
 
   update_mtx.lock();
   this->updates.push_back(std::move(u));
-  updates_done = updates.size() == c;
-  this->updates_done = updates_done;
+  this->updates_done = this->updates.size() == total_expected_updates;
+  updates_done = this->updates_done;
   update_mtx.unlock();
 
-  if (updates_done && !download) {
-    this->enable_fetch();
-    show_updates(this->updates);
-  } else if (updates_done && ed == 0) {
-    ui->progressBar->setHidden(true);
-    this->enable_pull();
-    show_updates(this->updates);
+  if (updates_done && (!download || !has_downloads)) {
+    this->show_updates();
   }
-  r->deleteLater();
 }
 
-void MainWindow::file_downloaded(File f, size_t c)
+void MainWindow::file_downloaded(File f)
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
-  disconnect(r);
-  if (r->error() != QNetworkReply::NoError) {
-    r->deleteLater();
-    qDebug() << "Network Error: " << r->errorString();
+  if (has_network_err(r))
     return;
-  }
   std::filesystem::path local_path = f.local_dir;
   local_path.append(f.filename);
 
   QString filepath = QString::fromStdString(local_path.string());
 
-  QFile::remove(filepath);
+  if (!filepath.isEmpty()) {
+    QFile::remove(filepath);
+  }
   QSaveFile file(filepath);
   file.open(QIODevice::WriteOnly);
   file.write(r->readAll());
@@ -236,48 +205,45 @@ void MainWindow::file_downloaded(File f, size_t c)
   if (show_downloads) {
     ui->progressBar->setHidden(true);
     this->enable_pull();
-    show_updates(this->updates);
+    show_updates();
   }
-
-  r->deleteLater();
 }
 
 /// TREEVIEW SLOTS ---
 
 void MainWindow::treeView_clicked(const QModelIndex &index)
 {
-  TreeModel *model = ui->treeView->model();
-  qDebug() << "[ DEBUG ]\n";
-  qDebug() << "id:     " << get_id(index);
-  qDebug() << "remote: " << get_remote_dir(index);
-  qDebug() << "local : " << get_local_dir(index);
-  int count = index.model()->children().size();
-  qDebug() << "children: " << get_id(model->index(0, 0, index));
-  qDebug() << "count:    " << count;
-  for (auto a : this->updates) {
-    qDebug() << "update: " << folder_name(a.folder_id).c_str();
-    for (auto a : a.files) {
-      qDebug() << "file: " << a.filename.c_str();
-    }
-  }
 }
 
-void MainWindow::treeView_doubleClicked(const QModelIndex &index)
+void MainWindow::treeView_cleared(const QModelIndex &index)
 {
-  // don't do anything to root bois.
-  if (!index.parent().isValid()) {
-    return;
-  }
-  // go home for non-localdir bois
-  if (index.column() != 1)
+  settings.remove(get_id(index));
+  settings.sync();
+  ui->guideText->setHidden(!this->gather_tracked().empty());
+}
+
+void MainWindow::treeView_expanded(const QModelIndex &index)
+{
+  ui->treeView->resizeColumnToContents(0);
+}
+
+void MainWindow::treeView_collapsed(const QModelIndex &index)
+{
+  ui->treeView->resizeColumnToContents(0);
+}
+
+void MainWindow::track_folder_requested(const QModelIndex &index)
+{
+  if (!index.parent().isValid())
     return;
 
   QFileDialog dialog(this);
   dialog.setFileMode(QFileDialog::Directory);
   QString home = QDir::homePath();
   dialog.setDirectory(this->start_dir != home ? this->start_dir : home);
-  dialog.setWindowTitle("Select target for " + get_ancestry(index, " / "));
+  dialog.setWindowTitle("Target for " + get_ancestry(index, " / "));
   int result = dialog.exec();
+  grabKeyboard();
 
   TreeItem *item = ui->treeView->model()->itemFromIndex(index);
 
@@ -313,30 +279,12 @@ void MainWindow::treeView_doubleClicked(const QModelIndex &index)
   }
 }
 
-void MainWindow::treeView_cleared(const QModelIndex &index)
-{
-  settings.remove(get_id(index));
-  settings.sync();
-  ui->guideText->setHidden(!this->gather_tracked().empty());
-}
-
-void MainWindow::treeView_expanded(const QModelIndex &index)
-{
-  fix_tree(ui);
-}
-
-void MainWindow::treeView_collapsed(const QModelIndex &index)
-{
-  fix_tree(ui);
-}
-
 //////////////////////////////////////////////////////////////////////
 /// HELPER FUNCTIONS
 //////////////////////////////////////////////////////////////////////
 
 std::string MainWindow::folder_name(const int folder_id)
 {
-  qDebug() << "requested" << folder_id;
   return this->folder_names.at(folder_id);
 }
 
@@ -349,27 +297,33 @@ std::string MainWindow::course_name(const int course_id)
   return "[course not found]";
 }
 
-void MainWindow::enable_pull()
+void MainWindow::terminate(QNetworkReply *r)
 {
-  ui->pushButton_pull->setText("Pull");
+  disconnect(r);
+  r->deleteLater();
+}
+
+void MainWindow::enable_pull(const QString &s)
+{
+  ui->pushButton_pull->setText(s);
   ui->pushButton_pull->setEnabled(true);
 }
 
-void MainWindow::disable_pull()
+void MainWindow::disable_pull(const QString &s)
 {
-  ui->pushButton_pull->setText("Pulling...");
+  ui->pushButton_pull->setText(s);
   ui->pushButton_pull->setEnabled(false);
 }
 
-void MainWindow::enable_fetch()
+void MainWindow::enable_fetch(const QString &s)
 {
-  ui->pushButton_fetch->setText("Fetch");
+  ui->pushButton_fetch->setText(s);
   ui->pushButton_fetch->setEnabled(true);
 }
 
-void MainWindow::disable_fetch()
+void MainWindow::disable_fetch(const QString &s)
 {
-  ui->pushButton_fetch->setText("Fetching...");
+  ui->pushButton_fetch->setText(s);
   ui->pushButton_fetch->setEnabled(false);
 }
 
@@ -380,9 +334,6 @@ void MainWindow::refresh_tree()
   t.insert_trees(this->course_trees);
   insert(model->item(0), &t, &settings);
   ui->treeView->setModel(model);
-  ui->treeView->resizeColumnToContents(0);
-  expand_tracked(ui->treeView);
-  ui->treeView->setColumnHidden(FOLDER_ID, true);
 }
 
 void MainWindow::set_auth_state(bool authenticated)
@@ -390,25 +341,36 @@ void MainWindow::set_auth_state(bool authenticated)
   qDebug() << "MainWindow::set_auth_state -> " << authenticated;
   this->authenticated = authenticated;
   if (authenticated) {
+    this->enable_pull();
+    this->enable_fetch();
+    ui->label_accessTokenHelp->hide();
     ui->label_authenticationStatus->setText("authenticated!");
     // disable token entry
     ui->lineEdit_accessToken->setReadOnly(true);
     ui->lineEdit_accessToken->setDisabled(true);
     // show edit token button, in case the user wants to change it
-    this->ui->pushButton_changeToken->setHidden(false);
+    this->ui->pushButton_changeToken->show();
     this->settings.setValue("access-token", this->token);
     settings.sync();
     return;
   }
+  this->disable_fetch("Fetch");
+  this->disable_pull("Pull");
+  ui->label_accessTokenHelp->show();
   ui->label_authenticationStatus->setText("unauthenticated");
-  this->ui->pushButton_changeToken->setHidden(true);
+  this->ui->pushButton_changeToken->hide();
 }
 
-void MainWindow::show_updates(const std::vector<Update> &u)
+void MainWindow::show_updates()
 {
+  // update state before showing update window
+  this->enable_fetch();
+  this->enable_pull();
+  ui->progressBar->setHidden(true);
+
   QString buffer = "", tmp = "";
   int prev_course = -1;
-  for (auto u : u) {
+  for (auto u : this->updates) {
     if (u.course_id != prev_course) {
       if (!tmp.isEmpty()) {
         buffer.push_back("## ");
@@ -446,47 +408,68 @@ void MainWindow::check_auth(const QString &token)
   this->token = token;
   ui->treeView->setModel(newTreeModel());
   this->course_trees.clear();
-  QNetworkRequest r = req("/api/v1/users/self/profile");
-  QNetworkReply *a = this->nw.get(r);
-  connect(a, &QNetworkReply::finished, this, &MainWindow::check_auth_fetched);
+  QNetworkReply *a = this->get("/api/v1/users/self/profile");
+  connect(a, &QNetworkReply::finished, this, [=]() {
+    check_auth_fetched();
+    terminate(a);
+  });
 }
 
 void MainWindow::fetch_courses()
 {
-  QNetworkRequest r = req("/api/v1/courses?per_page=1180");
-  QNetworkReply *a = this->nw.get(r);
-  connect(a, &QNetworkReply::finished, this, &MainWindow::courses_fetched);
+  QNetworkReply *a = this->get("/api/v1/courses?per_page=1180");
+  connect(a, &QNetworkReply::finished, this, [=]() {
+    courses_fetched();
+    terminate(a);
+  });
 }
 
 void MainWindow::fetch_course_folders(const Course &c)
 {
-  std::string url =
-      "/api/v1/courses/" + std::to_string(c.id) + "/folders?per_page=1180";
-  QNetworkRequest r = req(url);
-  QNetworkReply *a = this->nw.get(r);
-  connect(a, &QNetworkReply::finished, this,
-          [=]() { this->course_folders_fetched(c); });
+  QNetworkReply *a = this->get("/api/v1/courses/" + QString::number(c.id) +
+                               "/folders?per_page=1180");
+  connect(a, &QNetworkReply::finished, this, [=]() {
+    course_folders_fetched(c);
+    terminate(a);
+  });
 }
 
-void MainWindow::fetch_folder_files(Update u, size_t c, bool download)
+void MainWindow::fetch_folder_files(Update u, size_t total_expected_updates,
+                                    bool download)
 {
-  std::string url =
-      "/api/v1/folders/" + std::to_string(u.folder_id) + "/files?per_page=1180";
-  QNetworkRequest r = req(url);
-  QNetworkReply *a = this->nw.get(r);
-  connect(a, &QNetworkReply::finished, this,
-          [=]() { this->folder_files_fetched(std::move(u), c, download); });
+  QNetworkReply *a =
+      this->get("/api/v1/folders/" + QString::number(u.folder_id) +
+                "/files?per_page=1180");
+  connect(a, &QNetworkReply::finished, this, [=]() {
+    folder_files_fetched(std::move(u), total_expected_updates, download);
+    terminate(a);
+  });
 }
 
-void MainWindow::download_file(File f, size_t c)
+void MainWindow::fetch_folder_files(std::vector<Update> u, bool download)
+{
+  for (Update tracked_folder : u) {
+    tracked_folder.remote_dir = this->folder_name(tracked_folder.folder_id);
+    this->fetch_folder_files(tracked_folder, u.size(), download);
+  }
+}
+
+void MainWindow::download_file(File f)
 {
   if (!std::filesystem::exists(f.local_dir)) {
     std::filesystem::create_directories(f.local_dir);
   }
-  QNetworkRequest r = download_req(f.url);
-  QNetworkReply *a = this->nw.get(r);
-  connect(a, &QNetworkReply::finished, this,
-          [=]() { this->file_downloaded(std::move(f), c); });
+  QNetworkReply *a = this->get_full(QString::fromStdString(f.url));
+  connect(a, &QNetworkReply::finished, this, [=]() {
+    file_downloaded(std::move(f));
+    terminate(a);
+  });
+}
+
+void MainWindow::download_files(std::vector<File> f)
+{
+  for (File f : f)
+    this->download_file(f);
 }
 
 std::vector<Update> MainWindow::gather_tracked()
@@ -496,8 +479,8 @@ std::vector<Update> MainWindow::gather_tracked()
   std::vector<Update> all;
   while (n-- > 0) {
     std::vector<Update> u = resolve_all_folders(model->item(n));
-    for (auto i : u)
-      all.push_back(i);
+    all.reserve(all.size() + std::distance(u.begin(), u.end()));
+    all.insert(all.end(), u.begin(), u.end());
   }
   return all;
 }

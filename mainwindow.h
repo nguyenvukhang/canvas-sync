@@ -16,6 +16,7 @@
 
 #include <QApplication>
 #include <QDebug>
+#include <QDesktopServices>
 #include <QDir>
 #include <QFile>
 #include <QFileDialog>
@@ -29,39 +30,6 @@
 #include <QSettings>
 #include <QStandardPaths>
 
-class Network : public QNetworkAccessManager
-{
-  Q_OBJECT
-
-private:
-  std::string base_url;
-
-private slots:
-  void replyFinished(QNetworkReply *r)
-  {
-    qDebug() << r->readAll();
-  }
-
-public:
-  Network(std::string base_url) : base_url(base_url){};
-  void get(std::string &url)
-  {
-  }
-  QNetworkReply *get(QNetworkRequest q)
-  {
-    return QNetworkAccessManager::get(q);
-  }
-  void ping()
-  {
-    QUrl qrl("https://nguyenvukhang.com/api/nus");
-    connect(this, SIGNAL(finished(QNetworkReply *)), this,
-            SLOT(replyFinished(QNetworkReply *)));
-    QNetworkRequest r(qrl);
-    r.setRawHeader("Authorization", "Bearer token");
-    this->get(r);
-  }
-};
-
 QT_BEGIN_NAMESPACE
 namespace Ui
 {
@@ -74,25 +42,29 @@ class MainWindow : public QMainWindow
   Q_OBJECT
 
 private:
-  QNetworkRequest req(std::string url)
+  QNetworkReply *get(QString url)
   {
-    QString q = this->base_url;
-    q.append(QString::fromStdString(url));
-    QUrl qrl(q);
-    QNetworkRequest r(qrl);
-    QString bearer = "Bearer ";
-    bearer += this->token;
-    r.setRawHeader("Authorization", bearer.toUtf8());
-    return r;
+    return this->get_full(this->base_url + url);
   }
 
-  QNetworkRequest download_req(std::string full_url)
+  QNetworkReply *get_full(QString url)
   {
-    QNetworkRequest r(*new QUrl(full_url.c_str()));
-    QString bearer = "Bearer ";
-    bearer += this->token;
-    r.setRawHeader("Authorization", bearer.toUtf8());
-    return r;
+    QNetworkRequest r(*new QUrl(url));
+    if (!this->token.isEmpty()) {
+      r.setRawHeader("Authorization", ("Bearer " + this->token).toUtf8());
+    }
+    return this->nw.get(r);
+  }
+
+  bool has_network_err(QNetworkReply *r)
+  {
+    if (r->error() != QNetworkReply::NoError) {
+      qDebug() << "Network Error: " << r->errorString();
+      qDebug() << "Error Type: " << r->error();
+      qDebug() << "from url:" << r->url();
+      return true;
+    }
+    return false;
   }
 
 public:
@@ -109,32 +81,35 @@ private slots:
   void courses_fetched();
   void course_folders_fetched(const Course &);
   void folder_files_fetched(Update u, size_t c, bool download);
-  void file_downloaded(File f, size_t c);
+  void file_downloaded(File f);
   // tree stuff
   void treeView_clicked(const QModelIndex &);
-  void treeView_doubleClicked(const QModelIndex &);
   void treeView_cleared(const QModelIndex &);
   void treeView_expanded(const QModelIndex &);
   void treeView_collapsed(const QModelIndex &);
+  void track_folder_requested(const QModelIndex &);
 
 public:
   std::string folder_name(const int folder_id);
   std::string course_name(const int course_id);
-  void enable_pull();
-  void disable_pull();
-  void enable_fetch();
-  void disable_fetch();
+  void terminate(QNetworkReply *);
+  void enable_pull(const QString & = "Pull");
+  void disable_pull(const QString & = "Pulling...");
+  void enable_fetch(const QString & = "Fetch");
+  void disable_fetch(const QString & = "Fetching...");
   void refresh_tree();
   void set_auth_state(bool);
-  void show_updates(const std::vector<Update> &);
+  void show_updates();
   void check_auth(const QString &token);
   void fetch_courses();
   void fetch_course_folders(const Course &);
   void fetch_folder_files(Update u, size_t c, bool download);
-  void download_file(File f, size_t c);
+  void fetch_folder_files(std::vector<Update>, bool download);
+  void download_file(File);
+  void download_files(std::vector<File>);
   std::vector<Update> gather_tracked();
 
-  // data
+public:
   bool authenticated = false, updates_done;
   std::mutex tree_mtx, update_mtx, dl_e_mtx, dl_r_mtx;
   QSettings settings;
@@ -145,7 +120,9 @@ public:
   std::map<int, std::string> folder_names;
   QString token, base_url = "https://canvas.nus.edu.sg";
   Ui::MainWindow *ui;
-  Network nw;
   QString start_dir = QDir::homePath();
+
+private:
+  QNetworkAccessManager nw;
 };
 #endif // MAINWINDOW_H

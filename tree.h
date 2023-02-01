@@ -3,9 +3,8 @@
 
 #include "filetree.h"
 #include "tree_model.h"
-#include "ui_mainwindow.h"
 
-#include <QSettings>
+#include <filesystem>
 
 enum TreeCol { REMOTE_DIR, LOCAL_DIR, FOLDER_ID };
 
@@ -20,9 +19,6 @@ QString get_ancestry(const QModelIndex &, const char *delimiter);
 QString get_id(const TreeItem &);
 QString get_local_dir(const TreeItem &);
 QString get_remote_dir(const TreeItem &);
-
-void expand_tracked(ClickableTreeView *tree);
-void fix_tree(Ui::MainWindow *ui);
 
 std::vector<Update> resolve_all_folders(TreeItem *item);
 std::vector<Update> gather_tracked(TreeModel *model);
