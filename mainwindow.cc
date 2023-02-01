@@ -79,14 +79,14 @@ void MainWindow::fetch_clicked()
 
 void MainWindow::changeToken_clicked()
 {
-  this->token = "";
-  this->settings.setValue("access-token", this->token);
+  // reset access token entry
   ui->lineEdit_accessToken->setText("");
   ui->lineEdit_accessToken->setReadOnly(false);
   ui->lineEdit_accessToken->setDisabled(false);
-  ui->pushButton_changeToken->setHidden(true);
-  ui->label_authenticationStatus->setText("unauthenticated");
-  ui->label_accessTokenHelp->show();
+
+  this->token = "";
+  this->settings.setValue("access-token", this->token);
+  this->set_auth_state(false);
 }
 
 void MainWindow::accessToken_textChanged(const QString &input)
@@ -349,7 +349,7 @@ void MainWindow::set_auth_state(bool authenticated)
     ui->lineEdit_accessToken->setReadOnly(true);
     ui->lineEdit_accessToken->setDisabled(true);
     // show edit token button, in case the user wants to change it
-    this->ui->pushButton_changeToken->setHidden(false);
+    this->ui->pushButton_changeToken->show();
     this->settings.setValue("access-token", this->token);
     settings.sync();
     return;
@@ -358,7 +358,7 @@ void MainWindow::set_auth_state(bool authenticated)
   this->disable_pull("Pull");
   ui->label_accessTokenHelp->show();
   ui->label_authenticationStatus->setText("unauthenticated");
-  this->ui->pushButton_changeToken->setHidden(true);
+  this->ui->pushButton_changeToken->hide();
 }
 
 void MainWindow::show_updates()
