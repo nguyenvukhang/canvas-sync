@@ -1,4 +1,7 @@
-function Component() {}
+function Component()
+{
+    component.loaded.connect(this, Component.prototype.loaded);
+}
 
 Component.prototype.createOperations = function()
 {
@@ -10,3 +13,6 @@ Component.prototype.createOperations = function()
                 "workingDirectory=@TargetDir@");
     }
 }
+
+
+Component.prototype.isDefault = function() { return true; }
