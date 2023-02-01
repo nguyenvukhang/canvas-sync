@@ -33,6 +33,10 @@ MainWindow::MainWindow(QWidget *parent)
   if (settings.contains("access-token")) {
     this->check_auth(settings.value("access-token").toString());
   }
+
+  // scripted views
+  ui->treeView->setColumnHidden(FOLDER_ID, false);
+  ui->progressBar->setHidden(true);
 }
 
 MainWindow::~MainWindow()
@@ -50,6 +54,9 @@ void MainWindow::pull_clicked()
   this->expected_downloads = 0;
   this->updates_done = false;
   this->updates.clear();
+  ui->progressBar->setMaximum(0);
+  ui->progressBar->setValue(0);
+  ui->progressBar->setHidden(false);
   std::vector<Update> all = gather_tracked();
   size_t c = all.size();
   for (Update u : all) {
@@ -162,25 +169,34 @@ void MainWindow::folder_files_fetched(Update u, size_t c, bool download)
       u.files.push_back(f[j]);
     }
   }
+
+  int ed = 0;
+
   if (download) {
     dl_e_mtx.lock();
     this->expected_downloads += u.files.size();
+    ed = this->expected_downloads;
+    ui->progressBar->setMaximum(expected_downloads);
     qDebug() << "Total expected downloads is now" << expected_downloads;
     dl_e_mtx.unlock();
     for (auto f : u.files) {
       this->download_file(f, u.files.size());
     }
   }
-  bool done = false;
+  bool updates_done = false;
 
   update_mtx.lock();
   this->updates.push_back(std::move(u));
-  done = updates.size() == c;
-  this->updates_done = done;
+  updates_done = updates.size() == c;
+  this->updates_done = updates_done;
   update_mtx.unlock();
 
-  if (done && !download)
+  if (updates_done && !download) {
     show_updates(this->updates);
+  } else if (updates_done && ed == 0) {
+    ui->progressBar->setHidden(true);
+    show_updates(this->updates);
+  }
   r->deleteLater();
 }
 
@@ -207,12 +223,15 @@ void MainWindow::file_downloaded(File f, size_t c)
   bool show_downloads = false;
   dl_r_mtx.lock();
   received_downloads += 1;
+  ui->progressBar->setValue(received_downloads);
   qDebug() << "received_downloads:" << received_downloads << f.filename.c_str();
   show_downloads = updates_done && received_downloads == expected_downloads;
   dl_r_mtx.unlock();
 
-  if (show_downloads)
+  if (show_downloads) {
+    ui->progressBar->setHidden(true);
     show_updates(this->updates);
+  }
 
   r->deleteLater();
 }
