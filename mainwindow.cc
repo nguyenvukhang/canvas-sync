@@ -32,6 +32,7 @@ MainWindow::MainWindow(QWidget *parent)
   ui->treeView->setColumnHidden(FOLDER_ID, true);
   ui->progressBar->setHidden(true);
   ui->treeView->setModel(newTreeModel());
+  ui->guideText->hide();
 
   if (settings.contains("access-token")) {
     this->check_auth(settings.value("access-token").toString());
@@ -140,6 +141,7 @@ void MainWindow::course_folders_fetched(const Course &c)
   this->course_trees.push_back(t);
   this->refresh_tree();
   tree_mtx.unlock();
+  ui->guideText->setHidden(!this->gather_tracked().empty());
   r->deleteLater();
 }
 
@@ -299,6 +301,8 @@ void MainWindow::treeView_doubleClicked(const QModelIndex &index)
     settings.setValue(get_id(index), local_dir);
     settings.sync();
 
+    ui->guideText->hide();
+
     QDir selected_dir = QDir::fromNativeSeparators(local_dir);
     selected_dir.cdUp();
     this->start_dir = selected_dir.path();
@@ -309,6 +313,7 @@ void MainWindow::treeView_cleared(const QModelIndex &index)
 {
   settings.remove(get_id(index));
   settings.sync();
+  ui->guideText->setHidden(!this->gather_tracked().empty());
 }
 
 void MainWindow::treeView_expanded(const QModelIndex &index)
