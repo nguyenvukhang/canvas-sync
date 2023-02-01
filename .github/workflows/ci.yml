@@ -61,7 +61,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          prerelease: contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta')
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') }}
           files: ${{ env.ASSET }}
           generate_release_notes: true
 
@@ -112,7 +112,15 @@ jobs:
             deploy/windows/packages/com.nguyenvukhang.canvassync/data/
           cd deploy/windows/packages/com.nguyenvukhang.canvassync/data
           $Qt6_DIR/bin/windeployqt.exe CanvasSync.exe
+
+      - name: Debug
+        shell: bash
+        run: |
+          ls deploy/windows/packages/com.nguyenvukhang.canvassync/data
+          cd deploy/windows/packages/com.nguyenvukhang.canvassync/data
           mv CanvasSync.exe 'Canvas Sync.exe'
+          echo '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
+          ls
 
       - name: Package the installer
         shell: bash
@@ -127,7 +135,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          prerelease: contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta')
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') }}
           files: |
             CanvasSyncInstaller-${{ matrix.os }}.exe
           generate_release_notes: true
