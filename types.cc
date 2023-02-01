@@ -26,6 +26,32 @@ std::string normalize_filename(std::string *v)
   return s;
 }
 
+template <typename T> void swap_remove(std::vector<T> *f, size_t i)
+{
+  if (f->empty() || i >= f->size())
+    return;
+  if (f->size() == 1 || i == f->size() - 1) {
+    f->pop_back();
+    return;
+  }
+  T t = std::move(f->back());
+  f->pop_back();
+  if (f->size() != i)
+    f->at(i) = t;
+}
+
+void remove_existing_files(std::vector<File> *f,
+                           const std::filesystem::path &local_dir)
+{
+  size_t i = 0;
+  while (i < f->size()) {
+    if (std::filesystem::exists(local_dir / f->at(i).filename))
+      swap_remove(f, i);
+    else
+      i++;
+  }
+}
+
 void debug(Profile *p)
 {
   std::cout << "Profile" << std::endl;
@@ -48,10 +74,10 @@ void debug(File *c)
 void debug(Update *c)
 {
   printf("Update { folder_id: %d, local_dir: %s }\n", c->folder_id,
-           c->local_dir.string().c_str());
+         c->local_dir.string().c_str());
 }
 void debug(Folder *c)
 {
   printf("Folder { %d, %s, (%s) }\n", c->id, c->full_name.c_str(),
-           c->name.c_str());
+         c->name.c_str());
 }

@@ -64,7 +64,7 @@ std::vector<Update> gather_tracked(TreeModel *model)
   std::vector<Update> all;
   size_t n = model->childrenCount();
   for (size_t i = 0; i < n; i++) {
-    Vec<Update> u = resolve_all_folders(model->item(i));
+    std::vector<Update> u = resolve_all_folders(model->item(i));
     for (auto u : u)
       all.push_back(std::move(u));
   }

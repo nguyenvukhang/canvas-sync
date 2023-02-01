@@ -134,7 +134,8 @@ void MainWindow::course_folders_fetched(const Course &c)
   ui->guideText->setHidden(!this->gather_tracked().empty());
 }
 
-void MainWindow::folder_files_fetched(Update u, size_t c, bool download)
+void MainWindow::folder_files_fetched(Update u, size_t total_expected_updates,
+                                      bool download)
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
   if (r->error() != QNetworkReply::NoError) {
@@ -142,55 +143,41 @@ void MainWindow::folder_files_fetched(Update u, size_t c, bool download)
     return;
   }
   std::vector<File> f = to_files(to_json(r));
+  remove_existing_files(&f, u.local_dir);
 
-  // merge data into master updates
-  size_t fc = f.size();
-  std::filesystem::path local_dir = u.local_dir;
-  u.remote_dir = this->folder_name(u.folder_id);
-  for (int j = 0; j < fc; j++) {
-    auto a = local_dir / f[j].filename;
-    if (!std::filesystem::exists(local_dir / f[j].filename)) {
-      f[j].local_dir = u.local_dir;
-      u.files.push_back(f[j]);
-    }
-  }
+  size_t n = f.size();
+  while (n-- > 0)
+    f[n].local_dir = u.local_dir;
 
-  int ed = 0;
+  u.files = std::move(f);
+  // u.files now contains a list of files that the user does not have
+
+  bool updates_done = false, has_downloads = false;
 
   if (download) {
     dl_e_mtx.lock();
-    if (this->expected_downloads == 0 && u.files.size() > 0) {
-      ui->progressBar->show();
-    }
     this->expected_downloads += u.files.size();
-    ed = this->expected_downloads;
-    ui->progressBar->setMaximum(expected_downloads);
-    qDebug() << "Total expected downloads is now" << expected_downloads;
+    has_downloads = this->expected_downloads > 0;
+    ui->progressBar->setMaximum(this->expected_downloads);
     dl_e_mtx.unlock();
-    for (auto f : u.files) {
-      this->download_file(f);
-    }
+    this->download_files(u.files);
+    ui->progressBar->setHidden(!has_downloads);
   }
-  bool updates_done = false;
 
   update_mtx.lock();
   this->updates.push_back(std::move(u));
-  updates_done = updates.size() == c;
-  this->updates_done = updates_done;
+  this->updates_done = this->updates.size() == total_expected_updates;
+  updates_done = this->updates_done;
   update_mtx.unlock();
 
-  if (updates_done && !download) {
-    this->enable_fetch();
-    show_updates(this->updates);
-  } else if (updates_done && ed == 0) {
-    ui->progressBar->setHidden(true);
-    this->enable_pull();
-    show_updates(this->updates);
+  if (updates_done && (!download || !has_downloads)) {
+    this->show_updates();
   }
 }
 
 void MainWindow::file_downloaded(File f)
 {
+  qDebug() << "downloaded" << f.filename.c_str();
   QNetworkReply *r = (QNetworkReply *)this->sender();
   if (r->error() != QNetworkReply::NoError) {
     qDebug() << "Network Error: " << r->errorString();
@@ -217,7 +204,7 @@ void MainWindow::file_downloaded(File f)
   if (show_downloads) {
     ui->progressBar->setHidden(true);
     this->enable_pull();
-    show_updates(this->updates);
+    show_updates();
   }
 }
 
@@ -315,7 +302,6 @@ void MainWindow::treeView_collapsed(const QModelIndex &index)
 
 std::string MainWindow::folder_name(const int folder_id)
 {
-  qDebug() << "requested" << folder_id;
   return this->folder_names.at(folder_id);
 }
 
@@ -389,11 +375,16 @@ void MainWindow::set_auth_state(bool authenticated)
   this->ui->pushButton_changeToken->setHidden(true);
 }
 
-void MainWindow::show_updates(const std::vector<Update> &u)
+void MainWindow::show_updates()
 {
+  // update state before showing update window
+  this->enable_fetch();
+  this->enable_pull();
+  ui->progressBar->setHidden(true);
+
   QString buffer = "", tmp = "";
   int prev_course = -1;
-  for (auto u : u) {
+  for (auto u : this->updates) {
     if (u.course_id != prev_course) {
       if (!tmp.isEmpty()) {
         buffer.push_back("## ");
@@ -457,21 +448,24 @@ void MainWindow::fetch_course_folders(const Course &c)
   });
 }
 
-void MainWindow::fetch_folder_files(Update u, size_t c, bool download)
+void MainWindow::fetch_folder_files(Update u, size_t total_expected_updates,
+                                    bool download)
 {
   QNetworkReply *a =
       this->get("/api/v1/folders/" + QString::number(u.folder_id) +
                 "/files?per_page=1180");
   connect(a, &QNetworkReply::finished, this, [=]() {
-    folder_files_fetched(std::move(u), c, download);
+    folder_files_fetched(std::move(u), total_expected_updates, download);
     terminate(a);
   });
 }
 
 void MainWindow::fetch_folder_files(std::vector<Update> u, bool download)
 {
-  for (Update tracked_folder : u)
+  for (Update tracked_folder : u) {
+    tracked_folder.remote_dir = this->folder_name(tracked_folder.folder_id);
     this->fetch_folder_files(tracked_folder, u.size(), download);
+  }
 }
 
 void MainWindow::download_file(File f)
@@ -484,6 +478,14 @@ void MainWindow::download_file(File f)
     file_downloaded(std::move(f));
     terminate(a);
   });
+}
+
+void MainWindow::download_files(std::vector<File> f)
+{
+  for (File f : f) {
+    qDebug() << "kick off" << f.filename.c_str();
+    this->download_file(f);
+  }
 }
 
 std::vector<Update> MainWindow::gather_tracked()

@@ -44,4 +44,11 @@ build-qt:
 open:
 	open build/CanvasSync.app
 
+reset:
+	rm -rf ~/files/test/*/*
+
+test:
+	rm -rf build
+	make build
+
 FORCE: ;
