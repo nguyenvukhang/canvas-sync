@@ -113,15 +113,6 @@ jobs:
           cd deploy/windows/packages/com.nguyenvukhang.canvassync/data
           $Qt6_DIR/bin/windeployqt.exe CanvasSync.exe
 
-      - name: Debug
-        shell: bash
-        run: |
-          ls deploy/windows/packages/com.nguyenvukhang.canvassync/data
-          cd deploy/windows/packages/com.nguyenvukhang.canvassync/data
-          mv CanvasSync.exe 'Canvas Sync.exe'
-          echo '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-          ls
-
       - name: Package the installer
         shell: bash
         run: |
@@ -133,9 +124,9 @@ jobs:
       # upload release package
       - name: Release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') && matrix.os == 'windows-2019'
         with:
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') }}
           files: |
-            CanvasSyncInstaller-${{ matrix.os }}.exe
+            CanvasSyncInstaller.exe
           generate_release_notes: true
