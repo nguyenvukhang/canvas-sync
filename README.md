@@ -22,12 +22,13 @@ in order to be able to open the app.
 
 ### Usage
 
-Upon first launch, you have to supply an Access Token to Canvas. This
-can be found at your [canvas profile
-settings](https://canvas.nus.edu.sg/profile/settings) and looking
-around for the 'token' keyword. Generate a fresh one, copy and paste
-it into Canvas Sync. Canvas Sync will save it for you and reuse it on
-the next launch.
+Upon first launch, you have to supply an Access Token to Canvas.
+
+This can be found at your [canvas profile settings][settings].
+
+Click on `New access token` and don't provide an expiry date to make
+it last forever. After creating the token, copy it and paste it into
+Canvas Sync. The app will save it (locally) for you.
 
 ### Cross platformness
 
@@ -39,3 +40,4 @@ A tool for students to keep local folders in sync with remote folders
 on Canvas.
 
 [latest]: https://github.com/nguyenvukhang/canvas-sync/releases/latest
+[settings]: https://canvas.nus.edu.sg/profile/settings
