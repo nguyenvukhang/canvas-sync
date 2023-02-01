@@ -1,13 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QDir>
-#include <QMainWindow>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QNetworkRequest>
-#include <QSettings>
-
 #include <algorithm>
 #include <filesystem>
 #include <map>
@@ -26,12 +19,15 @@
 #include <QDir>
 #include <QFile>
 #include <QFileDialog>
+#include <QMainWindow>
 #include <QMessageBox>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QObject>
 #include <QSaveFile>
+#include <QSettings>
+#include <QStandardPaths>
 
 class Network : public QNetworkAccessManager
 {
