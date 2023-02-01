@@ -50,13 +50,13 @@ MainWindow::~MainWindow()
 
 void MainWindow::pull_clicked()
 {
+  this->disable_pull();
   this->received_downloads = 0;
   this->expected_downloads = 0;
   this->updates_done = false;
   this->updates.clear();
   ui->progressBar->setMaximum(0);
   ui->progressBar->setValue(0);
-  ui->progressBar->setHidden(false);
   std::vector<Update> all = gather_tracked();
   size_t c = all.size();
   for (Update u : all) {
@@ -66,17 +66,13 @@ void MainWindow::pull_clicked()
 
 void MainWindow::fetch_clicked()
 {
-  ui->pushButton_fetch->setDisabled(true);
-  ui->pushButton_fetch->setText("Fetching...");
+  this->disable_fetch();
   this->updates.clear();
   std::vector<Update> all = gather_tracked();
   size_t c = all.size();
   for (Update u : all) {
     this->fetch_folder_files(u, c, false);
   }
-  ui->pushButton_fetch->setText("Fetch");
-  ui->pushButton_fetch->setDisabled(false);
-  qDebug() << "Fetch click done!";
 }
 
 void MainWindow::changeToken_clicked()
@@ -174,6 +170,9 @@ void MainWindow::folder_files_fetched(Update u, size_t c, bool download)
 
   if (download) {
     dl_e_mtx.lock();
+    if (this->expected_downloads == 0 && u.files.size() > 0) {
+      ui->progressBar->show();
+    }
     this->expected_downloads += u.files.size();
     ed = this->expected_downloads;
     ui->progressBar->setMaximum(expected_downloads);
@@ -192,9 +191,11 @@ void MainWindow::folder_files_fetched(Update u, size_t c, bool download)
   update_mtx.unlock();
 
   if (updates_done && !download) {
+    this->enable_fetch();
     show_updates(this->updates);
   } else if (updates_done && ed == 0) {
     ui->progressBar->setHidden(true);
+    this->enable_pull();
     show_updates(this->updates);
   }
   r->deleteLater();
@@ -224,12 +225,12 @@ void MainWindow::file_downloaded(File f, size_t c)
   dl_r_mtx.lock();
   received_downloads += 1;
   ui->progressBar->setValue(received_downloads);
-  qDebug() << "received_downloads:" << received_downloads << f.filename.c_str();
   show_downloads = updates_done && received_downloads == expected_downloads;
   dl_r_mtx.unlock();
 
   if (show_downloads) {
     ui->progressBar->setHidden(true);
+    this->enable_pull();
     show_updates(this->updates);
   }
 
@@ -340,6 +341,30 @@ std::string MainWindow::course_name(const int course_id)
   return "[course not found]";
 }
 
+void MainWindow::enable_pull()
+{
+  ui->pushButton_pull->setText("Pull");
+  ui->pushButton_pull->setEnabled(true);
+}
+
+void MainWindow::disable_pull()
+{
+  ui->pushButton_pull->setText("Pulling...");
+  ui->pushButton_pull->setEnabled(false);
+}
+
+void MainWindow::enable_fetch()
+{
+  ui->pushButton_fetch->setText("Fetch");
+  ui->pushButton_fetch->setEnabled(true);
+}
+
+void MainWindow::disable_fetch()
+{
+  ui->pushButton_fetch->setText("Fetching...");
+  ui->pushButton_fetch->setEnabled(false);
+}
+
 void MainWindow::refresh_tree()
 {
   TreeModel *model = newTreeModel();
@@ -374,7 +399,6 @@ void MainWindow::set_auth_state(bool authenticated)
 
 void MainWindow::show_updates(const std::vector<Update> &u)
 {
-  qDebug() << "SHOWING UPDATES";
   QString buffer = "", tmp = "";
   int prev_course = -1;
   for (auto u : u) {

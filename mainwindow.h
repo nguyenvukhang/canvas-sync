@@ -120,6 +120,10 @@ private slots:
 public:
   std::string folder_name(const int folder_id);
   std::string course_name(const int course_id);
+  void enable_pull();
+  void disable_pull();
+  void enable_fetch();
+  void disable_fetch();
   void refresh_tree();
   void set_auth_state(bool);
   void show_updates(const std::vector<Update> &);
