@@ -109,9 +109,10 @@ jobs:
         shell: bash
         run: |
           mv build/CanvasSync.exe \
-            'deploy/windows/packages/com.nguyenvukhang.canvassync/data/Canvas Sync.exe'
+            deploy/windows/packages/com.nguyenvukhang.canvassync/data/
           cd deploy/windows/packages/com.nguyenvukhang.canvassync/data
-          $Qt6_DIR/bin/windeployqt.exe 'Canvas Sync.exe'
+          $Qt6_DIR/bin/windeployqt.exe CanvasSync.exe
+          mv CanvasSync.exe 'Canvas Sync.exe'
 
       - name: Package the installer
         shell: bash
