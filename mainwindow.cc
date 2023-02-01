@@ -40,6 +40,7 @@ MainWindow::MainWindow(QWidget *parent)
   ui->progressBar->setHidden(true);
   ui->treeView->setModel(newTreeModel());
   ui->guideText->hide();
+  ui->label_accessTokenHelp->hide();
 
   if (settings.contains("access-token")) {
     this->check_auth(settings.value("access-token").toString());
@@ -80,11 +81,12 @@ void MainWindow::changeToken_clicked()
 {
   this->token = "";
   this->settings.setValue("access-token", this->token);
-  this->ui->lineEdit_accessToken->setText("");
-  this->ui->lineEdit_accessToken->setReadOnly(false);
-  this->ui->lineEdit_accessToken->setDisabled(false);
-  this->ui->pushButton_changeToken->setHidden(true);
-  this->ui->label_authenticationStatus->setText("unauthenticated");
+  ui->lineEdit_accessToken->setText("");
+  ui->lineEdit_accessToken->setReadOnly(false);
+  ui->lineEdit_accessToken->setDisabled(false);
+  ui->pushButton_changeToken->setHidden(true);
+  ui->label_authenticationStatus->setText("unauthenticated");
+  ui->label_accessTokenHelp->show();
 }
 
 void MainWindow::accessToken_textChanged(const QString &input)
@@ -97,6 +99,10 @@ void MainWindow::accessToken_textChanged(const QString &input)
 void MainWindow::check_auth_fetched()
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
+  if (r->error() == QNetworkReply::AuthenticationRequiredError) {
+    this->set_auth_state(false);
+    return;
+  }
   if (has_network_err(r))
     return;
   auto j = to_json(r);
@@ -297,27 +303,27 @@ void MainWindow::terminate(QNetworkReply *r)
   r->deleteLater();
 }
 
-void MainWindow::enable_pull()
+void MainWindow::enable_pull(const QString &s)
 {
-  ui->pushButton_pull->setText("Pull");
+  ui->pushButton_pull->setText(s);
   ui->pushButton_pull->setEnabled(true);
 }
 
-void MainWindow::disable_pull()
+void MainWindow::disable_pull(const QString &s)
 {
-  ui->pushButton_pull->setText("Pulling...");
+  ui->pushButton_pull->setText(s);
   ui->pushButton_pull->setEnabled(false);
 }
 
-void MainWindow::enable_fetch()
+void MainWindow::enable_fetch(const QString &s)
 {
-  ui->pushButton_fetch->setText("Fetch");
+  ui->pushButton_fetch->setText(s);
   ui->pushButton_fetch->setEnabled(true);
 }
 
-void MainWindow::disable_fetch()
+void MainWindow::disable_fetch(const QString &s)
 {
-  ui->pushButton_fetch->setText("Fetching...");
+  ui->pushButton_fetch->setText(s);
   ui->pushButton_fetch->setEnabled(false);
 }
 
@@ -335,6 +341,9 @@ void MainWindow::set_auth_state(bool authenticated)
   qDebug() << "MainWindow::set_auth_state -> " << authenticated;
   this->authenticated = authenticated;
   if (authenticated) {
+    this->enable_pull();
+    this->enable_fetch();
+    ui->label_accessTokenHelp->hide();
     ui->label_authenticationStatus->setText("authenticated!");
     // disable token entry
     ui->lineEdit_accessToken->setReadOnly(true);
@@ -345,6 +354,9 @@ void MainWindow::set_auth_state(bool authenticated)
     settings.sync();
     return;
   }
+  this->disable_fetch("Fetch");
+  this->disable_pull("Pull");
+  ui->label_accessTokenHelp->show();
   ui->label_authenticationStatus->setText("unauthenticated");
   this->ui->pushButton_changeToken->setHidden(true);
 }

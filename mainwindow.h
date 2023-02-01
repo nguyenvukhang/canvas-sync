@@ -16,6 +16,7 @@
 
 #include <QApplication>
 #include <QDebug>
+#include <QDesktopServices>
 #include <QDir>
 #include <QFile>
 #include <QFileDialog>
@@ -49,7 +50,9 @@ private:
   QNetworkReply *get_full(QString url)
   {
     QNetworkRequest r(*new QUrl(url));
-    r.setRawHeader("Authorization", ("Bearer " + this->token).toUtf8());
+    if (!this->token.isEmpty()) {
+      r.setRawHeader("Authorization", ("Bearer " + this->token).toUtf8());
+    }
     return this->nw.get(r);
   }
 
@@ -57,6 +60,8 @@ private:
   {
     if (r->error() != QNetworkReply::NoError) {
       qDebug() << "Network Error: " << r->errorString();
+      qDebug() << "Error Type: " << r->error();
+      qDebug() << "from url:" << r->url();
       return true;
     }
     return false;
@@ -88,10 +93,10 @@ public:
   std::string folder_name(const int folder_id);
   std::string course_name(const int course_id);
   void terminate(QNetworkReply *);
-  void enable_pull();
-  void disable_pull();
-  void enable_fetch();
-  void disable_fetch();
+  void enable_pull(const QString & = "Pull");
+  void disable_pull(const QString & = "Pulling...");
+  void enable_fetch(const QString & = "Fetch");
+  void disable_fetch(const QString & = "Fetching...");
   void refresh_tree();
   void set_auth_state(bool);
   void show_updates();

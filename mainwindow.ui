@@ -62,6 +62,26 @@
      </layout>
     </item>
     <item>
+     <widget class="QLabel" name="label_accessTokenHelp">
+      <property name="text">
+       <string>&lt;span style=&quot;color: #555555&quot;
+  &gt;To obtain your Canvas Access Token, head over to your
+  &lt;a href=&quot;https://canvas.nus.edu.sg/profile/settings&quot;
+    &gt;Canvas profile settings&lt;/a
+  &gt;. Generate a new token by clicking on &quot;New Access Token&quot;, and leave the
+  expiry date blank to have it last forever.&lt;/span
+&gt;
+</string>
+      </property>
+      <property name="wordWrap">
+       <bool>true</bool>
+      </property>
+      <property name="openExternalLinks">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item>
      <layout class="QHBoxLayout" name="horizontalLayout_actionButtons">
       <property name="spacing">
        <number>10</number>
@@ -132,7 +152,7 @@
     <item>
      <widget class="QLabel" name="guideText">
       <property name="text">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#4d4d4d;&quot;&gt;To add a local folder, double-click the empty space to the right of the canvas folder you want to track, under the `local folder` column.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#555555;&quot;&gt;Right-click on any folder to start configuring.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="wordWrap">
        <bool>true</bool>
