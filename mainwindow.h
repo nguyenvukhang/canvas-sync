@@ -7,9 +7,31 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QSettings>
-#include <csrv.h>
+
+#include <algorithm>
+#include <filesystem>
 #include <map>
 #include <mutex>
+
+#include "convert.h"
+#include "filetree.h"
+#include "tree.h"
+#include "tree_model.h"
+#include "types.h"
+#include "ui_mainwindow.h"
+#include "updates.h"
+
+#include <QApplication>
+#include <QDebug>
+#include <QDir>
+#include <QFile>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QObject>
+#include <QSaveFile>
 
 class Network : public QNetworkAccessManager
 {

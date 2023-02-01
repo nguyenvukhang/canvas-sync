@@ -1,6 +1,6 @@
 #include "tree_model.h"
 #include <QStringList>
-#include <exception>
+#include <stdexcept>
 
 QVector<QVariant> stringListToVariantList(const QStringList &data)
 {

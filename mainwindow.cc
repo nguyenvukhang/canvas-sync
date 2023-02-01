@@ -1,25 +1,4 @@
 #include "mainwindow.h"
-#include "convert.h"
-#include "filetree.h"
-#include "tree.h"
-#include "tree_model.h"
-#include "ui_mainwindow.h"
-#include "updates.h"
-#include <algorithm>
-#include <csrv.h>
-#include <filesystem>
-
-#include <QApplication>
-#include <QDebug>
-#include <QDir>
-#include <QFile>
-#include <QFileDialog>
-#include <QMessageBox>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QNetworkRequest>
-#include <QObject>
-#include <QSaveFile>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow),
@@ -209,12 +188,15 @@ void MainWindow::file_downloaded(File f)
   }
   std::filesystem::path local_path = f.local_dir;
   local_path.append(f.filename);
-  local_path.string();
-  QFile::remove(local_path.c_str());
-  QSaveFile file(local_path.c_str());
+
+  QString filepath = QString::fromStdString(local_path.string());
+
+  QFile::remove(filepath);
+  QSaveFile file(filepath);
   file.open(QIODevice::WriteOnly);
   file.write(r->readAll());
   file.commit();
+
   r->deleteLater();
 }
 
