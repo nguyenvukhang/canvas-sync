@@ -124,9 +124,7 @@ void MainWindow::courses_fetched()
 void MainWindow::course_folders_fetched(const Course &c)
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
-  disconnect(r);
   if (r->error() != QNetworkReply::NoError) {
-    r->deleteLater();
     qDebug() << "Network Error: " << r->errorString();
     return;
   }
@@ -140,15 +138,12 @@ void MainWindow::course_folders_fetched(const Course &c)
   this->refresh_tree();
   tree_mtx.unlock();
   ui->guideText->setHidden(!this->gather_tracked().empty());
-  r->deleteLater();
 }
 
 void MainWindow::folder_files_fetched(Update u, size_t c, bool download)
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
-  disconnect(r);
   if (r->error() != QNetworkReply::NoError) {
-    r->deleteLater();
     qDebug() << "Network Error: " << r->errorString();
     return;
   }
@@ -197,15 +192,12 @@ void MainWindow::folder_files_fetched(Update u, size_t c, bool download)
     this->enable_pull();
     show_updates(this->updates);
   }
-  r->deleteLater();
 }
 
 void MainWindow::file_downloaded(File f, size_t c)
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
-  disconnect(r);
   if (r->error() != QNetworkReply::NoError) {
-    r->deleteLater();
     qDebug() << "Network Error: " << r->errorString();
     return;
   }
@@ -232,8 +224,6 @@ void MainWindow::file_downloaded(File f, size_t c)
     this->enable_pull();
     show_updates(this->updates);
   }
-
-  r->deleteLater();
 }
 
 /// TREEVIEW SLOTS ---

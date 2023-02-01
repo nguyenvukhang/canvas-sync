@@ -41,4 +41,7 @@ clean-qt:
 build-qt:
 	cd $(QT_SRC_DIR) && ninja -j6 && ninja install
 
+open:
+	open build/CanvasSync.app
+
 FORCE: ;
