@@ -2,11 +2,7 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow),
-      nw("https://canvas.nus.edu.sg"),
-      settings(
-          QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) +
-              "/settings.ini",
-          QSettings::IniFormat)
+      nw("https://canvas.nus.edu.sg"), settings(QSettings::UserScope)
 {
   ui->setupUi(this);
 
