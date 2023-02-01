@@ -394,6 +394,7 @@ void MainWindow::set_auth_state(bool authenticated)
     this->ui->pushButton_changeToken->setHidden(false);
     this->settings.setValue("access-token",
                             QString::fromStdString(this->token));
+    settings.sync();
     return;
   }
   ui->label_authenticationStatus->setText("unauthenticated");
