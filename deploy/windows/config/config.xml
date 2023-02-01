@@ -4,6 +4,5 @@
   <Version>1.0.0</Version>
   <Title>Canvas Sync Installer</Title>
   <Publisher>Nguyen Vu Khang</Publisher>
-  <StartMenuDir>Super App</StartMenuDir>
   <TargetDir>@ApplicationsDir@/CanvasSync</TargetDir>
 </Installer>
