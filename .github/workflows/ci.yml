@@ -25,9 +25,9 @@ jobs:
       matrix:
         include:
           - os: macos-11
-            version: 6.4.2
+            version: 6.2.0
           - os: macos-12
-            version: 6.4.2
+            version: 6.2.0
     runs-on: ${{ matrix.os }}
     steps:
       - name: Set environment variables
