@@ -392,8 +392,7 @@ void MainWindow::set_auth_state(bool authenticated)
     ui->lineEdit_accessToken->setDisabled(true);
     // show edit token button, in case the user wants to change it
     this->ui->pushButton_changeToken->setHidden(false);
-    this->settings.setValue("access-token",
-                            QString::fromStdString(this->token));
+    this->settings.setValue("access-token", this->token);
     settings.sync();
     return;
   }
@@ -440,7 +439,7 @@ void MainWindow::show_updates(const std::vector<Update> &u)
 
 void MainWindow::check_auth(const QString &token)
 {
-  this->token = token.toStdString();
+  this->token = token;
   ui->treeView->setModel(newTreeModel());
   this->course_trees.clear();
   QNetworkRequest r = req("/api/v1/users/self/profile");

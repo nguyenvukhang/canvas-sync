@@ -80,18 +80,22 @@ class MainWindow : public QMainWindow
 private:
   QNetworkRequest req(std::string url)
   {
-    QUrl qrl((this->base_url + url).c_str());
+    QString q = this->base_url;
+    q.append(QString::fromStdString(url));
+    QUrl qrl(q);
     QNetworkRequest r(qrl);
-    r.setRawHeader("Authorization",
-                   QByteArray::fromStdString("Bearer " + token));
+    QString bearer = "Bearer ";
+    bearer += this->token;
+    r.setRawHeader("Authorization", bearer.toUtf8());
     return r;
   }
 
   QNetworkRequest download_req(std::string full_url)
   {
     QNetworkRequest r(*new QUrl(full_url.c_str()));
-    r.setRawHeader("Authorization",
-                   QByteArray::fromStdString("Bearer " + token));
+    QString bearer = "Bearer ";
+    bearer += this->token;
+    r.setRawHeader("Authorization", bearer.toUtf8());
     return r;
   }
 
@@ -143,7 +147,7 @@ public:
   std::vector<FileTree> course_trees;
   std::vector<Course> user_courses;
   std::map<int, std::string> folder_names;
-  std::string token, base_url = "https://canvas.nus.edu.sg";
+  QString token, base_url = "https://canvas.nus.edu.sg";
   Ui::MainWindow *ui;
   Network nw;
   QString start_dir = QDir::homePath();
