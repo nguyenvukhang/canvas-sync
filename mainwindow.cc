@@ -27,16 +27,15 @@ MainWindow::MainWindow(QWidget *parent)
   connect(ui->treeView, SIGNAL(cleared(const QModelIndex &)), this,
           SLOT(treeView_cleared(const QModelIndex &)));
 
+  // scripted views
   ui->pushButton_changeToken->setHidden(true);
+  ui->treeView->setColumnHidden(FOLDER_ID, true);
+  ui->progressBar->setHidden(true);
   ui->treeView->setModel(newTreeModel());
 
   if (settings.contains("access-token")) {
     this->check_auth(settings.value("access-token").toString());
   }
-
-  // scripted views
-  ui->treeView->setColumnHidden(FOLDER_ID, false);
-  ui->progressBar->setHidden(true);
 }
 
 MainWindow::~MainWindow()
@@ -374,8 +373,7 @@ void MainWindow::refresh_tree()
   ui->treeView->setModel(model);
   ui->treeView->resizeColumnToContents(0);
   expand_tracked(ui->treeView);
-  // FIXME: after debugging, hide ids from user
-  ui->treeView->setColumnHidden(FOLDER_ID, false);
+  ui->treeView->setColumnHidden(FOLDER_ID, true);
 }
 
 void MainWindow::set_auth_state(bool authenticated)
