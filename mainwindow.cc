@@ -232,7 +232,6 @@ void MainWindow::treeView_doubleClicked(const QModelIndex &index)
 
   QFileDialog dialog(this);
   dialog.setFileMode(QFileDialog::Directory);
-  dialog.setOption(QFileDialog::DontUseNativeDialog);
   QString home = QDir::homePath();
   dialog.setDirectory(this->start_dir != home ? this->start_dir : home);
   dialog.setWindowTitle("Select target for " + get_ancestry(index, " / "));
