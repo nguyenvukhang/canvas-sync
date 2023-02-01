@@ -44,12 +44,17 @@ include_directories(
 option(BUILD_STATIC_LIBS ON)
 option(BUILD_SHARED_LIBS OFF)
 
-qt_add_executable(CanvasSync MANUAL_FINALIZATION ${PROJECT_SOURCES})
+# get app icon
+set(APP_ICON_MACOS "${CMAKE_CURRENT_SOURCE_DIR}/deploy/canvas-sync.icns")
+set_source_files_properties(${APP_ICON_MACOS} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+
+qt_add_executable(CanvasSync MANUAL_FINALIZATION ${PROJECT_SOURCES} ${APP_ICON_MACOS})
 target_link_libraries(CanvasSync PRIVATE Qt6::Widgets Qt6::Network)
 set_target_properties(CanvasSync PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER canvassync.nguyenvukhang.com
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+    MACOSX_BUNDLE_ICON_FILE canvas-sync.icns
     MACOSX_BUNDLE TRUE WIN32_EXECUTABLE TRUE
 )
 install(TARGETS CanvasSync
@@ -57,5 +62,3 @@ install(TARGETS CanvasSync
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 qt_finalize_executable(CanvasSync)
-
-include(CPack)

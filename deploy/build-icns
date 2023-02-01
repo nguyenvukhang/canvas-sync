@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+ICNS_DIR=canvas-sync.iconset
+mkdir $ICNS_DIR
+mv export/**/*.png $ICNS_DIR
+rm -rf export/*
+touch export/.gitkeep
+iconutil -c icns $ICNS_DIR
+rm -rf $ICNS_DIR
