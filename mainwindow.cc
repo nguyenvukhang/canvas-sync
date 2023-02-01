@@ -2,7 +2,11 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow),
-      nw("https://canvas.nus.edu.sg")
+      nw("https://canvas.nus.edu.sg"),
+      settings(
+          QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) +
+              "/canvas-sync-settings.ini",
+          QSettings::IniFormat)
 {
   ui->setupUi(this);
 
@@ -27,8 +31,12 @@ MainWindow::MainWindow(QWidget *parent)
   connect(ui->treeView, SIGNAL(cleared(const QModelIndex &)), this,
           SLOT(treeView_cleared(const QModelIndex &)));
 
+  // scripted views
   ui->pushButton_changeToken->setHidden(true);
+  ui->treeView->setColumnHidden(FOLDER_ID, true);
+  ui->progressBar->setHidden(true);
   ui->treeView->setModel(newTreeModel());
+  ui->guideText->hide();
 
   if (settings.contains("access-token")) {
     this->check_auth(settings.value("access-token").toString());
@@ -46,7 +54,13 @@ MainWindow::~MainWindow()
 
 void MainWindow::pull_clicked()
 {
+  this->disable_pull();
+  this->received_downloads = 0;
+  this->expected_downloads = 0;
+  this->updates_done = false;
   this->updates.clear();
+  ui->progressBar->setMaximum(0);
+  ui->progressBar->setValue(0);
   std::vector<Update> all = gather_tracked();
   size_t c = all.size();
   for (Update u : all) {
@@ -56,17 +70,13 @@ void MainWindow::pull_clicked()
 
 void MainWindow::fetch_clicked()
 {
-  ui->pushButton_fetch->setDisabled(true);
-  ui->pushButton_fetch->setText("Fetching...");
+  this->disable_fetch();
   this->updates.clear();
   std::vector<Update> all = gather_tracked();
   size_t c = all.size();
   for (Update u : all) {
     this->fetch_folder_files(u, c, false);
   }
-  ui->pushButton_fetch->setText("Fetch");
-  ui->pushButton_fetch->setDisabled(false);
-  qDebug() << "Fetch click done!";
 }
 
 void MainWindow::changeToken_clicked()
@@ -135,6 +145,7 @@ void MainWindow::course_folders_fetched(const Course &c)
   this->course_trees.push_back(t);
   this->refresh_tree();
   tree_mtx.unlock();
+  ui->guideText->setHidden(!this->gather_tracked().empty());
   r->deleteLater();
 }
 
@@ -155,29 +166,47 @@ void MainWindow::folder_files_fetched(Update u, size_t c, bool download)
   for (int j = 0; j < fc; j++) {
     auto a = local_dir / f[j].filename;
     if (!std::filesystem::exists(local_dir / f[j].filename)) {
-      qDebug() << a.c_str() << "does not exist";
       f[j].local_dir = u.local_dir;
       u.files.push_back(f[j]);
     }
   }
-  qDebug() << "download?" << download;
+
+  int ed = 0;
+
   if (download) {
+    dl_e_mtx.lock();
+    if (this->expected_downloads == 0 && u.files.size() > 0) {
+      ui->progressBar->show();
+    }
+    this->expected_downloads += u.files.size();
+    ed = this->expected_downloads;
+    ui->progressBar->setMaximum(expected_downloads);
+    qDebug() << "Total expected downloads is now" << expected_downloads;
+    dl_e_mtx.unlock();
     for (auto f : u.files) {
-      qDebug() << "sending download:" << f.filename.c_str();
-      this->download_file(f);
+      this->download_file(f, u.files.size());
     }
   }
-  bool done = false;
+  bool updates_done = false;
+
   update_mtx.lock();
   this->updates.push_back(std::move(u));
-  done = updates.size() == c;
+  updates_done = updates.size() == c;
+  this->updates_done = updates_done;
   update_mtx.unlock();
-  if (done)
+
+  if (updates_done && !download) {
+    this->enable_fetch();
     show_updates(this->updates);
+  } else if (updates_done && ed == 0) {
+    ui->progressBar->setHidden(true);
+    this->enable_pull();
+    show_updates(this->updates);
+  }
   r->deleteLater();
 }
 
-void MainWindow::file_downloaded(File f)
+void MainWindow::file_downloaded(File f, size_t c)
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
   disconnect(r);
@@ -196,6 +225,19 @@ void MainWindow::file_downloaded(File f)
   file.open(QIODevice::WriteOnly);
   file.write(r->readAll());
   file.commit();
+
+  bool show_downloads = false;
+  dl_r_mtx.lock();
+  received_downloads += 1;
+  ui->progressBar->setValue(received_downloads);
+  show_downloads = updates_done && received_downloads == expected_downloads;
+  dl_r_mtx.unlock();
+
+  if (show_downloads) {
+    ui->progressBar->setHidden(true);
+    this->enable_pull();
+    show_updates(this->updates);
+  }
 
   r->deleteLater();
 }
@@ -232,7 +274,6 @@ void MainWindow::treeView_doubleClicked(const QModelIndex &index)
 
   QFileDialog dialog(this);
   dialog.setFileMode(QFileDialog::Directory);
-  dialog.setOption(QFileDialog::DontUseNativeDialog);
   QString home = QDir::homePath();
   dialog.setDirectory(this->start_dir != home ? this->start_dir : home);
   dialog.setWindowTitle("Select target for " + get_ancestry(index, " / "));
@@ -264,6 +305,8 @@ void MainWindow::treeView_doubleClicked(const QModelIndex &index)
     settings.setValue(get_id(index), local_dir);
     settings.sync();
 
+    ui->guideText->hide();
+
     QDir selected_dir = QDir::fromNativeSeparators(local_dir);
     selected_dir.cdUp();
     this->start_dir = selected_dir.path();
@@ -274,6 +317,7 @@ void MainWindow::treeView_cleared(const QModelIndex &index)
 {
   settings.remove(get_id(index));
   settings.sync();
+  ui->guideText->setHidden(!this->gather_tracked().empty());
 }
 
 void MainWindow::treeView_expanded(const QModelIndex &index)
@@ -305,6 +349,30 @@ std::string MainWindow::course_name(const int course_id)
   return "[course not found]";
 }
 
+void MainWindow::enable_pull()
+{
+  ui->pushButton_pull->setText("Pull");
+  ui->pushButton_pull->setEnabled(true);
+}
+
+void MainWindow::disable_pull()
+{
+  ui->pushButton_pull->setText("Pulling...");
+  ui->pushButton_pull->setEnabled(false);
+}
+
+void MainWindow::enable_fetch()
+{
+  ui->pushButton_fetch->setText("Fetch");
+  ui->pushButton_fetch->setEnabled(true);
+}
+
+void MainWindow::disable_fetch()
+{
+  ui->pushButton_fetch->setText("Fetching...");
+  ui->pushButton_fetch->setEnabled(false);
+}
+
 void MainWindow::refresh_tree()
 {
   TreeModel *model = newTreeModel();
@@ -314,8 +382,7 @@ void MainWindow::refresh_tree()
   ui->treeView->setModel(model);
   ui->treeView->resizeColumnToContents(0);
   expand_tracked(ui->treeView);
-  // FIXME: after debugging, hide ids from user
-  ui->treeView->setColumnHidden(FOLDER_ID, false);
+  ui->treeView->setColumnHidden(FOLDER_ID, true);
 }
 
 void MainWindow::set_auth_state(bool authenticated)
@@ -329,8 +396,8 @@ void MainWindow::set_auth_state(bool authenticated)
     ui->lineEdit_accessToken->setDisabled(true);
     // show edit token button, in case the user wants to change it
     this->ui->pushButton_changeToken->setHidden(false);
-    this->settings.setValue("access-token",
-                            QString::fromStdString(this->token));
+    this->settings.setValue("access-token", this->token);
+    settings.sync();
     return;
   }
   ui->label_authenticationStatus->setText("unauthenticated");
@@ -339,7 +406,6 @@ void MainWindow::set_auth_state(bool authenticated)
 
 void MainWindow::show_updates(const std::vector<Update> &u)
 {
-  qDebug() << "SHOWING UPDATES";
   QString buffer = "", tmp = "";
   int prev_course = -1;
   for (auto u : u) {
@@ -377,7 +443,7 @@ void MainWindow::show_updates(const std::vector<Update> &u)
 
 void MainWindow::check_auth(const QString &token)
 {
-  this->token = token.toStdString();
+  this->token = token;
   ui->treeView->setModel(newTreeModel());
   this->course_trees.clear();
   QNetworkRequest r = req("/api/v1/users/self/profile");
@@ -412,18 +478,15 @@ void MainWindow::fetch_folder_files(Update u, size_t c, bool download)
           [=]() { this->folder_files_fetched(std::move(u), c, download); });
 }
 
-void MainWindow::download_file(File f)
+void MainWindow::download_file(File f, size_t c)
 {
   if (!std::filesystem::exists(f.local_dir)) {
     std::filesystem::create_directories(f.local_dir);
-    qDebug() << "Download's target directory does not exist."
-             << f.local_dir.c_str();
-    return;
   }
   QNetworkRequest r = download_req(f.url);
   QNetworkReply *a = this->nw.get(r);
   connect(a, &QNetworkReply::finished, this,
-          [=]() { this->file_downloaded(std::move(f)); });
+          [=]() { this->file_downloaded(std::move(f), c); });
 }
 
 std::vector<Update> MainWindow::gather_tracked()

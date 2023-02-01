@@ -21,8 +21,14 @@
     </sizepolicy>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>2</number>
+    </property>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_accessToken">
+      <property name="spacing">
+       <number>10</number>
+      </property>
       <property name="topMargin">
        <number>0</number>
       </property>
@@ -57,6 +63,9 @@
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_actionButtons">
+      <property name="spacing">
+       <number>10</number>
+      </property>
       <property name="topMargin">
        <number>0</number>
       </property>
@@ -109,6 +118,32 @@
        </widget>
       </item>
      </layout>
+    </item>
+    <item>
+     <widget class="QProgressBar" name="progressBar">
+      <property name="value">
+       <number>24</number>
+      </property>
+      <property name="invertedAppearance">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="guideText">
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#4d4d4d;&quot;&gt;To add a local folder, double-click the empty space to the right of the canvas folder you want to track, under the `local folder` column.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="wordWrap">
+       <bool>true</bool>
+      </property>
+      <property name="margin">
+       <number>0</number>
+      </property>
+      <property name="indent">
+       <number>0</number>
+      </property>
+     </widget>
     </item>
     <item>
      <widget class="ClickableTreeView" name="treeView">

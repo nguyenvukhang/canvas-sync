@@ -1,13 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QDir>
-#include <QMainWindow>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QNetworkRequest>
-#include <QSettings>
-
 #include <algorithm>
 #include <filesystem>
 #include <map>
@@ -26,12 +19,15 @@
 #include <QDir>
 #include <QFile>
 #include <QFileDialog>
+#include <QMainWindow>
 #include <QMessageBox>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QObject>
 #include <QSaveFile>
+#include <QSettings>
+#include <QStandardPaths>
 
 class Network : public QNetworkAccessManager
 {
@@ -80,18 +76,22 @@ class MainWindow : public QMainWindow
 private:
   QNetworkRequest req(std::string url)
   {
-    QUrl qrl((this->base_url + url).c_str());
+    QString q = this->base_url;
+    q.append(QString::fromStdString(url));
+    QUrl qrl(q);
     QNetworkRequest r(qrl);
-    r.setRawHeader("Authorization",
-                   QByteArray::fromStdString("Bearer " + token));
+    QString bearer = "Bearer ";
+    bearer += this->token;
+    r.setRawHeader("Authorization", bearer.toUtf8());
     return r;
   }
 
   QNetworkRequest download_req(std::string full_url)
   {
     QNetworkRequest r(*new QUrl(full_url.c_str()));
-    r.setRawHeader("Authorization",
-                   QByteArray::fromStdString("Bearer " + token));
+    QString bearer = "Bearer ";
+    bearer += this->token;
+    r.setRawHeader("Authorization", bearer.toUtf8());
     return r;
   }
 
@@ -109,7 +109,7 @@ private slots:
   void courses_fetched();
   void course_folders_fetched(const Course &);
   void folder_files_fetched(Update u, size_t c, bool download);
-  void file_downloaded(File f);
+  void file_downloaded(File f, size_t c);
   // tree stuff
   void treeView_clicked(const QModelIndex &);
   void treeView_doubleClicked(const QModelIndex &);
@@ -120,6 +120,10 @@ private slots:
 public:
   std::string folder_name(const int folder_id);
   std::string course_name(const int course_id);
+  void enable_pull();
+  void disable_pull();
+  void enable_fetch();
+  void disable_fetch();
   void refresh_tree();
   void set_auth_state(bool);
   void show_updates(const std::vector<Update> &);
@@ -127,18 +131,19 @@ public:
   void fetch_courses();
   void fetch_course_folders(const Course &);
   void fetch_folder_files(Update u, size_t c, bool download);
-  void download_file(File f);
+  void download_file(File f, size_t c);
   std::vector<Update> gather_tracked();
 
   // data
-  bool authenticated = false;
-  std::mutex tree_mtx, update_mtx;
+  bool authenticated = false, updates_done;
+  std::mutex tree_mtx, update_mtx, dl_e_mtx, dl_r_mtx;
   QSettings settings;
   std::vector<Update> updates;
+  int expected_downloads, received_downloads;
   std::vector<FileTree> course_trees;
   std::vector<Course> user_courses;
   std::map<int, std::string> folder_names;
-  std::string token, base_url = "https://canvas.nus.edu.sg";
+  QString token, base_url = "https://canvas.nus.edu.sg";
   Ui::MainWindow *ui;
   Network nw;
   QString start_dir = QDir::homePath();

@@ -25,9 +25,9 @@ jobs:
       matrix:
         include:
           - os: macos-11
-            version: 6.4.2
+            version: 6.2.0
           - os: macos-12
-            version: 6.4.2
+            version: 6.2.0
     runs-on: ${{ matrix.os }}
     steps:
       - name: Set environment variables
@@ -49,7 +49,7 @@ jobs:
       # package app
       - run: |
           mkdir dmg
-          cp -a build/CanvasSync.app dmg/CanvasSync.app
+          cp -a build/CanvasSync.app 'dmg/Canvas Sync.app'
           ln -s /Applications dmg/Applications
           hdiutil create -volname CanvasSync \
             -srcfolder dmg \
