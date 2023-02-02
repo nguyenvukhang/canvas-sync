@@ -66,6 +66,11 @@ void MainWindow::pull_clicked()
   ui->progressBar->setMaximum(0);
   ui->progressBar->setValue(0);
   std::vector<Update> tracked_folders = gather_tracked();
+  if (tracked_folders.empty()) {
+    QMessageBox::information(this, "Pull", "No folders selected to track.");
+    this->enable_pull();
+    return;
+  }
   this->fetch_folder_files(tracked_folders, true);
 }
 
@@ -74,6 +79,11 @@ void MainWindow::fetch_clicked()
   this->disable_fetch();
   this->updates.clear();
   std::vector<Update> tracked_folders = gather_tracked();
+  if (tracked_folders.empty()) {
+    QMessageBox::information(this, "Fetch", "No folders selected to track.");
+    this->enable_fetch();
+    return;
+  }
   this->fetch_folder_files(tracked_folders, false);
 }
 
