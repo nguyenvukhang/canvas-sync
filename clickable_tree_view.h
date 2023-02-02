@@ -19,6 +19,7 @@ public:
   void setModel(TreeModel *model);
   TreeModel *model() const;
   void expand_tracked();
+  void prettify();
 
 signals:
   void cleared(const QModelIndex &index);

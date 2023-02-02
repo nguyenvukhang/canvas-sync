@@ -143,7 +143,8 @@ void MainWindow::course_folders_fetched(const Course &c)
     this->folder_names.insert(std::pair(f.id, f.full_name));
   }
   this->course_trees.push_back(t);
-  this->refresh_tree();
+  refresh_tree_data();
+  ui->treeView->prettify();
   tree_mtx.unlock();
   ui->guideText->setHidden(!this->gather_tracked().empty());
 }
@@ -335,18 +336,17 @@ void MainWindow::disable_fetch(const QString &s)
   ui->pushButton_fetch->setEnabled(false);
 }
 
-void MainWindow::refresh_tree()
+void MainWindow::refresh_tree_data()
 {
   TreeModel *model = newTreeModel();
   FileTree t;
-  t.insert_trees(this->course_trees);
+  t.insert_course_trees(this->course_trees);
   insert(model->item(0), &t, &settings);
   ui->treeView->setModel(model);
 }
 
 void MainWindow::set_auth_state(bool authenticated)
 {
-  qDebug() << "MainWindow::set_auth_state -> " << authenticated;
   this->authenticated = authenticated;
   if (authenticated) {
     this->enable_pull();

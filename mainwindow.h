@@ -59,9 +59,9 @@ private:
   bool has_network_err(QNetworkReply *r)
   {
     if (r->error() != QNetworkReply::NoError) {
-      qDebug() << "Network Error: " << r->errorString();
-      qDebug() << "Error Type: " << r->error();
-      qDebug() << "from url:" << r->url();
+      qDebug() << "Network Error: " << r->errorString() << '\n'
+               << "Error Type: " << r->error() << '\n'
+               << "from url:" << r->url();
       return true;
     }
     return false;
@@ -97,7 +97,7 @@ public:
   void disable_pull(const QString & = "Pulling...");
   void enable_fetch(const QString & = "Fetch");
   void disable_fetch(const QString & = "Fetching...");
-  void refresh_tree();
+  void refresh_tree_data();
   void set_auth_state(bool);
   void show_updates();
   void check_auth(const QString &token);

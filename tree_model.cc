@@ -375,7 +375,6 @@ bool TreeModel::removeColumns(int position, int columns,
   try {
     rootItem->removeColumns(position, columns);
   } catch (std::out_of_range &e) {
-    qDebug() << e.what();
     endRemoveColumns();
     return false;
   }
@@ -399,7 +398,6 @@ bool TreeModel::removeRows(int position, int rows, const QModelIndex &parent)
   try {
     parentItem->removeRows(position, rows);
   } catch (std::out_of_range &e) {
-    qDebug() << e.what();
     endRemoveRows();
     return false;
   }
@@ -419,7 +417,6 @@ bool TreeModel::setData(const QModelIndex &index, const QVariant &value,
   try {
     item->setData(index.column(), value);
   } catch (std::out_of_range &e) {
-    qDebug() << e.what();
     return false;
   }
   emit dataChanged(index, index, {Qt::DisplayRole, Qt::EditRole});
@@ -436,7 +433,6 @@ bool TreeModel::setHeaderData(int section, Qt::Orientation orientation,
   try {
     rootItem->setData(section, value);
   } catch (std::out_of_range &e) {
-    qDebug() << e.what();
     return false;
   }
 
@@ -451,7 +447,6 @@ bool TreeModel::insertColumns(int position, int columns,
   try {
     rootItem->insertColumns(position, columns);
   } catch (std::out_of_range &e) {
-    qDebug() << e.what();
     endInsertColumns();
     return false;
   }
@@ -470,7 +465,6 @@ bool TreeModel::insertRows(int position, int rows, const QModelIndex &parent)
   try {
     parentItem->insertRows(position, rows, rootItem->columnCount());
   } catch (std::out_of_range &e) {
-    qDebug() << e.what();
     endInsertRows();
     return false;
   }
