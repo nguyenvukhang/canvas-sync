@@ -53,8 +53,6 @@ TreeModel *ClickableTreeView::model() const
 void ClickableTreeView::setModel(TreeModel *model)
 {
   QTreeView::setModel(model);
-  this->setColumnHidden(TreeCol::FOLDER_ID, true);
-  this->resizeColumnToContents(TreeCol::REMOTE_DIR);
   this->expand_tracked();
 };
 
@@ -87,3 +85,11 @@ void ClickableTreeView::expand_tracked()
     }
   }
 }
+
+void ClickableTreeView::prettify()
+{
+  this->resizeColumnToContents(TreeCol::REMOTE_DIR);
+  if (columnWidth(TreeCol::REMOTE_DIR) > this->width() * 0.6) {
+    setColumnWidth(TreeCol::REMOTE_DIR, this->width() * 0.6);
+  }
+};

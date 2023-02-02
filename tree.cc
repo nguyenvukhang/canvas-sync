@@ -156,9 +156,5 @@ void on_all_children(TreeItem *item, ItemOperator func)
 
 TreeModel *newTreeModel()
 {
-  auto headers = QStringList() << "canvas folder"
-                               << "local folder"
-                               << "id";
-  TreeModel *model = new TreeModel(headers);
-  return model;
+  return new TreeModel({"canvas folder", "local folder"});
 }
