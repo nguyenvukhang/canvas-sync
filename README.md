@@ -36,8 +36,5 @@ Currently compiled for MacOS and Windows, but since it's written with
 the Qt framework, it can be easily adapted to compile for Linux
 distributions. PRs are welcome.
 
-A tool for students to keep local folders in sync with remote folders
-on Canvas.
-
 [latest]: https://github.com/nguyenvukhang/canvas-sync/releases/latest
 [settings]: https://canvas.nus.edu.sg/profile/settings

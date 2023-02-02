@@ -66,6 +66,11 @@ void MainWindow::pull_clicked()
   ui->progressBar->setMaximum(0);
   ui->progressBar->setValue(0);
   std::vector<Update> tracked_folders = gather_tracked();
+  if (tracked_folders.empty()) {
+    QMessageBox::information(this, "Pull", "No folders selected to track.");
+    this->enable_pull();
+    return;
+  }
   this->fetch_folder_files(tracked_folders, true);
 }
 
@@ -74,6 +79,11 @@ void MainWindow::fetch_clicked()
   this->disable_fetch();
   this->updates.clear();
   std::vector<Update> tracked_folders = gather_tracked();
+  if (tracked_folders.empty()) {
+    QMessageBox::information(this, "Fetch", "No folders selected to track.");
+    this->enable_fetch();
+    return;
+  }
   this->fetch_folder_files(tracked_folders, false);
 }
 
@@ -142,14 +152,12 @@ void MainWindow::folder_files_fetched(Update u, size_t total_expected_updates,
                                       bool download)
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
-  if (has_network_err(r))
-    return;
   std::vector<File> f = to_files(to_json(r));
   remove_existing_files(&f, u.local_dir);
 
   size_t n = f.size();
-  while (n-- > 0)
-    f[n].local_dir = u.local_dir;
+  for (size_t i = 0; i < n; i++)
+    f[i].local_dir = u.local_dir;
 
   u.files = std::move(f);
   // u.files now contains a list of files that the user does not have
