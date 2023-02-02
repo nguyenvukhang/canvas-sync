@@ -339,14 +339,13 @@ void MainWindow::refresh_tree()
 {
   TreeModel *model = newTreeModel();
   FileTree t;
-  t.insert_trees(this->course_trees);
+  t.insert_course_trees(this->course_trees);
   insert(model->item(0), &t, &settings);
   ui->treeView->setModel(model);
 }
 
 void MainWindow::set_auth_state(bool authenticated)
 {
-  qDebug() << "MainWindow::set_auth_state -> " << authenticated;
   this->authenticated = authenticated;
   if (authenticated) {
     this->enable_pull();

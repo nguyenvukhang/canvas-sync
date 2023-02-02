@@ -7,11 +7,6 @@ void resolve_all_folders(TreeItem *item, fs::path *local_base_dir,
 {
   std::string local_dir = get_local_dir(*item).toStdString();
 
-  if (!cwd->empty() && !local_dir.empty()) {
-    qDebug() << "NOT SUPPOSED TO REACH HERE";
-    qDebug() << "resolve_all_folders:: cwd and local_dir are both populated.";
-  }
-
   fs::path new_cwd;
   fs::path new_base = *local_base_dir;
 

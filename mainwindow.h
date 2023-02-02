@@ -59,9 +59,9 @@ private:
   bool has_network_err(QNetworkReply *r)
   {
     if (r->error() != QNetworkReply::NoError) {
-      qDebug() << "Network Error: " << r->errorString();
-      qDebug() << "Error Type: " << r->error();
-      qDebug() << "from url:" << r->url();
+      qDebug() << "Network Error: " << r->errorString() << '\n'
+               << "Error Type: " << r->error() << '\n'
+               << "from url:" << r->url();
       return true;
     }
     return false;
