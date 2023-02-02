@@ -50,6 +50,7 @@ jobs:
       - run: |
           mkdir dmg
           cp -a build/CanvasSync.app 'dmg/Canvas Sync.app'
+          mv ./deploy/mac-readme.txt dmg/README.txt
           ln -s /Applications dmg/Applications
           hdiutil create -volname CanvasSync \
             -srcfolder dmg \
