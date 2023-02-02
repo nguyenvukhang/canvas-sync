@@ -152,14 +152,12 @@ void MainWindow::folder_files_fetched(Update u, size_t total_expected_updates,
                                       bool download)
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
-  if (has_network_err(r))
-    return;
   std::vector<File> f = to_files(to_json(r));
   remove_existing_files(&f, u.local_dir);
 
   size_t n = f.size();
-  while (n-- > 0)
-    f[n].local_dir = u.local_dir;
+  for (size_t i = 0; i < n; i++)
+    f[i].local_dir = u.local_dir;
 
   u.files = std::move(f);
   // u.files now contains a list of files that the user does not have
