@@ -196,9 +196,13 @@ void MainWindow::changeToken_clicked()
 
 void MainWindow::treeView_cleared(const QModelIndex &index)
 {
-  settings.remove(get_id(index));
-  settings.sync();
+  ui->treeView->model()->itemFromIndex(index)->setData(TreeCol::LOCAL_DIR, "");
   ui->guideText->setHidden(!this->gather_tracked().empty());
+  QString folder_id = get_id(index);
+  if (folder_id.isEmpty())
+    return;
+  settings.remove(folder_id);
+  settings.sync();
 }
 
 void MainWindow::treeView_trackFolder(const QModelIndex &index)
@@ -240,7 +244,7 @@ void MainWindow::treeView_trackFolder(const QModelIndex &index)
     });
 
     // update itself
-    item->setData(1, local_dir);
+    item->setData(LOCAL_DIR, local_dir);
     settings.setValue(get_id(index), local_dir);
     settings.sync();
 

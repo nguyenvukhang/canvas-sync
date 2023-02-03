@@ -30,7 +30,7 @@ void ClickableTreeView::context_menu(const QPoint &pos)
     emit track_folder(index);
   }
   if (target == "Clear") {
-    clear(index);
+    emit cleared(index);
   }
 }
 
@@ -39,12 +39,6 @@ ClickableTreeView::ClickableTreeView(QWidget *parent) : QTreeView(parent)
   setContextMenuPolicy(Qt::CustomContextMenu);
   connect(this, &QTreeView::customContextMenuRequested, this,
           [&](const QPoint &pos) { this->context_menu(pos); });
-}
-
-void ClickableTreeView::clear(const QModelIndex index)
-{
-  this->model()->itemFromIndex(index)->setData(TreeCol::LOCAL_DIR, "");
-  emit cleared(index);
 }
 
 TreeModel *ClickableTreeView::model() const

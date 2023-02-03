@@ -15,7 +15,6 @@ private slots:
 
 public:
   ClickableTreeView(QWidget *parent = nullptr);
-  void clear(const QModelIndex index);
   void setModel(TreeModel *model);
   TreeModel *model() const;
   void expand_tracked();
