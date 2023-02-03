@@ -49,6 +49,8 @@ public:
   void connect_buttons();
   void connect_tree();
   void connect_canvas();
+  void prefetch();
+  void fetch(const std::vector<Folder> &f);
 
 private slots:
   void pull_clicked();

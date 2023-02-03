@@ -40,6 +40,11 @@ MainWindow::MainWindow(QWidget *parent)
   this->check_auth(settings.value("access-token").toString());
 }
 
+MainWindow::~MainWindow()
+{
+  delete ui;
+}
+
 void MainWindow::connect_buttons()
 {
   connect(ui->pushButton_pull, &QPushButton::clicked, this,
@@ -98,6 +103,7 @@ void MainWindow::connect_canvas()
 
   connect(&canvas, &Canvas::fetch_files_done, this,
           [=](const Folder &_fo, std::vector<File> fi) {
+            qDebug() << "PEWPEWPEW";
             Folder fo(std::move(_fo));
             remove_existing_files(&fi, fo.local_dir);
             fo.files = fi;
@@ -133,9 +139,20 @@ void MainWindow::connect_canvas()
   connect(&canvas, &Canvas::all_download_done, this, &MainWindow::show_updates);
 }
 
-MainWindow::~MainWindow()
+void MainWindow::prefetch()
 {
-  delete ui;
+  this->tracked_folders.clear();
+  ui->progressBar->setMaximum(0);
+  ui->progressBar->setValue(0);
+}
+
+void MainWindow::fetch(const std::vector<Folder> &f)
+{
+  canvas.reset_counts();
+  canvas.set_total_fetches(f.size());
+  for (auto f : f) {
+    canvas.fetch_files(f);
+  }
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -145,39 +162,31 @@ MainWindow::~MainWindow()
 void MainWindow::pull_clicked()
 {
   this->action = Action::PULL;
-  this->tracked_folders.clear();
+  this->prefetch();
   this->disable_pull();
-  ui->progressBar->setMaximum(0);
-  ui->progressBar->setValue(0);
-  std::vector<Folder> tracked_folders = gather_tracked();
-  if (tracked_folders.empty()) {
+
+  std::vector<Folder> tracked = gather_tracked();
+  if (tracked.empty()) {
     QMessageBox::information(this, "Pull", "No folders selected to track.");
     this->enable_pull();
     return;
   }
-  canvas.reset_counts();
-  canvas.set_total_fetches(tracked_folders.size());
-  for (auto f : tracked_folders) {
-    canvas.fetch_files(f);
-  }
+  fetch(tracked);
 }
 
 void MainWindow::fetch_clicked()
 {
   this->action = Action::FETCH;
-  this->tracked_folders.clear();
+  this->prefetch();
   this->disable_fetch();
-  std::vector<Folder> tracked_folders = gather_tracked();
-  if (tracked_folders.empty()) {
+
+  std::vector<Folder> tracked = gather_tracked();
+  if (tracked.empty()) {
     QMessageBox::information(this, "Fetch", "No folders selected to track.");
     this->enable_fetch();
     return;
   }
-  canvas.reset_counts();
-  canvas.set_total_fetches(tracked_folders.size());
-  for (auto f : tracked_folders) {
-    canvas.fetch_files(f);
-  }
+  fetch(tracked);
 }
 
 void MainWindow::changeToken_clicked()
