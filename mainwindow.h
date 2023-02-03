@@ -75,11 +75,7 @@ private slots:
   void pull_clicked();
   void fetch_clicked();
   void changeToken_clicked();
-  void accessToken_textChanged(const QString &);
   // network stuff
-  void check_auth_fetched();
-  void courses_fetched();
-  void course_folders_fetched(const Course &);
   void folder_files_fetched(Update u, size_t c, bool download);
   void file_downloaded(File f);
   // tree stuff

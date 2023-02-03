@@ -11,7 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
 
   // text inputs
   connect(ui->lineEdit_accessToken, &QLineEdit::textChanged, this,
-          &MainWindow::accessToken_textChanged);
+          [&](const QString &token) { this->check_auth(token); });
 
   // buttons
   connect(ui->pushButton_pull, &QPushButton::clicked, this,
@@ -35,9 +35,8 @@ MainWindow::MainWindow(QWidget *parent)
           &MainWindow::track_folder_requested);
 
   // scripted views
-  ui->pushButton_changeToken->setHidden(true);
-  ui->treeView->setColumnHidden(FOLDER_ID, true);
-  ui->progressBar->setHidden(true);
+  ui->pushButton_changeToken->hide();
+  ui->progressBar->hide();
   ui->treeView->setModel(newTreeModel());
   ui->guideText->hide();
   ui->label_accessTokenHelp->hide();
@@ -99,55 +98,7 @@ void MainWindow::changeToken_clicked()
   this->set_auth_state(false);
 }
 
-void MainWindow::accessToken_textChanged(const QString &input)
-{
-  this->check_auth(input);
-}
-
 /// NETWORK SLOTS ---
-
-void MainWindow::check_auth_fetched()
-{
-  QNetworkReply *r = (QNetworkReply *)this->sender();
-  if (r->error() == QNetworkReply::AuthenticationRequiredError) {
-    this->set_auth_state(false);
-    return;
-  }
-  if (has_network_err(r))
-    return;
-  auto j = to_json(r);
-  this->set_auth_state(is_valid_profile(j.object()));
-  this->fetch_courses();
-}
-
-void MainWindow::courses_fetched()
-{
-  QNetworkReply *r = (QNetworkReply *)this->sender();
-  if (has_network_err(r))
-    return;
-  auto j = to_json(r);
-  this->user_courses = to_courses(j);
-  for (auto c : this->user_courses)
-    this->fetch_course_folders(c);
-}
-
-void MainWindow::course_folders_fetched(const Course &c)
-{
-  QNetworkReply *r = (QNetworkReply *)this->sender();
-  if (has_network_err(r))
-    return;
-  std::vector<Folder> f = to_folders(to_json(r));
-  FileTree t(&c, f);
-  tree_mtx.lock();
-  for (auto f : f) {
-    this->folder_names.insert(std::pair(f.id, f.full_name));
-  }
-  this->course_trees.push_back(t);
-  refresh_tree_data();
-  ui->treeView->prettify();
-  tree_mtx.unlock();
-  ui->guideText->setHidden(!this->gather_tracked().empty());
-}
 
 void MainWindow::folder_files_fetched(Update u, size_t total_expected_updates,
                                       bool download)
@@ -212,7 +163,7 @@ void MainWindow::file_downloaded(File f)
   dl_r_mtx.unlock();
 
   if (show_downloads) {
-    ui->progressBar->setHidden(true);
+    ui->progressBar->hide();
     this->enable_pull();
     show_updates();
   }
@@ -374,7 +325,7 @@ void MainWindow::show_updates()
   // update state before showing update window
   this->enable_fetch();
   this->enable_pull();
-  ui->progressBar->setHidden(true);
+  ui->progressBar->hide();
 
   QString buffer = "", tmp = "";
   int prev_course = -1;
@@ -416,29 +367,53 @@ void MainWindow::check_auth(const QString &token)
   this->token = token;
   ui->treeView->setModel(newTreeModel());
   this->course_trees.clear();
-  QNetworkReply *a = this->get("/api/v1/users/self/profile");
-  connect(a, &QNetworkReply::finished, this, [=]() {
-    check_auth_fetched();
-    terminate(a);
+  QNetworkReply *r = this->get("/api/v1/users/self/profile");
+  connect(r, &QNetworkReply::finished, this, [=]() {
+    if (r->error() == QNetworkReply::AuthenticationRequiredError) {
+      this->set_auth_state(false);
+      return;
+    }
+    if (has_network_err(r))
+      return;
+    this->set_auth_state(is_valid_profile(to_json(r).object()));
+    this->fetch_courses();
+    terminate(r);
   });
 }
 
 void MainWindow::fetch_courses()
 {
-  QNetworkReply *a = this->get("/api/v1/courses?per_page=1180");
-  connect(a, &QNetworkReply::finished, this, [=]() {
-    courses_fetched();
-    terminate(a);
+  QNetworkReply *r = this->get("/api/v1/courses?per_page=1180");
+  connect(r, &QNetworkReply::finished, this, [=]() {
+    if (has_network_err(r))
+      return;
+    auto j = to_json(r);
+    this->user_courses = to_courses(j);
+    for (auto c : this->user_courses)
+      this->fetch_course_folders(c);
+    terminate(r);
   });
 }
 
 void MainWindow::fetch_course_folders(const Course &c)
 {
-  QNetworkReply *a = this->get("/api/v1/courses/" + QString::number(c.id) +
+  QNetworkReply *r = this->get("/api/v1/courses/" + QString::number(c.id) +
                                "/folders?per_page=1180");
-  connect(a, &QNetworkReply::finished, this, [=]() {
-    course_folders_fetched(c);
-    terminate(a);
+  connect(r, &QNetworkReply::finished, this, [=]() {
+    if (has_network_err(r))
+      return;
+    std::vector<Folder> f = to_folders(to_json(r));
+    FileTree t(&c, f);
+    tree_mtx.lock();
+    for (auto f : f) {
+      this->folder_names.insert(std::pair(f.id, f.full_name));
+    }
+    this->course_trees.push_back(t);
+    refresh_tree_data();
+    ui->treeView->prettify();
+    tree_mtx.unlock();
+    ui->guideText->setHidden(!this->gather_tracked().empty());
+    terminate(r);
   });
 }
 
@@ -485,8 +460,8 @@ std::vector<Update> MainWindow::gather_tracked()
   TreeModel *model = ui->treeView->model();
   size_t n = model->childrenCount();
   std::vector<Update> all;
-  while (n-- > 0) {
-    std::vector<Update> u = resolve_all_folders(model->item(n));
+  for (size_t i = 0; i < n; i++) {
+    std::vector<Update> u = resolve_all_folders(model->item(i));
     all.reserve(all.size() + std::distance(u.begin(), u.end()));
     all.insert(all.end(), u.begin(), u.end());
   }
