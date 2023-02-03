@@ -21,31 +21,13 @@ MainWindow::MainWindow(QWidget *parent)
       canvas("https://canvas.nus.edu.sg")
 {
   ui->setupUi(this);
+  connect_buttons();
+  connect_tree();
+  connect_canvas();
 
   // text inputs
   connect(ui->lineEdit_accessToken, &QLineEdit::textChanged, this,
           &MainWindow::check_auth);
-
-  // buttons
-  connect(ui->pushButton_pull, &QPushButton::clicked, this,
-          &MainWindow::pull_clicked);
-  connect(ui->pushButton_fetch, &QPushButton::clicked, this,
-          &MainWindow::fetch_clicked);
-  connect(ui->pushButton_changeToken, &QPushButton::clicked, this,
-          &MainWindow::changeToken_clicked);
-
-  connect(ui->treeView, &ClickableTreeView::expanded, this,
-          &MainWindow::treeView_expanded);
-  connect(ui->treeView, &ClickableTreeView::collapsed, this,
-          &MainWindow::treeView_collapsed);
-
-  connect(ui->treeView, &ClickableTreeView::clicked, this,
-          &MainWindow::treeView_clicked);
-
-  connect(ui->treeView, &ClickableTreeView::cleared, this,
-          &MainWindow::treeView_cleared);
-  connect(ui->treeView, &ClickableTreeView::track_folder, this,
-          &MainWindow::track_folder_requested);
 
   connect(&canvas, &Canvas::fetch_courses_done, this,
           [=](std::vector<Course> c) {
@@ -119,6 +101,33 @@ MainWindow::MainWindow(QWidget *parent)
   }
 }
 
+void MainWindow::connect_buttons()
+{
+  connect(ui->pushButton_pull, &QPushButton::clicked, this,
+          &MainWindow::pull_clicked);
+  connect(ui->pushButton_fetch, &QPushButton::clicked, this,
+          &MainWindow::fetch_clicked);
+  connect(ui->pushButton_changeToken, &QPushButton::clicked, this,
+          &MainWindow::changeToken_clicked);
+}
+
+void MainWindow::connect_tree()
+{
+  connect(ui->treeView, &ClickableTreeView::expanded, ui->treeView,
+          &ClickableTreeView::prettify);
+  connect(ui->treeView, &ClickableTreeView::collapsed, ui->treeView,
+          &ClickableTreeView::prettify);
+
+  connect(ui->treeView, &ClickableTreeView::cleared, this,
+          &MainWindow::treeView_cleared);
+  connect(ui->treeView, &ClickableTreeView::track_folder, this,
+          &MainWindow::treeView_trackFolder);
+}
+
+void MainWindow::connect_canvas()
+{
+}
+
 MainWindow::~MainWindow()
 {
   delete ui;
@@ -180,10 +189,6 @@ void MainWindow::changeToken_clicked()
 
 /// TREEVIEW SLOTS ---
 
-void MainWindow::treeView_clicked(const QModelIndex &index)
-{
-}
-
 void MainWindow::treeView_cleared(const QModelIndex &index)
 {
   settings.remove(get_id(index));
@@ -191,17 +196,7 @@ void MainWindow::treeView_cleared(const QModelIndex &index)
   ui->guideText->setHidden(!this->gather_tracked().empty());
 }
 
-void MainWindow::treeView_expanded(const QModelIndex &index)
-{
-  ui->treeView->prettify();
-}
-
-void MainWindow::treeView_collapsed(const QModelIndex &index)
-{
-  ui->treeView->prettify();
-}
-
-void MainWindow::track_folder_requested(const QModelIndex &index)
+void MainWindow::treeView_trackFolder(const QModelIndex &index)
 {
   if (!index.parent().isValid())
     return;
@@ -226,13 +221,17 @@ void MainWindow::track_folder_requested(const QModelIndex &index)
     // clear children maps
     on_all_children(item, [&](TreeItem *child) {
       child->setData(TreeCol::LOCAL_DIR, "");
-      settings.remove(get_id(*child));
+      QString folder_id = get_id(*child);
+      if (!folder_id.isEmpty())
+        settings.remove(folder_id);
     });
 
     // clear parent maps
     on_all_parents(item, [&](TreeItem *parent) {
       parent->setData(TreeCol::LOCAL_DIR, "");
-      settings.remove(get_id(*parent));
+      QString folder_id = get_id(*parent);
+      if (!folder_id.isEmpty())
+        settings.remove(folder_id);
     });
 
     // update itself

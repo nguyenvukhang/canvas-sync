@@ -46,16 +46,17 @@ public:
   MainWindow(QWidget *parent = nullptr);
   ~MainWindow();
 
+  void connect_buttons();
+  void connect_tree();
+  void connect_canvas();
+
 private slots:
   void pull_clicked();
   void fetch_clicked();
   void changeToken_clicked();
   // tree stuff
-  void treeView_clicked(const QModelIndex &);
   void treeView_cleared(const QModelIndex &);
-  void treeView_expanded(const QModelIndex &);
-  void treeView_collapsed(const QModelIndex &);
-  void track_folder_requested(const QModelIndex &);
+  void treeView_trackFolder(const QModelIndex &);
 
 public:
   std::string folder_name(const int folder_id);
