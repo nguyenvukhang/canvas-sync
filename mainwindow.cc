@@ -64,6 +64,12 @@ void MainWindow::connect_tree()
 
 void MainWindow::connect_canvas()
 {
+  connect(&canvas, &Canvas::authenticate_done, this, [=](bool authenticated) {
+    this->set_auth_state(authenticated);
+    if (authenticated)
+      canvas.fetch_courses();
+  });
+
   // this chained series manages these two production lines:
   // 1. fetch courses -> fetch folders -> load course/folder name cache
   // 2. fetch files -> download files -> collate and show updates
@@ -372,19 +378,9 @@ void MainWindow::check_auth(const QString &token)
 {
   canvas.set_token(token);
   ui->treeView->setModel(newTreeModel());
-  this->course_trees.clear();
-  QNetworkReply *r = canvas.get("/api/v1/users/self/profile");
-  connect(r, &QNetworkReply::finished, this, [=]() {
-    if (r->error() == QNetworkReply::AuthenticationRequiredError) {
-      this->set_auth_state(false);
-      return;
-    }
-    if (canvas.has_network_err(r))
-      return;
-    this->set_auth_state(is_valid_profile(to_json(r).object()));
-    canvas.fetch_courses();
-    terminate(r);
-  });
+  course_trees.clear();
+  folder_names.clear();
+  canvas.authenticate();
 }
 
 std::vector<Folder> MainWindow::gather_tracked()

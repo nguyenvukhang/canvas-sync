@@ -46,6 +46,25 @@ bool Canvas::has_network_err(QNetworkReply *r)
   return false;
 }
 
+void Canvas::authenticate()
+{
+  QNetworkReply *r = this->get("/api/v1/users/self/profile");
+  connect(r, &QNetworkReply::finished, this, [=]() {
+    terminate(r);
+    bool ok = false;
+
+    if (r->error() == QNetworkReply::AuthenticationRequiredError) {
+      emit authenticate_done(true);
+    } else if (r->error() != QNetworkReply::NoError) {
+      emit authenticate_done(true);
+    } else if (is_valid_profile(to_json(r).object())) {
+      emit authenticate_done(true);
+    } else {
+      emit authenticate_done(false);
+    }
+  });
+}
+
 void Canvas::fetch_courses()
 {
   auto *r = this->get("/api/v1/courses?per_page=1180");

@@ -37,6 +37,7 @@ public:
   QNetworkReply *get(const QString &url);
   QNetworkReply *get(const QString &fmt, const int &param);
   bool has_network_err(QNetworkReply *r);
+  void authenticate();
   void fetch_courses();
   void fetch_folders(const Course &);
   void fetch_files(const Folder &);
@@ -48,6 +49,7 @@ public:
   bool is_done_downloading();
 
 signals:
+  void authenticate_done(bool success);
   void fetch_courses_done(std::vector<Course>);
   void fetch_folders_done(const Course &, std::vector<Folder>);
   void fetch_files_done(const Folder &, std::vector<File>);
