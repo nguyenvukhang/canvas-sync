@@ -24,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
 
   // text inputs
   connect(ui->lineEdit_accessToken, &QLineEdit::textChanged, this,
-          [&](const QString &token) { this->check_auth(token); });
+          &MainWindow::check_auth);
 
   // buttons
   connect(ui->pushButton_pull, &QPushButton::clicked, this,
@@ -101,7 +101,7 @@ MainWindow::MainWindow(QWidget *parent)
           });
 
   connect(&canvas, &Canvas::all_fetch_done, this, [=]() {
-    if (canvas.is_done_downloading())
+    if (action == FETCH)
       show_updates();
   });
 
