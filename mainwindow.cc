@@ -341,6 +341,10 @@ void MainWindow::show_updates()
 
   QString buffer = "", tmp = "";
   int prev_course = -1;
+  sort(tracked_folders.begin(), tracked_folders.end(),
+       [=](Folder &a, Folder &b) {
+         return course_name(a.course_id) < course_name(b.course_id);
+       });
   for (auto f : this->tracked_folders) {
     if (f.course_id != prev_course) {
       if (!tmp.isEmpty()) {
@@ -363,7 +367,13 @@ void MainWindow::show_updates()
       tmp.push_back('\n');
     }
   }
-  buffer += tmp;
+  if (!tmp.isEmpty()) {
+    buffer.push_back("## ");
+    buffer.push_back(course_name(prev_course).c_str());
+    buffer.push_back('\n');
+    buffer.push_back(tmp);
+    tmp.clear();
+  }
   if (buffer.isEmpty()) {
     QMessageBox::information(this, "Update", "All up to date!");
   } else {
