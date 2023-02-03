@@ -1,11 +1,12 @@
 #include "mainwindow.h"
 
-void write_file(const std::filesystem::path &file, const QByteArray &data)
+void write_file(const std::filesystem::path &path, const QByteArray &data)
 {
-  if (std::filesystem::exists(file)) {
-    QFile::remove(QString(file.c_str()));
+  QString file = QString::fromStdString(path.string());
+  if (std::filesystem::exists(path)) {
+    QFile::remove(file);
   }
-  QSaveFile f(file.c_str());
+  QSaveFile f(file);
   f.open(QIODevice::WriteOnly);
   f.write(data);
   f.commit();
