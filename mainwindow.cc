@@ -35,6 +35,13 @@ MainWindow::MainWindow(QWidget *parent)
   connect(ui->treeView, &ClickableTreeView::track_folder, this,
           &MainWindow::track_folder_requested);
 
+  connect(&canvas, &Canvas::fetch_courses_done, this,
+          [=](std::vector<Course> c) {
+            this->user_courses = std::move(c);
+            for (auto c : this->user_courses)
+              this->fetch_course_folders(c);
+          });
+
   // scripted views
   ui->pushButton_changeToken->hide();
   ui->progressBar->hide();
@@ -251,10 +258,11 @@ std::string MainWindow::folder_name(const int folder_id)
 
 std::string MainWindow::course_name(const int course_id)
 {
-  size_t i = this->user_courses.size();
-  while (i-- > 0)
+  size_t n = this->user_courses.size();
+  for (size_t i = 0; i < n; i++) {
     if (this->user_courses[i].id == course_id)
       return this->user_courses[i].name;
+  }
   return "[course not found]";
 }
 
@@ -376,21 +384,7 @@ void MainWindow::check_auth(const QString &token)
     if (canvas.has_network_err(r))
       return;
     this->set_auth_state(is_valid_profile(to_json(r).object()));
-    this->fetch_courses();
-    terminate(r);
-  });
-}
-
-void MainWindow::fetch_courses()
-{
-  QNetworkReply *r = canvas.get("/api/v1/courses?per_page=1180");
-  connect(r, &QNetworkReply::finished, this, [=]() {
-    if (canvas.has_network_err(r))
-      return;
-    auto j = to_json(r);
-    this->user_courses = to_courses(j);
-    for (auto c : this->user_courses)
-      this->fetch_course_folders(c);
+    canvas.fetch_courses();
     terminate(r);
   });
 }

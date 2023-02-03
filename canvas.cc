@@ -1,5 +1,11 @@
 #include "canvas.h"
 
+void Canvas::terminate(QNetworkReply *r)
+{
+  disconnect(r);
+  r->deleteLater();
+}
+
 const QString &Canvas::token() const
 {
   return this->token_inner;
@@ -33,4 +39,15 @@ bool Canvas::has_network_err(QNetworkReply *r)
     return true;
   }
   return false;
+}
+
+void Canvas::fetch_courses()
+{
+  QNetworkReply *r = this->get("/api/v1/courses?per_page=1180");
+  connect(r, &QNetworkReply::finished, this, [=]() {
+    std::vector<Course> c =
+        has_network_err(r) ? std::vector<Course>() : to_courses(to_json(r));
+    emit this->fetch_courses_done(c);
+    terminate(r);
+  });
 }

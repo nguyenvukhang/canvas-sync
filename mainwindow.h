@@ -72,7 +72,6 @@ public:
   void set_auth_state(bool);
   void show_updates();
   void check_auth(const QString &token);
-  void fetch_courses();
   void fetch_course_folders(const Course &);
   void fetch_folder_files(Update u, size_t c, bool download);
   void fetch_folder_files(std::vector<Update>, bool download);
