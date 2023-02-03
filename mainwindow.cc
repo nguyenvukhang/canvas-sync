@@ -233,12 +233,12 @@ void MainWindow::treeView_cleared(const QModelIndex &index)
 
 void MainWindow::treeView_expanded(const QModelIndex &index)
 {
-  ui->treeView->resizeColumnToContents(0);
+  ui->treeView->prettify();
 }
 
 void MainWindow::treeView_collapsed(const QModelIndex &index)
 {
-  ui->treeView->resizeColumnToContents(0);
+  ui->treeView->prettify();
 }
 
 void MainWindow::track_folder_requested(const QModelIndex &index)

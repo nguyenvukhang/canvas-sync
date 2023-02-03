@@ -13,7 +13,9 @@ void ClickableTreeView::context_menu(const QPoint &pos)
 
   // create menu
   QMenu menu;
-  menu.addAction("Track Folder");
+  if (index.column() == TreeCol::REMOTE_DIR) {
+    menu.addAction("Track Folder");
+  }
   if (!get_local_dir(index).isEmpty()) {
     menu.addAction("Clear");
   }
