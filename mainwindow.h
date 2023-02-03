@@ -50,9 +50,6 @@ private slots:
   void pull_clicked();
   void fetch_clicked();
   void changeToken_clicked();
-  // network stuff
-  void folder_files_fetched(Update u, size_t c, bool download);
-  void file_downloaded(File f);
   // tree stuff
   void treeView_clicked(const QModelIndex &);
   void treeView_cleared(const QModelIndex &);
@@ -72,24 +69,21 @@ public:
   void set_auth_state(bool);
   void show_updates();
   void check_auth(const QString &token);
-  void fetch_course_folders(const Course &);
-  void fetch_folder_files(Update u, size_t c, bool download);
-  void fetch_folder_files(std::vector<Update>, bool download);
-  void download_file(File);
-  void download_files(std::vector<File>);
-  std::vector<Update> gather_tracked();
+  std::vector<Folder> gather_tracked();
 
 public:
-  bool updates_done;
-  std::mutex tree_mtx, update_mtx, dl_e_mtx, dl_r_mtx;
+  enum Action { FETCH, PULL };
+  Action action;
+  std::mutex tree_mtx, tracked_folders_mtx;
+  QString start_dir = QDir::homePath();
   QSettings settings;
-  std::vector<Update> updates;
-  int expected_downloads, received_downloads;
+  Ui::MainWindow *ui;
+
+  // core business
   std::vector<FileTree> course_trees;
   std::vector<Course> user_courses;
+  std::vector<Folder> tracked_folders;
   std::map<int, std::string> folder_names;
-  Ui::MainWindow *ui;
-  QString start_dir = QDir::homePath();
 
 private:
   Canvas canvas;

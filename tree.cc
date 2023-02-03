@@ -3,7 +3,7 @@
 namespace fs = std::filesystem;
 
 void resolve_all_folders(TreeItem *item, fs::path *local_base_dir,
-                         fs::path *cwd, std::vector<Update> *list)
+                         fs::path *cwd, std::vector<Folder> *list)
 {
   std::string local_dir = get_local_dir(*item).toStdString();
 
@@ -21,11 +21,7 @@ void resolve_all_folders(TreeItem *item, fs::path *local_base_dir,
   }
 
   if (!new_base.empty()) {
-    Update u(get_id(*item).toInt());
-    u.local_dir = new_base / new_cwd;
-    u.folder_id = get_id(*item).toInt();
-    u.course_id = -1;
-    list->push_back(u);
+    list->push_back(Folder(get_id(*item).toInt(), new_base / new_cwd));
   }
 
   auto children = item->childrenItems();
@@ -37,9 +33,9 @@ void resolve_all_folders(TreeItem *item, fs::path *local_base_dir,
 // and thus is not included in the resolution of the path.
 //
 // All updates from one call of this function belongs to the same course
-std::vector<Update> resolve_all_folders(TreeItem *item)
+std::vector<Folder> resolve_all_folders(TreeItem *item)
 {
-  std::vector<Update> ul;
+  std::vector<Folder> ul;
   auto children = item->childrenItems();
   for (auto child : children) {
     fs::path p = "";
@@ -53,12 +49,12 @@ std::vector<Update> resolve_all_folders(TreeItem *item)
   return ul;
 }
 
-std::vector<Update> gather_tracked(TreeModel *model)
+std::vector<Folder> gather_tracked(TreeModel *model)
 {
-  std::vector<Update> all;
+  std::vector<Folder> all;
   size_t n = model->childrenCount();
   for (size_t i = 0; i < n; i++) {
-    std::vector<Update> u = resolve_all_folders(model->item(i));
+    std::vector<Folder> u = resolve_all_folders(model->item(i));
     for (auto u : u)
       all.push_back(std::move(u));
   }

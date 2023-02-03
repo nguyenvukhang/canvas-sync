@@ -20,8 +20,8 @@ QString get_id(const TreeItem &);
 QString get_local_dir(const TreeItem &);
 QString get_remote_dir(const TreeItem &);
 
-std::vector<Update> resolve_all_folders(TreeItem *item);
-std::vector<Update> gather_tracked(TreeModel *model);
+std::vector<Folder> resolve_all_folders(TreeItem *item);
+std::vector<Folder> gather_tracked(TreeModel *model);
 
 using ItemOperator = std::function<void(TreeItem *item)>;
 void on_all_children(TreeItem *item, ItemOperator);

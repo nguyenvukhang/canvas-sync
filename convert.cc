@@ -49,8 +49,7 @@ Course to_course(const QJsonObject &j)
 
 Folder to_folder(const QJsonObject &j)
 {
-  Folder f;
-  f.id = j["id"].toInt(BAD_ID);
+  Folder f(j["id"].toInt(BAD_ID));
   f.name = j["name"].toString().toStdString();
   f.full_name = j["full_name"].toString().toStdString();
   return f;

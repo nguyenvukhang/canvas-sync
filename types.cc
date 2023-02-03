@@ -71,11 +71,6 @@ void debug(File *c)
 {
   printf("File { %d, %s }\n", c->id, c->filename.c_str());
 }
-void debug(Update *c)
-{
-  printf("Update { folder_id: %d, local_dir: %s }\n", c->folder_id,
-         c->local_dir.string().c_str());
-}
 void debug(Folder *c)
 {
   printf("Folder { %d, %s, (%s) }\n", c->id, c->full_name.c_str(),

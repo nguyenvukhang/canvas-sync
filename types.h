@@ -25,14 +25,6 @@ public:
   std::string name;
 };
 
-class Folder
-{
-public:
-  int id;
-  std::string name;
-  std::string full_name;
-};
-
 class File
 {
 public:
@@ -43,31 +35,20 @@ public:
   std::filesystem::path local_dir;
 };
 
-// enough information to execute a download + display updates
-class Update
+class Folder
 {
 public:
-  // needed for download
-  // using `folder_id`, a list of files can be fetched from the API
-  // these files will then be checked against files inside of `local_dir`
-  int folder_id;
+  int id, course_id;
+  std::string name;
+  std::string full_name;
   std::filesystem::path local_dir;
-
-  // needed for update report
-  int course_id;
-  std::string
-      remote_dir; // can just read from an already-fetched vector<Folder>
-  std::vector<File> files; // update after running the download's API call
-
-  Update(const int folder_id, const std::string local_dir)
-  {
-    this->folder_id = folder_id;
-    this->local_dir = std::move(local_dir);
-  }
-  Update(const int folder_id)
-  {
-    this->folder_id = folder_id;
-  }
+  std::vector<File> files;
+  Folder(int id) : id(id){};
+  Folder(int id, std::filesystem::path local_dir)
+      : id(id), local_dir(local_dir){};
+  Folder(const Folder &f)
+      : id(f.id), course_id(f.course_id), name(f.name), local_dir(f.local_dir),
+        files(f.files), full_name(f.full_name){};
 };
 
 std::string normalize_filename(std::string *);
@@ -78,6 +59,5 @@ void debug(Profile *);
 void debug(Course *);
 void debug(Folder *);
 void debug(File *);
-void debug(Update *);
 
 #endif
