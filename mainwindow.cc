@@ -29,66 +29,6 @@ MainWindow::MainWindow(QWidget *parent)
   connect(ui->lineEdit_accessToken, &QLineEdit::textChanged, this,
           &MainWindow::check_auth);
 
-  connect(&canvas, &Canvas::fetch_courses_done, this,
-          [=](std::vector<Course> c) {
-            this->user_courses = std::move(c);
-            for (auto c : this->user_courses)
-              canvas.fetch_folders(c);
-          });
-
-  connect(&canvas, &Canvas::fetch_folders_done, this,
-          [=](const Course &c, std::vector<Folder> f) {
-            FileTree t(&c, f);
-            tree_mtx.lock();
-            for (auto f : f) {
-              this->folder_names.insert(std::pair(f.id, f.full_name));
-            }
-            this->course_trees.push_back(t);
-            refresh_tree_data();
-            ui->treeView->prettify();
-            tree_mtx.unlock();
-            ui->guideText->setHidden(!gather_tracked().empty());
-          });
-
-  connect(&canvas, &Canvas::download_done, this, [=](const size_t done_count) {
-    ui->progressBar->setValue(done_count);
-  });
-
-  connect(&canvas, &Canvas::fetch_files_done, this,
-          [=](const Folder &_fo, std::vector<File> fi) {
-            Folder fo(std::move(_fo));
-            remove_existing_files(&fi, fo.local_dir);
-            fo.files = fi;
-
-            if (this->action == Action::PULL) {
-              ui->progressBar->setMaximum(
-                  canvas.increment_total_downloads(fo.files.size()));
-              if (ui->progressBar->maximum() > 0)
-                ui->progressBar->show();
-
-              if (!std::filesystem::exists(fo.local_dir)) {
-                std::filesystem::create_directories(fo.local_dir);
-              }
-
-              for (auto f : fi) {
-                canvas.download(f, [=](QNetworkReply *r) {
-                  write_file(fo.local_dir / f.filename, r->readAll());
-                });
-              }
-            }
-
-            tracked_folders_mtx.lock();
-            this->tracked_folders.push_back(std::move(fo));
-            tracked_folders_mtx.unlock();
-          });
-
-  connect(&canvas, &Canvas::all_fetch_done, this, [=]() {
-    if (action == FETCH)
-      show_updates();
-  });
-
-  connect(&canvas, &Canvas::all_download_done, this, &MainWindow::show_updates);
-
   // scripted views
   ui->pushButton_changeToken->hide();
   ui->progressBar->hide();
@@ -96,9 +36,7 @@ MainWindow::MainWindow(QWidget *parent)
   ui->guideText->hide();
   ui->label_accessTokenHelp->hide();
 
-  if (settings.contains("access-token")) {
-    this->check_auth(settings.value("access-token").toString());
-  }
+  this->check_auth(settings.value("access-token").toString());
 }
 
 void MainWindow::connect_buttons()
@@ -126,6 +64,66 @@ void MainWindow::connect_tree()
 
 void MainWindow::connect_canvas()
 {
+  // this chained series manages these two production lines:
+  // 1. fetch courses -> fetch folders -> load course/folder name cache
+  // 2. fetch files -> download files -> collate and show updates
+
+  connect(&canvas, &Canvas::fetch_courses_done, this,
+          [=](std::vector<Course> c) {
+            this->user_courses = std::move(c);
+            for (auto c : this->user_courses)
+              canvas.fetch_folders(c);
+          });
+
+  connect(&canvas, &Canvas::fetch_folders_done, this,
+          [=](const Course &c, std::vector<Folder> f) {
+            FileTree t(&c, f);
+            tree_mtx.lock();
+            for (auto f : f) {
+              this->folder_names.insert(std::pair(f.id, f.full_name));
+            }
+            this->course_trees.push_back(t);
+            refresh_tree_data();
+            ui->treeView->prettify();
+            tree_mtx.unlock();
+            ui->guideText->setHidden(!gather_tracked().empty());
+          });
+
+  connect(&canvas, &Canvas::fetch_files_done, this,
+          [=](const Folder &_fo, std::vector<File> fi) {
+            Folder fo(std::move(_fo));
+            remove_existing_files(&fi, fo.local_dir);
+            fo.files = fi;
+
+            if (this->action == Action::PULL) {
+              ui->progressBar->setMaximum(
+                  canvas.increment_total_downloads(fo.files.size()));
+              if (ui->progressBar->maximum() > 0)
+                ui->progressBar->show();
+
+              std::filesystem::create_directories(fo.local_dir);
+
+              for (auto f : fi) {
+                canvas.download(f, [=](QNetworkReply *r) {
+                  write_file(fo.local_dir / f.filename, r->readAll());
+                });
+              }
+            }
+
+            tracked_folders_mtx.lock();
+            this->tracked_folders.push_back(std::move(fo));
+            tracked_folders_mtx.unlock();
+          });
+
+  connect(&canvas, &Canvas::download_done, ui->progressBar,
+          &QProgressBar::setValue);
+
+  connect(&canvas, &Canvas::all_fetch_done, this, [=]() {
+    if (action == FETCH)
+      show_updates();
+  });
+
+  connect(&canvas, &Canvas::all_download_done, this, &MainWindow::show_updates);
 }
 
 MainWindow::~MainWindow()
