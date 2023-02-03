@@ -3,7 +3,7 @@
 void write_file(const std::filesystem::path &file, const QByteArray &data)
 {
   if (std::filesystem::exists(file)) {
-    QFile::remove(file.c_str());
+    QFile::remove(QString(file.c_str()));
   }
   QSaveFile f(file.c_str());
   f.open(QIODevice::WriteOnly);
