@@ -6,6 +6,7 @@
 #include <map>
 #include <mutex>
 
+#include "canvas.h"
 #include "convert.h"
 #include "filetree.h"
 #include "tree.h"
@@ -40,32 +41,6 @@ QT_END_NAMESPACE
 class MainWindow : public QMainWindow
 {
   Q_OBJECT
-
-private:
-  QNetworkReply *get(QString url)
-  {
-    return this->get_full(this->base_url + url);
-  }
-
-  QNetworkReply *get_full(QString url)
-  {
-    QNetworkRequest r(*new QUrl(url));
-    if (!this->token.isEmpty()) {
-      r.setRawHeader("Authorization", ("Bearer " + this->token).toUtf8());
-    }
-    return this->nw.get(r);
-  }
-
-  bool has_network_err(QNetworkReply *r)
-  {
-    if (r->error() != QNetworkReply::NoError) {
-      qDebug() << "Network Error: " << r->errorString() << '\n'
-               << "Error Type: " << r->error() << '\n'
-               << "from url:" << r->url();
-      return true;
-    }
-    return false;
-  }
 
 public:
   MainWindow(QWidget *parent = nullptr);
@@ -106,7 +81,7 @@ public:
   std::vector<Update> gather_tracked();
 
 public:
-  bool authenticated = false, updates_done;
+  bool updates_done;
   std::mutex tree_mtx, update_mtx, dl_e_mtx, dl_r_mtx;
   QSettings settings;
   std::vector<Update> updates;
@@ -114,11 +89,10 @@ public:
   std::vector<FileTree> course_trees;
   std::vector<Course> user_courses;
   std::map<int, std::string> folder_names;
-  QString token, base_url = "https://canvas.nus.edu.sg";
   Ui::MainWindow *ui;
   QString start_dir = QDir::homePath();
 
 private:
-  QNetworkAccessManager nw;
+  Canvas canvas;
 };
 #endif // MAINWINDOW_H

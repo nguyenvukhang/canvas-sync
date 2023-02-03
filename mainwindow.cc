@@ -5,7 +5,8 @@ MainWindow::MainWindow(QWidget *parent)
       settings(
           QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) +
               "/canvas-sync-settings.ini",
-          QSettings::IniFormat)
+          QSettings::IniFormat),
+      canvas("https://canvas.nus.edu.sg")
 {
   ui->setupUi(this);
 
@@ -93,8 +94,8 @@ void MainWindow::changeToken_clicked()
   ui->lineEdit_accessToken->setReadOnly(false);
   ui->lineEdit_accessToken->setDisabled(false);
 
-  this->token = "";
-  this->settings.setValue("access-token", this->token);
+  canvas.set_token("");
+  settings.setValue("access-token", "");
   this->set_auth_state(false);
 }
 
@@ -140,7 +141,7 @@ void MainWindow::folder_files_fetched(Update u, size_t total_expected_updates,
 void MainWindow::file_downloaded(File f)
 {
   QNetworkReply *r = (QNetworkReply *)this->sender();
-  if (has_network_err(r))
+  if (canvas.has_network_err(r))
     return;
   std::filesystem::path local_path = f.local_dir;
   local_path.append(f.filename);
@@ -298,7 +299,6 @@ void MainWindow::refresh_tree_data()
 
 void MainWindow::set_auth_state(bool authenticated)
 {
-  this->authenticated = authenticated;
   if (authenticated) {
     this->enable_pull();
     this->enable_fetch();
@@ -309,7 +309,7 @@ void MainWindow::set_auth_state(bool authenticated)
     ui->lineEdit_accessToken->setDisabled(true);
     // show edit token button, in case the user wants to change it
     this->ui->pushButton_changeToken->show();
-    this->settings.setValue("access-token", this->token);
+    this->settings.setValue("access-token", canvas.token());
     settings.sync();
     return;
   }
@@ -364,16 +364,16 @@ void MainWindow::show_updates()
 
 void MainWindow::check_auth(const QString &token)
 {
-  this->token = token;
+  canvas.set_token(token);
   ui->treeView->setModel(newTreeModel());
   this->course_trees.clear();
-  QNetworkReply *r = this->get("/api/v1/users/self/profile");
+  QNetworkReply *r = canvas.get("/api/v1/users/self/profile");
   connect(r, &QNetworkReply::finished, this, [=]() {
     if (r->error() == QNetworkReply::AuthenticationRequiredError) {
       this->set_auth_state(false);
       return;
     }
-    if (has_network_err(r))
+    if (canvas.has_network_err(r))
       return;
     this->set_auth_state(is_valid_profile(to_json(r).object()));
     this->fetch_courses();
@@ -383,9 +383,9 @@ void MainWindow::check_auth(const QString &token)
 
 void MainWindow::fetch_courses()
 {
-  QNetworkReply *r = this->get("/api/v1/courses?per_page=1180");
+  QNetworkReply *r = canvas.get("/api/v1/courses?per_page=1180");
   connect(r, &QNetworkReply::finished, this, [=]() {
-    if (has_network_err(r))
+    if (canvas.has_network_err(r))
       return;
     auto j = to_json(r);
     this->user_courses = to_courses(j);
@@ -397,10 +397,10 @@ void MainWindow::fetch_courses()
 
 void MainWindow::fetch_course_folders(const Course &c)
 {
-  QNetworkReply *r = this->get("/api/v1/courses/" + QString::number(c.id) +
-                               "/folders?per_page=1180");
+  QNetworkReply *r = canvas.get("/api/v1/courses/" + QString::number(c.id) +
+                                "/folders?per_page=1180");
   connect(r, &QNetworkReply::finished, this, [=]() {
-    if (has_network_err(r))
+    if (canvas.has_network_err(r))
       return;
     std::vector<Folder> f = to_folders(to_json(r));
     FileTree t(&c, f);
@@ -421,8 +421,8 @@ void MainWindow::fetch_folder_files(Update u, size_t total_expected_updates,
                                     bool download)
 {
   QNetworkReply *a =
-      this->get("/api/v1/folders/" + QString::number(u.folder_id) +
-                "/files?per_page=1180");
+      canvas.get("/api/v1/folders/" + QString::number(u.folder_id) +
+                 "/files?per_page=1180");
   connect(a, &QNetworkReply::finished, this, [=]() {
     folder_files_fetched(std::move(u), total_expected_updates, download);
     terminate(a);
@@ -442,7 +442,7 @@ void MainWindow::download_file(File f)
   if (!std::filesystem::exists(f.local_dir)) {
     std::filesystem::create_directories(f.local_dir);
   }
-  QNetworkReply *a = this->get_full(QString::fromStdString(f.url));
+  QNetworkReply *a = canvas.get_full(QString::fromStdString(f.url));
   connect(a, &QNetworkReply::finished, this, [=]() {
     file_downloaded(std::move(f));
     terminate(a);

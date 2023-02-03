@@ -26,6 +26,7 @@ set(PROJECT_SOURCES
     mainwindow.cc mainwindow.h mainwindow.ui
     updates.cc updates.h updates.ui
     tree_model.h tree_model.cc
+    canvas.h canvas.cc
     convert.h convert.cc
     clickable_tree_view.h clickable_tree_view.cc
     tree.h tree.cc
