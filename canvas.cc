@@ -1,5 +1,18 @@
 #include "canvas.h"
 
+void write_file(const std::filesystem::path &path, const QByteArray &data)
+{
+  QString file = QString::fromStdString(path.string());
+  if (std::filesystem::exists(path)) {
+    QFile::remove(file);
+  }
+  QSaveFile f(file);
+  f.open(QIODevice::WriteOnly);
+  f.write(data);
+  f.commit();
+  f.deleteLater();
+}
+
 void Canvas::terminate(QNetworkReply *r)
 {
   disconnect(r);
@@ -100,29 +113,33 @@ void Canvas::fetch_files(const Folder &fo)
     count_mtx.lock();
     done = ++count[FETCH_DONE] == count[FETCH_TOTAL];
     count_mtx.unlock();
-    if (done)
-      emit all_fetch_done();
+    if (done) emit all_fetch_done();
   });
 }
 
-void Canvas::download(const File &f,
-                      const std::function<void(QNetworkReply *)> write)
+void Canvas::download(const File &file, const Folder &folder)
 {
-  auto r = this->get_full(f.url.c_str());
+  auto r = this->get_full(file.url.c_str());
   connect(r, &QNetworkReply::finished, this, [=]() {
     terminate(r);
-    if (has_network_err(r))
-      return;
-    write(r);
+    // TODO: handle failed downloads
+    if (has_network_err(r)) return;
+
+    write_file(folder.local_dir / file.filename, r->readAll());
 
     bool done = false;
     count_mtx.lock();
     emit download_done(++count[DOWNLOAD_DONE]);
     done = count[DOWNLOAD_DONE] == count[DOWNLOAD_TOTAL];
     count_mtx.unlock();
-    if (done)
-      emit all_download_done();
+
+    if (done) emit all_download_done();
   });
+}
+
+bool Canvas::has_downloads()
+{
+  return count[DOWNLOAD_TOTAL] > 0;
 }
 
 void Canvas::reset_counts()

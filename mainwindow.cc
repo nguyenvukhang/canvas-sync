@@ -1,18 +1,5 @@
 #include "mainwindow.h"
 
-void write_file(const std::filesystem::path &path, const QByteArray &data)
-{
-  QString file = QString::fromStdString(path.string());
-  if (std::filesystem::exists(path)) {
-    QFile::remove(file);
-  }
-  QSaveFile f(file);
-  f.open(QIODevice::WriteOnly);
-  f.write(data);
-  f.commit();
-  f.deleteLater();
-}
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow),
       settings(
@@ -72,8 +59,7 @@ void MainWindow::connect_canvas()
 {
   connect(&canvas, &Canvas::authenticate_done, this, [=](bool authenticated) {
     this->set_auth_state(authenticated);
-    if (authenticated)
-      canvas.fetch_courses();
+    if (authenticated) canvas.fetch_courses();
   });
 
   // this chained series manages these two production lines:
@@ -102,28 +88,24 @@ void MainWindow::connect_canvas()
           });
 
   connect(&canvas, &Canvas::fetch_files_done, this,
-          [=](const Folder &_fo, std::vector<File> fi) {
-            Folder fo(std::move(_fo));
-            remove_existing_files(&fi, fo.local_dir);
-            fo.files = fi;
+          [=](const Folder &_fo, std::vector<File> files) {
+            Folder folder(std::move(_fo));
+            remove_existing_files(&files, folder.local_dir);
+            folder.files = std::move(files);
 
             if (this->action == Action::PULL) {
               ui->progressBar->setMaximum(
-                  canvas.increment_total_downloads(fo.files.size()));
-              if (ui->progressBar->maximum() > 0)
-                ui->progressBar->show();
+                  canvas.increment_total_downloads(folder.files.size()));
+              if (ui->progressBar->maximum() > 0) ui->progressBar->show();
 
-              std::filesystem::create_directories(fo.local_dir);
+              std::filesystem::create_directories(folder.local_dir);
 
-              for (auto f : fi) {
-                canvas.download(f, [=](QNetworkReply *r) {
-                  write_file(fo.local_dir / f.filename, r->readAll());
-                });
-              }
+              for (auto file : folder.files)
+                canvas.download(file, folder);
             }
 
             tracked_folders_mtx.lock();
-            this->tracked_folders.push_back(std::move(fo));
+            this->tracked_folders.push_back(std::move(folder));
             tracked_folders_mtx.unlock();
           });
 
@@ -131,7 +113,7 @@ void MainWindow::connect_canvas()
           &QProgressBar::setValue);
 
   connect(&canvas, &Canvas::all_fetch_done, this, [=]() {
-    if (action == FETCH)
+    if (action == FETCH || (action == PULL && !canvas.has_downloads()))
       show_updates();
   });
 
@@ -207,16 +189,14 @@ void MainWindow::treeView_cleared(const QModelIndex &index)
   ui->treeView->model()->itemFromIndex(index)->setData(TreeItem::LOCAL_DIR, "");
   ui->guideText->setHidden(!this->gather_tracked().empty());
   QString folder_id = get_id(index);
-  if (folder_id.isEmpty())
-    return;
+  if (folder_id.isEmpty()) return;
   settings.remove(folder_id);
   settings.sync();
 }
 
 void MainWindow::treeView_trackFolder(const QModelIndex &index)
 {
-  if (!index.parent().isValid())
-    return;
+  if (!index.parent().isValid()) return;
 
   QFileDialog dialog(this, "Target for " + get_ancestry(index, " / "),
                      this->start_dir);
@@ -228,8 +208,7 @@ void MainWindow::treeView_trackFolder(const QModelIndex &index)
   QString local_dir = dialog.selectedFiles()[0];
 
   // exit early if no file was chosen
-  if (result != 1)
-    return;
+  if (result != 1) return;
 
   // clears children and parent tracked folders because this might cause
   // conflicts in downloads.
@@ -238,16 +217,14 @@ void MainWindow::treeView_trackFolder(const QModelIndex &index)
   item->on_all_children([&](TreeItem &child) {
     child.setData(TreeItem::LOCAL_DIR, "");
     QString folder_id = child.get_id();
-    if (!folder_id.isEmpty())
-      settings.remove(folder_id);
+    if (!folder_id.isEmpty()) settings.remove(folder_id);
   });
 
   // clear parent maps
   item->on_all_parents([&](TreeItem &parent) {
     parent.setData(TreeItem::LOCAL_DIR, "");
     QString folder_id = parent.get_id();
-    if (!folder_id.isEmpty())
-      settings.remove(folder_id);
+    if (!folder_id.isEmpty()) settings.remove(folder_id);
   });
 
   // update itself
