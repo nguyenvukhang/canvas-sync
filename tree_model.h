@@ -52,7 +52,7 @@ private:
 public:
   std::vector<Folder> resolve_folders();
 
-  enum TreeCol2 { REMOTE_DIR, LOCAL_DIR, FOLDER_ID };
+  enum TreeCol { REMOTE_DIR, LOCAL_DIR, FOLDER_ID };
   QString get_id() const { return data(FOLDER_ID).toString(); };
   QString get_local_dir() const { return data(LOCAL_DIR).toString(); };
   QString get_remote_dir() const { return data(REMOTE_DIR).toString(); };

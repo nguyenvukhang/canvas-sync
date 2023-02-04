@@ -73,6 +73,7 @@ public:
   void show_updates();
   void check_auth(const QString &token);
   std::vector<Folder> gather_tracked();
+  TreeModel *newTreeModel();
 
 public:
   enum Action { FETCH, PULL };

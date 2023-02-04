@@ -204,7 +204,7 @@ void MainWindow::changeToken_clicked()
 
 void MainWindow::treeView_cleared(const QModelIndex &index)
 {
-  ui->treeView->model()->itemFromIndex(index)->setData(TreeCol::LOCAL_DIR, "");
+  ui->treeView->model()->itemFromIndex(index)->setData(TreeItem::LOCAL_DIR, "");
   ui->guideText->setHidden(!this->gather_tracked().empty());
   QString folder_id = get_id(index);
   if (folder_id.isEmpty())
@@ -236,7 +236,7 @@ void MainWindow::treeView_trackFolder(const QModelIndex &index)
 
   // clear children maps
   item->on_all_children([&](TreeItem &child) {
-    child.setData(TreeCol::LOCAL_DIR, "");
+    child.setData(TreeItem::LOCAL_DIR, "");
     QString folder_id = child.get_id();
     if (!folder_id.isEmpty())
       settings.remove(folder_id);
@@ -244,14 +244,14 @@ void MainWindow::treeView_trackFolder(const QModelIndex &index)
 
   // clear parent maps
   item->on_all_parents([&](TreeItem &parent) {
-    parent.setData(TreeCol::LOCAL_DIR, "");
+    parent.setData(TreeItem::LOCAL_DIR, "");
     QString folder_id = parent.get_id();
     if (!folder_id.isEmpty())
       settings.remove(folder_id);
   });
 
   // update itself
-  item->setData(LOCAL_DIR, local_dir);
+  item->setData(TreeItem::LOCAL_DIR, local_dir);
   settings.setValue(get_id(index), local_dir);
   settings.sync();
 
@@ -416,3 +416,8 @@ std::vector<Folder> MainWindow::gather_tracked()
   }
   return all;
 }
+
+TreeModel *MainWindow::newTreeModel()
+{
+  return new TreeModel({"canvas folder", "local folder"});
+};

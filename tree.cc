@@ -2,17 +2,17 @@
 
 QString get_id(const QModelIndex &index)
 {
-  return index.siblingAtColumn(FOLDER_ID).data().toString();
+  return index.siblingAtColumn(TreeItem::FOLDER_ID).data().toString();
 }
 
 QString get_local_dir(const QModelIndex &index)
 {
-  return index.siblingAtColumn(LOCAL_DIR).data().toString();
+  return index.siblingAtColumn(TreeItem::LOCAL_DIR).data().toString();
 }
 
 QString get_remote_dir(const QModelIndex &index)
 {
-  return index.siblingAtColumn(REMOTE_DIR).data().toString();
+  return index.siblingAtColumn(TreeItem::REMOTE_DIR).data().toString();
 }
 
 QString get_course(const QModelIndex &index)
@@ -21,7 +21,7 @@ QString get_course(const QModelIndex &index)
   while (a.parent().isValid()) {
     a = a.parent();
   }
-  return a.siblingAtColumn(REMOTE_DIR).data().toString();
+  return get_remote_dir(a);
 }
 
 QString get_ancestry(const QModelIndex &index, const char *delimiter)
@@ -39,9 +39,4 @@ QString get_ancestry(const QModelIndex &index, const char *delimiter)
     path = d + delimiter + path;
   }
   return path;
-}
-
-TreeModel *newTreeModel()
-{
-  return new TreeModel({"canvas folder", "local folder"});
 }
