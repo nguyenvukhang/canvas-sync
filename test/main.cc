@@ -1,9 +1,12 @@
-// void TestQString::toUpper()
-// {
-//     QString str = "Hello";
-//     QVERIFY(str.toUpper() == "HELLO");
-// }
+#include "main.h"
 
-int main() {
-  return 0;
+QTEST_MAIN(TestGui)
+
+void TestGui::testGui()
+{
+  QLineEdit lineEdit;
+
+  QTest::keyClicks(&lineEdit, "hello world");
+
+  QCOMPARE(lineEdit.text(), QString("hello world"));
 }

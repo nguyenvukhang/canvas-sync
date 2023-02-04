@@ -18,10 +18,12 @@ target_link_libraries(CanvasSyncTest PRIVATE
   Qt6::Test
 )
 
-set_target_properties(CanvasSyncTest PROPERTIES MACOSX_BUNDLE TRUE WIN32_EXECUTABLE TRUE)
+# set_target_properties(CanvasSyncTest PROPERTIES MACOSX_BUNDLE TRUE WIN32_EXECUTABLE TRUE)
 
 install(TARGETS CanvasSyncTest
   BUNDLE DESTINATION .
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 qt_finalize_executable(CanvasSyncTest)
+
+add_test(NAME CanvasSyncTest COMMAND CanvasSyncTest)

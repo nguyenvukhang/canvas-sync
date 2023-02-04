@@ -13,7 +13,7 @@
 #include "types.h"
 #include "updates.h"
 
-#include "ui_mainwindow.h"
+#include <ui_mainwindow.h>
 #include <QApplication>
 #include <QDebug>
 #include <QDesktopServices>

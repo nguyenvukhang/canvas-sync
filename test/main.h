@@ -1,9 +1,10 @@
 #include <QTest>
+#include <QtWidgets>
 
-class TestQString : public QObject
+class TestGui : public QObject
 {
   Q_OBJECT
 
 private slots:
-  void toUpper();
+  void testGui();
 };

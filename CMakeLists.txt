@@ -23,3 +23,33 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets Network Gui Test)
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/app)
 add_subdirectory(${PROJECT_SOURCE_DIR}/test)
+
+if(WIN32)
+  set(APP_ICON_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/appicon.rc")
+  set(PROJECT_SOURCES ${PROJECT_SOURCES} ${APP_ICON_WINDOWS})
+elseif(APPLE)
+  set(APP_ICON_MACOS "${CMAKE_CURRENT_SOURCE_DIR}/deploy/canvas-sync.icns")
+  set_source_files_properties(${APP_ICON_MACOS} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+  set(PROJECT_SOURCES ${PROJECT_SOURCES} ${APP_ICON_MACOS})
+endif()
+
+qt_add_executable(CanvasSync MANUAL_FINALIZATION main.cc)
+include_directories(
+  ${PROJECT_SOURCE_DIR}/app
+  ${PROJECT_SOURCE_DIR}/build/app/CanvasSyncLib_autogen/include
+)
+
+target_link_libraries(CanvasSync PRIVATE Qt6::Widgets Qt6::Network CanvasSyncLib)
+set_target_properties(CanvasSync PROPERTIES
+    MACOSX_BUNDLE_BUNDLE_NAME "Canvas Sync"
+    MACOSX_BUNDLE_GUI_IDENTIFIER canvassync.nguyenvukhang.com
+    MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+    MACOSX_BUNDLE_ICON_FILE canvas-sync.icns
+    MACOSX_BUNDLE TRUE WIN32_EXECUTABLE TRUE
+)
+install(TARGETS CanvasSync
+  BUNDLE DESTINATION .
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+qt_finalize_executable(CanvasSync)

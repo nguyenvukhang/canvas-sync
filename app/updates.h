@@ -1,7 +1,7 @@
 #ifndef UPDATES_H
 #define UPDATES_H
 
-#include "ui_updates.h"
+#include <ui_updates.h>
 #include <QDialog>
 
 QT_BEGIN_NAMESPACE
