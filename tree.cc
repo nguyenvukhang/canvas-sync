@@ -5,13 +5,14 @@ namespace fs = std::filesystem;
 void resolve_all_folders(TreeItem *item, fs::path *local_base_dir,
                          fs::path *cwd, std::vector<Folder> *list)
 {
-  std::string local_dir = get_local_dir(*item).toStdString();
+  // std::string local_dir = get_local_dir(*item).toStdString();
+  std::string local_dir = item->get_local_dir().toStdString();
 
   fs::path new_cwd;
   fs::path new_base = *local_base_dir;
 
   if (!local_base_dir->empty()) {
-    new_cwd = *cwd / get_remote_dir(*item).toStdString();
+    new_cwd = *cwd / item->get_remote_dir().toStdString();
   }
 
   // one-time thing. on any path downwards it is guaranteed to only have
@@ -21,7 +22,7 @@ void resolve_all_folders(TreeItem *item, fs::path *local_base_dir,
   }
 
   if (!new_base.empty()) {
-    list->push_back(Folder(get_id(*item).toInt(), new_base / new_cwd));
+    list->push_back(Folder(item->get_id().toInt(), new_base / new_cwd));
   }
 
   auto children = item->childrenItems();
@@ -42,7 +43,7 @@ std::vector<Folder> resolve_all_folders(TreeItem *item)
     fs::path base = "";
     resolve_all_folders(child, &base, &p, &ul);
   }
-  size_t n = ul.size(), id = get_id(*item).toInt();
+  size_t n = ul.size(), id = item->get_id().toInt();
   for (size_t i = 0; i < n; i++) {
     ul[i].course_id = id;
   }
@@ -100,21 +101,6 @@ QString get_ancestry(const QModelIndex &index, const char *delimiter)
     path = d + delimiter + path;
   }
   return path;
-}
-
-QString get_id(const TreeItem &item)
-{
-  return item.data(FOLDER_ID).toString();
-}
-
-QString get_local_dir(const TreeItem &item)
-{
-  return item.data(LOCAL_DIR).toString();
-}
-
-QString get_remote_dir(const TreeItem &item)
-{
-  return item.data(REMOTE_DIR).toString();
 }
 
 void on_all_parents(TreeItem *item, ItemOperator func)

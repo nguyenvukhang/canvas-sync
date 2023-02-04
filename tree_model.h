@@ -40,6 +40,11 @@ public:
   void insertRows(int position, int count, int columns);
   void insert(const FileTree &, const QSettings &);
 
+  enum TreeCol2 { REMOTE_DIR, LOCAL_DIR, FOLDER_ID };
+  QString get_id() const { return data(FOLDER_ID).toString(); };
+  QString get_local_dir() const { return data(LOCAL_DIR).toString(); };
+  QString get_remote_dir() const { return data(REMOTE_DIR).toString(); };
+
 private:
   QVector<QVariant> itemData;
   TreeItem *parentItem;
@@ -83,10 +88,7 @@ public:
   void setReadOnly(bool flag);
   bool isReadOnly() const;
   // custom functions
-  int childrenCount()
-  {
-    return this->rowCount();
-  }
+  int childrenCount() { return this->rowCount(); }
 
 private:
   TreeItem *rootItem;

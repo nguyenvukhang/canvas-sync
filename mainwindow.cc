@@ -238,7 +238,7 @@ void MainWindow::treeView_trackFolder(const QModelIndex &index)
   // clear children maps
   on_all_children(item, [&](TreeItem *child) {
     child->setData(TreeCol::LOCAL_DIR, "");
-    QString folder_id = get_id(*child);
+    QString folder_id = child->get_id();
     if (!folder_id.isEmpty())
       settings.remove(folder_id);
   });
@@ -246,7 +246,7 @@ void MainWindow::treeView_trackFolder(const QModelIndex &index)
   // clear parent maps
   on_all_parents(item, [&](TreeItem *parent) {
     parent->setData(TreeCol::LOCAL_DIR, "");
-    QString folder_id = get_id(*parent);
+    QString folder_id = parent->get_id();
     if (!folder_id.isEmpty())
       settings.remove(folder_id);
   });

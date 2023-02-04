@@ -13,9 +13,7 @@ public:
   std::string primary_email;
   std::string login_id;
   std::string integration_id;
-  Profile() : id(-1)
-  {
-  }
+  Profile() : id(-1){};
 };
 
 class Course

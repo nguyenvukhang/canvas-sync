@@ -14,10 +14,6 @@ QString get_remote_dir(const QModelIndex &);
 QString get_course(const QModelIndex &);
 QString get_ancestry(const QModelIndex &, const char *delimiter);
 
-QString get_id(const TreeItem &);
-QString get_local_dir(const TreeItem &);
-QString get_remote_dir(const TreeItem &);
-
 std::vector<Folder> resolve_all_folders(TreeItem *item);
 std::vector<Folder> gather_tracked(TreeModel *model);
 
