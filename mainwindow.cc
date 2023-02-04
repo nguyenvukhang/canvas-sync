@@ -27,11 +27,6 @@ MainWindow::MainWindow(QWidget *parent)
   this->check_auth(settings.value("access-token").toString());
 }
 
-MainWindow::~MainWindow()
-{
-  delete ui;
-}
-
 void MainWindow::connect_buttons()
 {
   connect(ui->pushButton_pull, &QPushButton::clicked, this,

@@ -43,7 +43,7 @@ class MainWindow : public QMainWindow
 
 public:
   MainWindow(QWidget *parent = nullptr);
-  ~MainWindow();
+  ~MainWindow() { delete ui; };
 
   void connect_buttons();
   void connect_tree();
