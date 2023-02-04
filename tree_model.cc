@@ -188,6 +188,21 @@ void TreeItem::insertRows(int position, int count, int columns)
   }
 }
 
+void TreeItem::insert(const FileTree &tree, const QSettings &settings)
+{
+  size_t child_count = tree.folders.size();
+  if (child_count == 0)
+    return;
+  for (size_t i = 0; i < child_count; i++) {
+    FileTree child = tree.folders[i];
+    QString id = QString::fromStdString(std::to_string(child.id));
+    QString name = QString::fromStdString(child.name);
+    QString dir = settings.value(id).toString();
+    this->appendChild(new TreeItem(QStringList() << name << dir << id));
+    this->child(i)->insert(child, settings);
+  }
+}
+
 void TreeItem::setData(int column, const QVariant &value)
 {
   if (column < 0 || column >= itemData.size()) {

@@ -219,11 +219,8 @@ void MainWindow::treeView_trackFolder(const QModelIndex &index)
   if (!index.parent().isValid())
     return;
 
-  QFileDialog dialog(this);
-  dialog.setFileMode(QFileDialog::Directory);
-  QString home = QDir::homePath();
-  dialog.setDirectory(this->start_dir != home ? this->start_dir : home);
-  dialog.setWindowTitle("Target for " + get_ancestry(index, " / "));
+  QFileDialog dialog(this, "Target for " + get_ancestry(index, " / "),
+                     this->start_dir);
   int result = dialog.exec();
   grabKeyboard();
 
@@ -231,38 +228,39 @@ void MainWindow::treeView_trackFolder(const QModelIndex &index)
 
   QString local_dir = dialog.selectedFiles()[0];
 
-  // only set the value if a value was actually chosen.
-  if (result == 1) {
-    // clears children and parent tracked folders because this might cause
-    // conflicts in downloads.
+  // exit early if no file was chosen
+  if (result != 1)
+    return;
 
-    // clear children maps
-    on_all_children(item, [&](TreeItem *child) {
-      child->setData(TreeCol::LOCAL_DIR, "");
-      QString folder_id = get_id(*child);
-      if (!folder_id.isEmpty())
-        settings.remove(folder_id);
-    });
+  // clears children and parent tracked folders because this might cause
+  // conflicts in downloads.
 
-    // clear parent maps
-    on_all_parents(item, [&](TreeItem *parent) {
-      parent->setData(TreeCol::LOCAL_DIR, "");
-      QString folder_id = get_id(*parent);
-      if (!folder_id.isEmpty())
-        settings.remove(folder_id);
-    });
+  // clear children maps
+  on_all_children(item, [&](TreeItem *child) {
+    child->setData(TreeCol::LOCAL_DIR, "");
+    QString folder_id = get_id(*child);
+    if (!folder_id.isEmpty())
+      settings.remove(folder_id);
+  });
 
-    // update itself
-    item->setData(LOCAL_DIR, local_dir);
-    settings.setValue(get_id(index), local_dir);
-    settings.sync();
+  // clear parent maps
+  on_all_parents(item, [&](TreeItem *parent) {
+    parent->setData(TreeCol::LOCAL_DIR, "");
+    QString folder_id = get_id(*parent);
+    if (!folder_id.isEmpty())
+      settings.remove(folder_id);
+  });
 
-    ui->guideText->hide();
+  // update itself
+  item->setData(LOCAL_DIR, local_dir);
+  settings.setValue(get_id(index), local_dir);
+  settings.sync();
 
-    QDir selected_dir = QDir::fromNativeSeparators(local_dir);
-    selected_dir.cdUp();
-    this->start_dir = selected_dir.path();
-  }
+  ui->guideText->hide();
+
+  QDir selected_dir = QDir::fromNativeSeparators(local_dir);
+  selected_dir.cdUp();
+  this->start_dir = selected_dir.path();
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -319,7 +317,7 @@ void MainWindow::refresh_tree_data()
   TreeModel *model = newTreeModel();
   FileTree t;
   t.insert_course_trees(this->course_trees);
-  insert(model->item(0), &t, &settings);
+  model->item(0)->insert(t, settings);
   ui->treeView->setModel(model);
 }
 

@@ -3,9 +3,11 @@
 
 #include <QAbstractItemModel>
 #include <QModelIndex>
-#include <QVariant>
 #include <QSettings>
+#include <QVariant>
 #include <QVector>
+
+#include "filetree.h"
 
 class TreeItem
 {
@@ -36,6 +38,7 @@ public:
   void setData(int column, const QVariant &value);
   void insertColumns(int position, int columns);
   void insertRows(int position, int count, int columns);
+  void insert(const FileTree &, const QSettings &);
 
 private:
   QVector<QVariant> itemData;

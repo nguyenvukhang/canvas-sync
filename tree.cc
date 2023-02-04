@@ -61,21 +61,6 @@ std::vector<Folder> gather_tracked(TreeModel *model)
   return all;
 }
 
-void insert(TreeItem *item, FileTree *tree, QSettings *settings)
-{
-  size_t child_count = tree->folders.size();
-  if (child_count == 0)
-    return;
-  for (size_t i = 0; i < child_count; i++) {
-    auto f = tree->folders[i];
-    QString id = QString::fromStdString(std::to_string(f.id));
-    QString name = QString::fromStdString(f.name);
-    QString dir = settings->value(id).toString();
-    item->appendChild(new TreeItem(QStringList() << name << dir << id));
-    insert(item->child(i), &f, settings);
-  }
-}
-
 QString get_id(const QModelIndex &index)
 {
   return index.siblingAtColumn(FOLDER_ID).data().toString();
