@@ -11,12 +11,19 @@ option(BUILD_STATIC_LIBS ON)
 option(BUILD_SHARED_LIBS OFF)
 
 qt_add_executable(CanvasSyncTest MANUAL_FINALIZATION ${TEST_SOURCES})
+include_directories(
+  ${CMAKE_SOURCE_DIR}/app
+  ${CMAKE_SOURCE_DIR}/build/app/CanvasSyncLib_autogen/include
+)
+
 target_link_libraries(CanvasSyncTest PRIVATE
   Qt6::Widgets
   Qt6::Network
   Qt6::Gui
   Qt6::Test
+  CanvasSyncLib
 )
+
 
 # set_target_properties(CanvasSyncTest PROPERTIES MACOSX_BUNDLE TRUE WIN32_EXECUTABLE TRUE)
 

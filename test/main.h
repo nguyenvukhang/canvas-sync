@@ -1,7 +1,9 @@
 #include <QTest>
 #include <QtWidgets>
 
-class TestGui : public QObject
+#include <canvas_sync.h>
+
+class TestGui : public MainWindow
 {
   Q_OBJECT
 

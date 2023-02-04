@@ -6,7 +6,7 @@ void TestGui::testGui()
 {
   QLineEdit lineEdit;
 
-  QTest::keyClicks(&lineEdit, "hello world");
+  QTest::keyClicks(ui->lineEdit_accessToken, "hello world");
 
-  QCOMPARE(lineEdit.text(), QString("hello world"));
+  QCOMPARE(ui->lineEdit_accessToken->text(), QString("hello world"));
 }

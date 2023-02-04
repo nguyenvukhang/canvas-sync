@@ -13,7 +13,6 @@
 #include "types.h"
 #include "updates.h"
 
-#include <ui_mainwindow.h>
 #include <QApplication>
 #include <QDebug>
 #include <QDesktopServices>
@@ -29,6 +28,7 @@
 #include <QSaveFile>
 #include <QSettings>
 #include <QStandardPaths>
+#include <ui_mainwindow.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui

@@ -47,8 +47,7 @@ open:
 reset:
 	rm -rf ~/files/test/*/*
 
-test:
-	rm -rf build
-	make build
+test: FORCE
+	./build/test/CanvasSyncTest
 
 FORCE: ;

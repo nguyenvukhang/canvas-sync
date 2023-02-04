@@ -34,6 +34,7 @@ elseif(APPLE)
 endif()
 
 qt_add_executable(CanvasSync MANUAL_FINALIZATION main.cc)
+
 include_directories(
   ${PROJECT_SOURCE_DIR}/app
   ${PROJECT_SOURCE_DIR}/build/app/CanvasSyncLib_autogen/include
