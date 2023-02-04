@@ -4,13 +4,21 @@
 #include <QAbstractItemModel>
 #include <QModelIndex>
 #include <QSettings>
+#include <QStringList>
 #include <QVariant>
 #include <QVector>
 
 #include <filesystem>
+#include <stdexcept>
 #include <vector>
 
 #include "filetree.h"
+
+QString get_id(const QModelIndex &);
+QString get_local_dir(const QModelIndex &);
+QString get_remote_dir(const QModelIndex &);
+QString get_course(const QModelIndex &);
+QString get_ancestry(const QModelIndex &, const char *delimiter);
 
 class TreeItem
 {

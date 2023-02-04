@@ -1,7 +1,4 @@
 #include "updates.h"
-#include "ui_updates.h"
-
-#include <QDialog>
 
 Updates::Updates(QWidget *parent) : QDialog(parent), ui(new Ui::Updates)
 {

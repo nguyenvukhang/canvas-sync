@@ -9,12 +9,11 @@
 #include "canvas.h"
 #include "convert.h"
 #include "filetree.h"
-#include "tree.h"
 #include "tree_model.h"
 #include "types.h"
-#include "ui_mainwindow.h"
 #include "updates.h"
 
+#include "ui_mainwindow.h"
 #include <QApplication>
 #include <QDebug>
 #include <QDesktopServices>

@@ -1,9 +1,4 @@
 #include "clickable_tree_view.h"
-#include "tree.h"
-#include "tree_model.h"
-
-#include <QAction>
-#include <QMenu>
 
 void ClickableTreeView::context_menu(const QPoint &pos)
 {

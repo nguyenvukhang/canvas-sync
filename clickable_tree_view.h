@@ -1,9 +1,10 @@
 #ifndef CLICKABLE_TREE_VIEW_H
 #define CLICKABLE_TREE_VIEW_H
 
-#include "tree.h"
 #include "tree_model.h"
 
+#include <QAction>
+#include <QMenu>
 #include <QTreeView>
 
 class ClickableTreeView : public QTreeView

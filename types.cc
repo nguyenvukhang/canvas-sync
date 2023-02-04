@@ -1,5 +1,4 @@
 #include "types.h"
-#include <cstdarg>
 
 std::string normalize_filename(const char *a, size_t size)
 {
