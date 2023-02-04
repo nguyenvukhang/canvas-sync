@@ -7,6 +7,9 @@
 #include <QVariant>
 #include <QVector>
 
+#include <filesystem>
+#include <vector>
+
 #include "filetree.h"
 
 class TreeItem
@@ -39,6 +42,15 @@ public:
   void insertColumns(int position, int columns);
   void insertRows(int position, int count, int columns);
   void insert(const FileTree &, const QSettings &);
+  void on_all_parents(std::function<void(TreeItem &item)>);
+  void on_all_children(std::function<void(TreeItem &item)>);
+
+private:
+  void resolve_folders(TreeItem *item, std::filesystem::path *local_base_dir,
+                       std::filesystem::path *cwd, std::vector<Folder> *list);
+
+public:
+  std::vector<Folder> resolve_folders();
 
   enum TreeCol2 { REMOTE_DIR, LOCAL_DIR, FOLDER_ID };
   QString get_id() const { return data(FOLDER_ID).toString(); };
@@ -89,6 +101,7 @@ public:
   bool isReadOnly() const;
   // custom functions
   int childrenCount() { return this->rowCount(); }
+  std::vector<Folder> gather_tracked();
 
 private:
   TreeItem *rootItem;

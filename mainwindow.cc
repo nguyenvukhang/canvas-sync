@@ -103,7 +103,6 @@ void MainWindow::connect_canvas()
 
   connect(&canvas, &Canvas::fetch_files_done, this,
           [=](const Folder &_fo, std::vector<File> fi) {
-            qDebug() << "PEWPEWPEW";
             Folder fo(std::move(_fo));
             remove_existing_files(&fi, fo.local_dir);
             fo.files = fi;
@@ -236,17 +235,17 @@ void MainWindow::treeView_trackFolder(const QModelIndex &index)
   // conflicts in downloads.
 
   // clear children maps
-  on_all_children(item, [&](TreeItem *child) {
-    child->setData(TreeCol::LOCAL_DIR, "");
-    QString folder_id = child->get_id();
+  item->on_all_children([&](TreeItem &child) {
+    child.setData(TreeCol::LOCAL_DIR, "");
+    QString folder_id = child.get_id();
     if (!folder_id.isEmpty())
       settings.remove(folder_id);
   });
 
   // clear parent maps
-  on_all_parents(item, [&](TreeItem *parent) {
-    parent->setData(TreeCol::LOCAL_DIR, "");
-    QString folder_id = parent->get_id();
+  item->on_all_parents([&](TreeItem &parent) {
+    parent.setData(TreeCol::LOCAL_DIR, "");
+    QString folder_id = parent.get_id();
     if (!folder_id.isEmpty())
       settings.remove(folder_id);
   });
@@ -411,7 +410,7 @@ std::vector<Folder> MainWindow::gather_tracked()
   size_t n = model->childrenCount();
   std::vector<Folder> all;
   for (size_t i = 0; i < n; i++) {
-    std::vector<Folder> tf = resolve_all_folders(model->item(i));
+    std::vector<Folder> tf = model->item(i)->resolve_folders();
     all.reserve(all.size() + std::distance(tf.begin(), tf.end()));
     all.insert(all.end(), tf.begin(), tf.end());
   }

@@ -203,6 +203,71 @@ void TreeItem::insert(const FileTree &tree, const QSettings &settings)
   }
 }
 
+void TreeItem::on_all_parents(std::function<void(TreeItem &item)> f)
+{
+  TreeItem *p = this->parent();
+  while (p) {
+    f(*p);
+    p = p->parent();
+  }
+}
+
+void TreeItem::on_all_children(std::function<void(TreeItem &item)> f)
+{
+  int n = this->childrenItems().size();
+  for (int i = 0; i < n; i++) {
+    f(*this->child(i));
+    this->child(i)->on_all_children(f);
+  }
+}
+
+void resolve_all_folders(TreeItem *item, std::filesystem::path *local_base_dir,
+                         std::filesystem::path *cwd, std::vector<Folder> *list)
+{
+  std::string local_dir = item->get_local_dir().toStdString();
+
+  std::filesystem::path new_cwd;
+  std::filesystem::path new_base = *local_base_dir;
+
+  if (!local_base_dir->empty()) {
+    new_cwd = *cwd / item->get_remote_dir().toStdString();
+  }
+
+  // one-time thing. on any path downwards it is guaranteed to only have
+  // one occurrence of a non-empty local path.
+  if (!local_dir.empty()) {
+    new_base = local_dir;
+  }
+
+  if (!new_base.empty()) {
+    list->push_back(Folder(item->get_id().toInt(), new_base / new_cwd));
+  }
+
+  auto children = item->childrenItems();
+  for (auto child : children)
+    resolve_all_folders(child, &new_base, &new_cwd, list);
+}
+
+// assume here that `this` contains information about a course,
+// and thus is not included in the resolution of the path.
+//
+// All updates from one call of this method belongs to the same course
+std::vector<Folder> TreeItem::resolve_folders()
+{
+  std::vector<Folder> fl;
+  auto children = this->childrenItems();
+  for (auto child : children) {
+    std::filesystem::path p = "";
+    std::filesystem::path base = "";
+    resolve_all_folders(child, &base, &p, &fl);
+  }
+  int id = this->get_id().toInt();
+  for (size_t i = 0; i < fl.size(); i++) {
+    fl[i].course_id = id;
+  }
+  return fl;
+}
+
 void TreeItem::setData(int column, const QVariant &value)
 {
   if (column < 0 || column >= itemData.size()) {
@@ -486,4 +551,16 @@ bool TreeModel::insertRows(int position, int rows, const QModelIndex &parent)
   endInsertRows();
 
   return true;
+}
+
+std::vector<Folder> TreeModel::gather_tracked()
+{
+  std::vector<Folder> all;
+  size_t n = this->childrenCount();
+  for (size_t i = 0; i < n; i++) {
+    std::vector<Folder> u = this->item(i)->resolve_folders();
+    for (auto u : u)
+      all.push_back(std::move(u));
+  }
+  return all;
 }
