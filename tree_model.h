@@ -23,28 +23,27 @@ QString get_ancestry(const QModelIndex &, const char *delimiter);
 class TreeItem
 {
 public:
-  TreeItem(const QVector<QVariant> &data, TreeItem *parentItem = nullptr);
+  TreeItem(const QVector<QVariant> &d, TreeItem *p = nullptr);
   TreeItem(const QStringList &data, TreeItem *parentItem = nullptr);
-  ~TreeItem();
+  ~TreeItem() { qDeleteAll(childItems); };
 
   void appendChild(TreeItem *child);
-  void setData(const QVector<QVariant> &data);
+  void setData(const QVector<QVariant> &data) { itemData = data; };
   void setParent(TreeItem *parent);
 
   TreeItem *child(int row);
-  int childFromRow(TreeItem *child);
-  QVector<TreeItem *> childrenItems();
-  int rowCount() const;
-  int columnCount() const;
+  QVector<TreeItem *> childrenItems() { return childItems; };
+  int rowCount() const { return childItems.count(); };
+  int columnCount() const { return itemData.count(); };
   int childrenColumnCount() const;
   QVariant data(int column) const;
-  QVector<QVariant> data() const;
+  QVector<QVariant> data() const { return itemData; };
   int row() const;
   void removeRow(int row);
   void removeRows(int row, int count);
-  void removeChild(TreeItem *child);
-  void removeAllChildren();
-  TreeItem *parent();
+  void removeChild(TreeItem *child) { childItems.removeOne(child); };
+  void removeAllChildren() { childItems.clear(); };
+  TreeItem *parent() { return parentItem; };
   void removeColumns(int position, int columns);
   void setData(int column, const QVariant &value);
   void insertColumns(int position, int columns);
@@ -103,10 +102,12 @@ public:
                   const QModelIndex &parent = QModelIndex()) override;
   bool removeRows(int position, int rows,
                   const QModelIndex &parent = QModelIndex()) override;
+
   TreeItem *item(int row, int column = 0) const;
   TreeItem *itemFromIndex(const QModelIndex &index) const;
   void setReadOnly(bool flag);
   bool isReadOnly() const;
+
   // custom functions
   int childrenCount() { return this->rowCount(); }
   std::vector<Folder> gather_tracked();

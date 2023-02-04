@@ -52,135 +52,59 @@ QVector<QVariant> stringListToVariantList(const QStringList &data)
 }
 
 TreeItem::TreeItem(const QVector<QVariant> &data, TreeItem *parent)
-    : itemData(data), parentItem(parent)
-{
-}
+    : itemData(data), parentItem(parent){};
 
 TreeItem::TreeItem(const QStringList &data, TreeItem *parent)
-    : TreeItem(stringListToVariantList(data), parent)
-{
-}
-
-TreeItem::~TreeItem()
-{
-  qDeleteAll(childItems);
-}
+    : TreeItem(stringListToVariantList(data), parent){};
 
 void TreeItem::appendChild(TreeItem *item)
 {
-  if (!item) {
-    return;
-  }
-
-  auto currentParent = item->parent();
-  if (currentParent) {
-    currentParent->removeChild(item);
-  }
+  if (!item) return;
+  TreeItem *currentParent = item->parent();
+  if (currentParent) currentParent->removeChild(item);
   item->setParent(this);
   childItems.append(item);
 }
 
 TreeItem *TreeItem::child(int row)
 {
-  if (row < 0 || row >= childItems.size()) {
-    return nullptr;
-  }
-  return childItems.at(row);
-}
-
-int TreeItem::childFromRow(TreeItem *child)
-{
-  return childItems.indexOf(child);
-}
-
-QVector<TreeItem *> TreeItem::childrenItems()
-{
-  return childItems;
-}
-
-int TreeItem::rowCount() const
-{
-  return childItems.count();
-}
-
-int TreeItem::columnCount() const
-{
-  return itemData.count();
+  return row < 0 || row >= childItems.size() ? nullptr : childItems.at(row);
 }
 
 int TreeItem::childrenColumnCount() const
 {
   int maxCount = 0;
-  for (auto &child : childItems) {
+  for (auto &child : childItems)
     maxCount = std::max(maxCount, child->columnCount());
-  }
   return maxCount;
 }
 
-QVariant TreeItem::data(int column) const
+QVariant TreeItem::data(int col) const
 {
-
-  if (column < 0 || column >= columnCount()) {
-    return QVariant();
-  }
-  return itemData.at(column);
-}
-
-QVector<QVariant> TreeItem::data() const
-{
-  return itemData;
-}
-
-TreeItem *TreeItem::parent()
-{
-  return parentItem;
+  return col < 0 || col >= columnCount() ? QVariant() : itemData.at(col);
 }
 
 int TreeItem::row() const
 {
-  if (parentItem) {
-    return parentItem->childItems.indexOf(const_cast<TreeItem *>(this));
-  }
-
-  return 0;
+  if (!parentItem) return 0;
+  return parentItem->childItems.indexOf(const_cast<TreeItem *>(this));
 }
 
 void TreeItem::removeRow(int row)
 {
-  if (row < 0 || row >= rowCount()) {
-    return;
-  }
+  if (row < 0 || row >= rowCount()) return;
   childItems.remove(row);
 }
 
 void TreeItem::removeRows(int row, int count)
 {
-  for (int i = 0; i < count; ++i) {
+  for (int i = 0; i < count; ++i)
     childItems.remove(row);
-  }
-}
-
-void TreeItem::removeChild(TreeItem *child)
-{
-  childItems.removeOne(child);
-}
-
-void TreeItem::removeAllChildren()
-{
-  childItems.clear();
-}
-
-void TreeItem::setData(const QVector<QVariant> &data)
-{
-  itemData = data;
 }
 
 void TreeItem::setParent(TreeItem *parent)
 {
-  if (!parent) {
-    return;
-  }
-
+  if (!parent) return;
   parentItem = parent;
 }
 
@@ -230,8 +154,7 @@ void TreeItem::insertRows(int position, int count, int columns)
 void TreeItem::insert(const FileTree &tree, const QSettings &settings)
 {
   size_t child_count = tree.folders.size();
-  if (child_count == 0)
-    return;
+  if (child_count == 0) return;
   for (size_t i = 0; i < child_count; i++) {
     FileTree child = tree.folders[i];
     QString id = QString::fromStdString(std::to_string(child.id));
