@@ -46,9 +46,9 @@ void TestGui::access_token_entry_test()
 void FakeCanvas::fetch_courses()
 {
   std::vector<Course> c;
-  c.push_back(Course(1, "Linear Algebra"));
-  c.push_back(Course(2, "Calculus"));
-  c.push_back(Course(3, "Geometry"));
+  c.push_back(Course(0, "Linear Algebra"));
+  c.push_back(Course(1, "Calculus"));
+  c.push_back(Course(2, "Geometry"));
   emit fetch_courses_done(c);
 };
 
@@ -59,19 +59,19 @@ void FakeCanvas::fetch_folders(const Course &course)
       [&](int id, std::string n) { folders.push_back(Folder::of(id, n)); };
 
   switch (course.id) {
-  case (1):
+  case (0):
     add_folder(20010, "course files");
     add_folder(20011, "course files/Lectures");
     add_folder(20012, "course files/Tutorials");
     emit fetch_folders_done(course, folders);
     break;
-  case (2):
+  case (1):
     add_folder(20021, "course files/Admin");
     add_folder(20022, "course files/Tutorials");
     add_folder(20020, "course files");
     emit fetch_folders_done(course, folders);
     break;
-  case (3):
+  case (2):
     add_folder(22191, "course files/Lectures");
     add_folder(22192, "course files/Course notes");
     add_folder(22193, "course files/Tutorials");
@@ -86,29 +86,34 @@ void FakeCanvas::fetch_folders(const Course &course)
 void TestGui::fetch_courses_test()
 {
   authenticate();
-  std::string expected;
-  std::string exp[4];
-  exp[1] = "#1|Linear Algebra: {\n"
-           "  #20010|course files: {\n"
-           "    #20011|Lectures: {}\n"
-           "    #20012|Tutorials: {}\n"
-           "  }\n"
-           "}";
-  exp[2] = "#2|Calculus: {\n"
-           "  #20020|course files: {\n"
-           "    #20021|Admin: {}\n"
-           "    #20022|Tutorials: {}\n"
-           "  }\n"
-           "}";
-  exp[3] = "#3|Geometry: {\n"
-           "  #22190|course files: {\n"
-           "    #22192|Course notes: {}\n"
-           "    #22191|Lectures: {}\n"
-           "    #22193|Tutorials: {}\n"
-           "  }\n"
-           "}";
+  std::string expected[] = {
+      "#0|Linear Algebra: {\n"
+      "  #20010|course files: {\n"
+      "    #20011|Lectures: {}\n"
+      "    #20012|Tutorials: {}\n"
+      "  }\n"
+      "}",
+      "#1|Calculus: {\n"
+      "  #20020|course files: {\n"
+      "    #20021|Admin: {}\n"
+      "    #20022|Tutorials: {}\n"
+      "  }\n"
+      "}",
+      "#2|Geometry: {\n"
+      "  #22190|course files: {\n"
+      "    #22192|Course notes: {}\n"
+      "    #22191|Lectures: {}\n"
+      "    #22193|Tutorials: {}\n"
+      "  }\n"
+      "}",
+  };
   for (auto t : app.course_trees)
-    QCOMPARE(QString(t.to_string().c_str()), QString(exp[t.id].c_str()));
+    QCOMPARE(QString(t.to_string().c_str()), QString(expected[t.id].c_str()));
+}
+
+void TestGui::fetch_courses_ui_test()
+{
+  authenticate();
 
   TreeModel *model = app.ui->treeView->model();
   QCOMPARE(model->childrenCount(), 3);

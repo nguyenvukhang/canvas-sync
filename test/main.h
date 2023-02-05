@@ -41,6 +41,7 @@ public:
 private slots: // tests
   void access_token_entry_test();
   void fetch_courses_test();
+  void fetch_courses_ui_test();
 };
 
 #endif
