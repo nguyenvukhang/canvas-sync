@@ -1,5 +1,40 @@
 #include "canvas.h"
 
+void ICanvas::reset_counts()
+{
+  for (size_t i = 0; i < 4; i++)
+    count[i] = 0;
+}
+
+size_t ICanvas::increment_total_downloads(size_t n)
+{
+  size_t x;
+  count_mtx.lock();
+  count[DOWNLOAD_TOTAL] += n;
+  x = count[DOWNLOAD_TOTAL];
+  count_mtx.unlock();
+  return x;
+}
+
+size_t ICanvas::increment_done_downloads()
+{
+  size_t x;
+  count_mtx.lock();
+  count[DOWNLOAD_DONE]++;
+  x = count[DOWNLOAD_DONE];
+  count_mtx.unlock();
+  return x;
+}
+
+bool ICanvas::is_done_downloading()
+{
+  bool x;
+  count_mtx.lock();
+  x = count[DOWNLOAD_DONE] == count[DOWNLOAD_TOTAL];
+  count_mtx.unlock();
+  return x;
+}
+
 void write_file(const std::filesystem::path &path, const QByteArray &data)
 {
   QString file = QString::fromStdString(path.string());
@@ -127,49 +162,4 @@ void Canvas::download(const File &file, const Folder &folder)
 
     if (done) emit all_download_done();
   });
-}
-
-bool Canvas::has_downloads()
-{
-  return count[DOWNLOAD_TOTAL] > 0;
-}
-
-void Canvas::reset_counts()
-{
-  for (size_t i = 0; i < 4; i++)
-    count[i] = 0;
-}
-
-void Canvas::set_total_fetches(size_t n)
-{
-  count[FETCH_TOTAL] = n;
-}
-
-size_t Canvas::increment_total_downloads(size_t n)
-{
-  size_t x;
-  count_mtx.lock();
-  count[DOWNLOAD_TOTAL] += n;
-  x = count[DOWNLOAD_TOTAL];
-  count_mtx.unlock();
-  return x;
-}
-
-size_t Canvas::increment_done_downloads()
-{
-  size_t x;
-  count_mtx.lock();
-  count[DOWNLOAD_DONE]++;
-  x = count[DOWNLOAD_DONE];
-  count_mtx.unlock();
-  return x;
-}
-
-bool Canvas::is_done_downloading()
-{
-  bool x;
-  count_mtx.lock();
-  x = count[DOWNLOAD_DONE] == count[DOWNLOAD_TOTAL];
-  count_mtx.unlock();
-  return x;
 }

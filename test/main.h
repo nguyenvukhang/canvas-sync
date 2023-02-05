@@ -16,17 +16,11 @@ class FakeCanvas : public ICanvas
 public:
   FakeCanvas() : ICanvas(""){};
 
-  void authenticate() { emit authenticate_done(token() == "valid"); };
-  void fetch_courses(){};
-  void fetch_folders(const Course &){};
-  void fetch_files(const Folder &){};
-  void download(const File &, const Folder &){};
-  void reset_counts(){};
-  void set_total_fetches(size_t){};
-  size_t increment_total_downloads(size_t) { return 0; };
-  size_t increment_done_downloads() { return 0; };
-  bool is_done_downloading() { return true; };
-  bool has_downloads() { return true; };
+  void authenticate() override { emit authenticate_done(token() == "valid"); };
+  void fetch_courses() override{};
+  void fetch_folders(const Course &) override{};
+  void fetch_files(const Folder &) override{};
+  void download(const File &, const Folder &) override{};
 };
 
 class TestGui : public QObject

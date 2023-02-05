@@ -36,11 +36,12 @@ endif()
 qt_add_executable(CanvasSync MANUAL_FINALIZATION main.cc)
 
 include_directories(
-  ${PROJECT_SOURCE_DIR}/app
-  ${PROJECT_SOURCE_DIR}/build/app/CanvasSyncLib_autogen/include
+  ${CMAKE_SOURCE_DIR}/app
+  ${CMAKE_SOURCE_DIR}/build/app/CanvasSyncLib_autogen/include
 )
 
 target_link_libraries(CanvasSync PRIVATE Qt6::Widgets Qt6::Network CanvasSyncLib)
+
 set_target_properties(CanvasSync PROPERTIES
     MACOSX_BUNDLE_BUNDLE_NAME "Canvas Sync"
     MACOSX_BUNDLE_GUI_IDENTIFIER canvassync.nguyenvukhang.com

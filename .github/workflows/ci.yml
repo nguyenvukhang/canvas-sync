@@ -109,16 +109,25 @@ jobs:
       - name: Use windeployqt to load libraries
         shell: bash
         run: |
-          mv build/CanvasSync.exe \
-            deploy/windows/packages/com.nguyenvukhang.canvassync/data
-          cd deploy/windows/packages/com.nguyenvukhang.canvassync/data
+          cd build
+          mv CanvasSync.exe ..
+          rm -rf *
+          mv ../CanvasSync.exe .
           $Qt6_DIR/bin/windeployqt.exe CanvasSync.exe
+          cd ..
+
+          rm -rf deploy/windows/packages/com.nguyenvukhang.canvassync/data
+          mv build deploy/windows/packages/com.nguyenvukhang.canvassync/data
+          cd deploy/windows/packages/com.nguyenvukhang.canvassync/data
           mv CanvasSync.exe 'Canvas Sync.exe'
 
       - name: Package the installer
         shell: bash
         run: |
           cd deploy/windows
+          echo '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
+          ls
+          echo '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
           $IQTA_TOOLS/QtInstallerFramework/4.5/bin/binarycreator.exe \
             -c config/config.xml -p packages CanvasSyncInstaller.exe
           mv CanvasSyncInstaller.exe ../..

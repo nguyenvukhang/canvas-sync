@@ -25,8 +25,5 @@ include_directories(
 option(BUILD_STATIC_LIBS ON)
 option(BUILD_SHARED_LIBS OFF)
 
-qt_add_library(CanvasSyncLib MANUAL_FINALIZATION ${PROJECT_SOURCES})
+qt_add_library(CanvasSyncLib STATIC MANUAL_FINALIZATION ${PROJECT_SOURCES})
 target_link_libraries(CanvasSyncLib PRIVATE Qt6::Widgets Qt6::Network)
-install(TARGETS CanvasSyncLib
-    BUNDLE DESTINATION .
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})

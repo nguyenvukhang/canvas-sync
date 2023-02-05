@@ -20,24 +20,28 @@ class ICanvas : public QObject
 
 protected:
   QString base_url, token_inner;
+  size_t count[4];
+  enum Count { FETCH_DONE, FETCH_TOTAL, DOWNLOAD_DONE, DOWNLOAD_TOTAL };
+  std::mutex count_mtx;
 
 public:
   ICanvas(const QString &u) : base_url(u){};
   ICanvas() = delete;
 
-  virtual const QString &token() const { return this->token_inner; };
-  virtual void set_token(const QString &t) { this->token_inner = t; };
   virtual void authenticate() = 0;
   virtual void fetch_courses() = 0;
   virtual void fetch_folders(const Course &) = 0;
   virtual void fetch_files(const Folder &) = 0;
   virtual void download(const File &, const Folder &) = 0;
-  virtual void reset_counts() = 0;
-  virtual void set_total_fetches(size_t) = 0;
-  virtual size_t increment_total_downloads(size_t) = 0;
-  virtual size_t increment_done_downloads() = 0;
-  virtual bool is_done_downloading() = 0;
-  virtual bool has_downloads() = 0;
+
+  const QString &token() const { return this->token_inner; };
+  void set_token(const QString &t) { this->token_inner = t; };
+  void set_total_fetches(size_t n) { count[FETCH_TOTAL] = n; };
+  bool has_downloads() { return count[DOWNLOAD_TOTAL] > 0; };
+  void reset_counts();
+  size_t increment_total_downloads(size_t);
+  size_t increment_done_downloads();
+  bool is_done_downloading();
 
 signals:
   void authenticate_done(bool success);
@@ -56,33 +60,20 @@ class Canvas : public ICanvas
   QNetworkAccessManager nw;
 
   void terminate(QNetworkReply *r);
-  // fetch done, fetch expected, donwload done, download expected
-  size_t count[4];
-  enum Count { FETCH_DONE, FETCH_TOTAL, DOWNLOAD_DONE, DOWNLOAD_TOTAL };
-  std::mutex count_mtx;
 
   QNetworkReply *get_full(const QString &url);
   QNetworkReply *get(const QString &url);
   QNetworkReply *get(const QString &fmt, const int &param);
 
 public:
-  Canvas(const QString &u) : ICanvas(u)
-  {
-    std::cout << "CONSTRCUTED REAL" << std::endl;
-  };
+  Canvas(const QString &u) : ICanvas(u){};
   Canvas() = delete;
 
   bool has_network_err(QNetworkReply *r);
-  void authenticate();
-  void fetch_courses();
-  void fetch_folders(const Course &);
-  void fetch_files(const Folder &);
-  void download(const File &, const Folder &);
-  void reset_counts();
-  void set_total_fetches(size_t);
-  size_t increment_total_downloads(size_t);
-  size_t increment_done_downloads();
-  bool is_done_downloading();
-  bool has_downloads();
+  void authenticate() override;
+  void fetch_courses() override;
+  void fetch_folders(const Course &) override;
+  void fetch_files(const Folder &) override;
+  void download(const File &, const Folder &) override;
 };
 #endif // CANVAS_H
