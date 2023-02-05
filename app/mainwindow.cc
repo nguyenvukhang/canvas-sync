@@ -19,6 +19,7 @@ void MainWindow::setup_ui()
   connect(ui->lineEdit_accessToken, &QLineEdit::textChanged, this,
           &MainWindow::check_auth);
   ui->pushButton_changeToken->hide();
+  ui->pushButton_changeToken->setEnabled(false);
   ui->progressBar->hide();
   ui->treeView->setModel(newTreeModel());
   ui->guideText->hide();
@@ -301,7 +302,9 @@ void MainWindow::set_auth_state(bool authenticated)
     ui->lineEdit_accessToken->setReadOnly(true);
     ui->lineEdit_accessToken->setDisabled(true);
     // show edit token button, in case the user wants to change it
-    this->ui->pushButton_changeToken->show();
+    ui->pushButton_changeToken->show();
+    ui->pushButton_changeToken->setEnabled(true);
+
     this->settings.setValue("access-token", canvas->token());
     settings.sync();
     return;
@@ -310,7 +313,8 @@ void MainWindow::set_auth_state(bool authenticated)
   this->disable_pull("Pull");
   ui->label_accessTokenHelp->show();
   ui->label_authenticationStatus->setText("unauthenticated");
-  this->ui->pushButton_changeToken->hide();
+  ui->pushButton_changeToken->hide();
+  ui->pushButton_changeToken->setEnabled(false);
 }
 
 void MainWindow::show_updates()
