@@ -42,9 +42,12 @@ class MainWindow : public QMainWindow
   Q_OBJECT
 
 public:
-  MainWindow(QWidget *parent = nullptr);
+  MainWindow(Canvas *canvas, QWidget *parent = nullptr);
+  MainWindow(QWidget *parent = nullptr)
+      : MainWindow(new Canvas("https://canvas.nus.edu.sg"), parent){};
   ~MainWindow() { delete ui; };
 
+  void setup_ui();
   void connect_buttons();
   void connect_tree();
   void connect_canvas();
@@ -80,6 +83,7 @@ public:
   std::mutex tree_mtx, tracked_folders_mtx;
   QString start_dir = QDir::homePath();
   QSettings settings;
+  const static QString settings_path;
   Ui::MainWindow *ui;
 
   // core business
@@ -89,7 +93,7 @@ public:
   std::map<int, std::string> folder_names;
 
 private:
-  Canvas canvas;
+  Canvas *canvas;
   QNetworkAccessManager nw;
 };
 #endif // MAINWINDOW_H

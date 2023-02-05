@@ -1,30 +1,26 @@
 #include "mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(Canvas *canvas, QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow),
-      settings(
-          QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) +
-              "/canvas-sync-settings.ini",
-          QSettings::IniFormat),
-      canvas("https://canvas.nus.edu.sg", this->nw)
+      settings(MainWindow::settings_path, QSettings::IniFormat), canvas(canvas)
 {
   ui->setupUi(this);
   connect_buttons();
   connect_tree();
   connect_canvas();
+  setup_ui();
+  this->check_auth(settings.value("access-token").toString());
+}
 
-  // text inputs
+void MainWindow::setup_ui()
+{
   connect(ui->lineEdit_accessToken, &QLineEdit::textChanged, this,
           &MainWindow::check_auth);
-
-  // scripted views
   ui->pushButton_changeToken->hide();
   ui->progressBar->hide();
   ui->treeView->setModel(newTreeModel());
   ui->guideText->hide();
   ui->label_accessTokenHelp->hide();
-
-  this->check_auth(settings.value("access-token").toString());
 }
 
 void MainWindow::connect_buttons()
@@ -52,23 +48,23 @@ void MainWindow::connect_tree()
 
 void MainWindow::connect_canvas()
 {
-  connect(&canvas, &Canvas::authenticate_done, this, [=](bool authenticated) {
+  connect(canvas, &Canvas::authenticate_done, this, [=](bool authenticated) {
     this->set_auth_state(authenticated);
-    if (authenticated) canvas.fetch_courses();
+    if (authenticated) canvas->fetch_courses();
   });
 
   // this chained series manages these two production lines:
   // 1. fetch courses -> fetch folders -> load course/folder name cache
   // 2. fetch files -> download files -> collate and show updates
 
-  connect(&canvas, &Canvas::fetch_courses_done, this,
+  connect(canvas, &Canvas::fetch_courses_done, this,
           [=](std::vector<Course> c) {
             this->user_courses = std::move(c);
             for (auto c : this->user_courses)
-              canvas.fetch_folders(c);
+              canvas->fetch_folders(c);
           });
 
-  connect(&canvas, &Canvas::fetch_folders_done, this,
+  connect(canvas, &Canvas::fetch_folders_done, this,
           [=](const Course &c, std::vector<Folder> f) {
             FileTree t(&c, f);
             tree_mtx.lock();
@@ -82,7 +78,7 @@ void MainWindow::connect_canvas()
             ui->guideText->setHidden(!gather_tracked().empty());
           });
 
-  connect(&canvas, &Canvas::fetch_files_done, this,
+  connect(canvas, &Canvas::fetch_files_done, this,
           [=](const Folder &_fo, std::vector<File> files) {
             Folder folder(std::move(_fo));
             remove_existing_files(&files, folder.local_dir);
@@ -90,13 +86,13 @@ void MainWindow::connect_canvas()
 
             if (this->action == Action::PULL) {
               ui->progressBar->setMaximum(
-                  canvas.increment_total_downloads(folder.files.size()));
+                  canvas->increment_total_downloads(folder.files.size()));
               if (ui->progressBar->maximum() > 0) ui->progressBar->show();
 
               std::filesystem::create_directories(folder.local_dir);
 
               for (auto file : folder.files)
-                canvas.download(file, folder);
+                canvas->download(file, folder);
             }
 
             tracked_folders_mtx.lock();
@@ -104,15 +100,15 @@ void MainWindow::connect_canvas()
             tracked_folders_mtx.unlock();
           });
 
-  connect(&canvas, &Canvas::download_done, ui->progressBar,
+  connect(canvas, &Canvas::download_done, ui->progressBar,
           &QProgressBar::setValue);
 
-  connect(&canvas, &Canvas::all_fetch_done, this, [=]() {
-    if (action == FETCH || (action == PULL && !canvas.has_downloads()))
+  connect(canvas, &Canvas::all_fetch_done, this, [=]() {
+    if (action == FETCH || (action == PULL && !canvas->has_downloads()))
       show_updates();
   });
 
-  connect(&canvas, &Canvas::all_download_done, this, &MainWindow::show_updates);
+  connect(canvas, &Canvas::all_download_done, this, &MainWindow::show_updates);
 }
 
 void MainWindow::prefetch()
@@ -124,10 +120,10 @@ void MainWindow::prefetch()
 
 void MainWindow::fetch(const std::vector<Folder> &f)
 {
-  canvas.reset_counts();
-  canvas.set_total_fetches(f.size());
+  canvas->reset_counts();
+  canvas->set_total_fetches(f.size());
   for (auto f : f) {
-    canvas.fetch_files(f);
+    canvas->fetch_files(f);
   }
 }
 
@@ -172,7 +168,7 @@ void MainWindow::changeToken_clicked()
   ui->lineEdit_accessToken->setReadOnly(false);
   ui->lineEdit_accessToken->setDisabled(false);
 
-  canvas.set_token("");
+  canvas->set_token("");
   settings.setValue("access-token", "");
   this->set_auth_state(false);
 }
@@ -304,7 +300,7 @@ void MainWindow::set_auth_state(bool authenticated)
     ui->lineEdit_accessToken->setDisabled(true);
     // show edit token button, in case the user wants to change it
     this->ui->pushButton_changeToken->show();
-    this->settings.setValue("access-token", canvas.token());
+    this->settings.setValue("access-token", canvas->token());
     settings.sync();
     return;
   }
@@ -369,11 +365,11 @@ void MainWindow::show_updates()
 
 void MainWindow::check_auth(const QString &token)
 {
-  canvas.set_token(token);
+  canvas->set_token(token);
   ui->treeView->setModel(newTreeModel());
   course_trees.clear();
   folder_names.clear();
-  canvas.authenticate();
+  canvas->authenticate();
 }
 
 std::vector<Folder> MainWindow::gather_tracked()
@@ -393,3 +389,7 @@ TreeModel *MainWindow::newTreeModel()
 {
   return new TreeModel({"canvas folder", "local folder"});
 };
+
+const QString MainWindow::settings_path =
+    QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) +
+    "/canvas-sync-settings.ini";

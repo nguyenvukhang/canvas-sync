@@ -18,7 +18,7 @@ class Canvas : public QObject
 {
   Q_OBJECT
 
-  QNetworkAccessManager *nw;
+  QNetworkAccessManager nw;
   QString base_url, token_inner;
 
   void terminate(QNetworkReply *r);
@@ -32,7 +32,7 @@ class Canvas : public QObject
   QNetworkReply *get(const QString &fmt, const int &param);
 
 public:
-  Canvas(const QString &u, QNetworkAccessManager &nw) : base_url(u), nw(&nw){};
+  Canvas(const QString &u) : base_url(u){};
   Canvas() = delete;
 
   const QString &token() const;

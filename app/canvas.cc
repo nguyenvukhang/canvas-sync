@@ -35,7 +35,7 @@ QNetworkReply *Canvas::get_full(const QString &url)
   if (!this->token_inner.isEmpty()) {
     r.setRawHeader("Authorization", ("Bearer " + this->token_inner).toUtf8());
   }
-  return this->nw->get(r);
+  return this->nw.get(r);
 }
 
 QNetworkReply *Canvas::get(const QString &url)
