@@ -113,27 +113,26 @@ void TestGui::fetch_courses_test()
   TreeModel *model = app.ui->treeView->model();
   QCOMPARE(model->childrenCount(), 3);
 
-  QModelIndex ptr;
+  TreeIndex ptr = model->index(0, 0);
 
-  ptr = model->index(0, 0);
-  QCOMPARE(get_course(ptr), "Calculus");
-  ptr = get_child(ptr, 0);
-  QCOMPARE(get_remote_dir(ptr), "course files");
-  QCOMPARE(get_remote_dir(get_child(ptr, 0)), "Admin");
-  QCOMPARE(get_remote_dir(get_child(ptr, 1)), "Tutorials");
+  QCOMPARE(ptr.course(), "Calculus");
+  ptr = ptr.child(0);
+  QCOMPARE(ptr.remote_dir(), "course files");
+  QCOMPARE(ptr.child(0).remote_dir(), "Admin");
+  QCOMPARE(ptr.child(1).remote_dir(), "Tutorials");
 
   ptr = model->index(1, 0);
-  QCOMPARE(get_course(ptr), "Geometry");
-  ptr = get_child(ptr, 0);
-  QCOMPARE(get_remote_dir(ptr), "course files");
-  QCOMPARE(get_remote_dir(get_child(ptr, 0)), "Course notes");
-  QCOMPARE(get_remote_dir(get_child(ptr, 1)), "Lectures");
-  QCOMPARE(get_remote_dir(get_child(ptr, 2)), "Tutorials");
+  QCOMPARE(ptr.course(), "Geometry");
+  ptr = ptr.child(0);
+  QCOMPARE(ptr.remote_dir(), "course files");
+  QCOMPARE(ptr.child(0).remote_dir(), "Course ntoes");
+  QCOMPARE(ptr.child(1).remote_dir(), "Lectures");
+  QCOMPARE(ptr.child(2).remote_dir(), "Tutorials");
 
   ptr = model->index(2, 0);
-  QCOMPARE(get_course(ptr), "Linear Algebra");
-  ptr = get_child(ptr, 0);
-  QCOMPARE(get_remote_dir(ptr), "course files");
-  QCOMPARE(get_remote_dir(get_child(ptr, 0)), "Lectures");
-  QCOMPARE(get_remote_dir(get_child(ptr, 1)), "Tutorials");
+  QCOMPARE(ptr.course(), "Linear Algebra");
+  ptr = ptr.child(0);
+  QCOMPARE(ptr.remote_dir(), "course files");
+  QCOMPARE(ptr.child(0).remote_dir(), "Lectures");
+  QCOMPARE(ptr.child(1).remote_dir(), "Tutorials");
 }

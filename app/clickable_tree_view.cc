@@ -10,7 +10,7 @@ void ClickableTreeView::context_menu(const QPoint &pos)
   if (index.column() == TreeItem::REMOTE_DIR) {
     menu.addAction("Track Folder");
   }
-  if (!TreeIndex(index).get_local_dir().isEmpty()) {
+  if (!TreeIndex(index).local_dir().isEmpty()) {
     menu.addAction("Clear");
   }
   auto e = menu.exec(mapToGlobal(pos));
@@ -55,7 +55,7 @@ bool expand_tracked_inner(ClickableTreeView *tv, const QModelIndex &index)
     QModelIndex child = model->index(i, 0, index);
     expand |= expand_tracked_inner(tv, child);
   }
-  if (!TreeIndex(index).get_local_dir().isEmpty() || expand) {
+  if (!TreeIndex(index).local_dir().isEmpty() || expand) {
     tv->expand(index.parent());
     return true;
   }

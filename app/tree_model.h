@@ -113,32 +113,32 @@ private:
 
 class TreeIndex : public QModelIndex
 {
-  QString data(int i) { return this->siblingAtColumn(i).data().toString(); }
+  QString data(int i) const { return siblingAtColumn(i).data().toString(); }
 
 public:
   TreeIndex(const QModelIndex i) : QModelIndex(i){};
 
   const QModelIndex index() { return this->index(); }
-  QString get_id() { return data(TreeItem::FOLDER_ID); }
-  QString get_local_dir() { return data(TreeItem::LOCAL_DIR); }
-  QString get_remote_dir() { return data(TreeItem::REMOTE_DIR); }
+  QString id() const { return data(TreeItem::FOLDER_ID); }
+  QString local_dir() const { return data(TreeItem::LOCAL_DIR); }
+  QString remote_dir() const { return data(TreeItem::REMOTE_DIR); }
 
-  QString get_course()
+  QString course() const
   {
-    TreeIndex *a = this;
+    const TreeIndex *a = this;
     while (a->parent().isValid())
       a = new TreeIndex(a->parent());
-    return a->get_remote_dir();
+    return a->remote_dir();
   }
 
   QString get_ancestry(const char *delimiter)
   {
     QString path;
     TreeIndex *a = this;
-    path = this->get_remote_dir();
+    path = this->remote_dir();
     while (a->parent().isValid()) {
       a = new TreeIndex(a->parent());
-      QString d = a->get_remote_dir();
+      QString d = a->remote_dir();
       if (d.size() > 10) {
         d.truncate(10);
         d.push_back("...");
@@ -148,7 +148,7 @@ public:
     return path;
   }
 
-  const TreeIndex get_child(const int index)
+  const TreeIndex child(const int index)
   {
     return TreeIndex(model()->index(index, 0, this->index()));
   }
