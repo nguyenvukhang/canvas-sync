@@ -14,14 +14,6 @@
 
 #include "filetree.h"
 
-QString get_id(const QModelIndex &);
-QString get_local_dir(const QModelIndex &);
-QString get_remote_dir(const QModelIndex &);
-QString get_course(const QModelIndex &);
-QString get_ancestry(const QModelIndex &, const char *delimiter);
-const QModelIndex get_child(const QModelIndex &, const int index);
-const int count_children(const QModelIndex &);
-
 class TreeItem
 {
 public:
@@ -117,6 +109,58 @@ public:
 private:
   TreeItem *rootItem;
   bool readOnly;
+};
+
+class TreeIndex : public QModelIndex
+{
+  QString data(int i) { return this->siblingAtColumn(i).data().toString(); }
+
+public:
+  TreeIndex(const QModelIndex i) : QModelIndex(i){};
+
+  const QModelIndex index() { return this->index(); }
+  QString get_id() { return data(TreeItem::FOLDER_ID); }
+  QString get_local_dir() { return data(TreeItem::LOCAL_DIR); }
+  QString get_remote_dir() { return data(TreeItem::REMOTE_DIR); }
+
+  QString get_course()
+  {
+    TreeIndex *a = this;
+    while (a->parent().isValid())
+      a = new TreeIndex(a->parent());
+    return a->get_remote_dir();
+  }
+
+  QString get_ancestry(const char *delimiter)
+  {
+    QString path;
+    TreeIndex *a = this;
+    path = this->get_remote_dir();
+    while (a->parent().isValid()) {
+      a = new TreeIndex(a->parent());
+      QString d = a->get_remote_dir();
+      if (d.size() > 10) {
+        d.truncate(10);
+        d.push_back("...");
+      }
+      path = d + delimiter + path;
+    }
+    return path;
+  }
+
+  const TreeIndex get_child(const int index)
+  {
+    return TreeIndex(model()->index(index, 0, this->index()));
+  }
+
+  const int children_count()
+  {
+    int i = 0;
+    const QAbstractItemModel *m = this->model();
+    while (m->index(i, 0, this->index()).isValid())
+      i++;
+    return i;
+  }
 };
 
 #endif // TREEMODEL_H

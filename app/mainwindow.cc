@@ -182,7 +182,7 @@ void MainWindow::treeView_cleared(const QModelIndex &index)
 {
   ui->treeView->model()->itemFromIndex(index)->setData(TreeItem::LOCAL_DIR, "");
   ui->guideText->setHidden(!this->gather_tracked().empty());
-  QString folder_id = get_id(index);
+  QString folder_id = TreeIndex(index).get_id();
   if (folder_id.isEmpty()) return;
   settings.remove(folder_id);
   settings.sync();
@@ -191,9 +191,9 @@ void MainWindow::treeView_cleared(const QModelIndex &index)
 void MainWindow::treeView_trackFolder(const QModelIndex &index)
 {
   if (!index.parent().isValid()) return;
+  TreeIndex ti(index);
 
-  QFileDialog dialog(this, "Target for " + get_ancestry(index, " / "),
-                     this->start_dir);
+  QFileDialog dialog(this, "Target for " + ti.get_ancestry("/"), start_dir);
   int result = dialog.exec();
   grabKeyboard();
 
@@ -223,7 +223,7 @@ void MainWindow::treeView_trackFolder(const QModelIndex &index)
 
   // update itself
   item->setData(TreeItem::LOCAL_DIR, local_dir);
-  settings.setValue(get_id(index), local_dir);
+  settings.setValue(ti.get_id(), local_dir);
   settings.sync();
 
   ui->guideText->hide();
