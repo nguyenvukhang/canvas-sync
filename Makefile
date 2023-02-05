@@ -9,8 +9,18 @@ QT_INIT_ARGS := --module-subset=qtbase
 QT_VERSION ?= 6.2.0
 
 main:
+	# TODO: remove next line once stable
+	rm -rf build
 	@make --no-print-directory build
 	mv ./build/compile_commands.json .
+
+app: FORCE
+	cd app && cmake -DBUILD_TESTS=ON -DQT_STATIC_DIR=$(QT_STATIC_DIR) -DCMAKE_BUILD_TYPE=Release \
+		-S . -B build
+	cd app && cmake --build build --parallel # alternatively: cd build && make
+
+# test: FORCE
+# 	./
 
 build: FORCE
 	@echo "-- USING QT_STATIC_DIR: $(QT_STATIC_DIR)"
@@ -46,8 +56,5 @@ open:
 
 reset:
 	rm -rf ~/files/test/*/*
-
-test: FORCE
-	./build/test/CanvasSyncTest
 
 FORCE: ;

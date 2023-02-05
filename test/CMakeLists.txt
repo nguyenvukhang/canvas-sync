@@ -1,36 +1,34 @@
 cmake_minimum_required(VERSION 3.22)
-project(CanvasSyncTest VERSION 0.1 LANGUAGES CXX)
+project(CanvasSync VERSION 0.1 LANGUAGES CXX)
+
+set(TEST_NAME CanvasSyncTest)
+
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+find_package(Qt6 REQUIRED COMPONENTS Widgets Network Gui Test)
 
 set(TEST_SOURCES
   main.cc
 )
 
-include_directories(${PROJECT_SOURCE_DIR})
+qt_add_executable(${TEST_NAME} MANUAL_FINALIZATION ${TEST_SOURCES})
 
-option(BUILD_STATIC_LIBS ON)
-option(BUILD_SHARED_LIBS OFF)
-
-qt_add_executable(CanvasSyncTest MANUAL_FINALIZATION ${TEST_SOURCES})
-include_directories(
-  ${CMAKE_SOURCE_DIR}/app
-  ${CMAKE_SOURCE_DIR}/build/app/CanvasSyncLib_autogen/include
-)
-
-target_link_libraries(CanvasSyncTest PRIVATE
+target_link_libraries(${TEST_NAME} PRIVATE
   Qt6::Widgets
   Qt6::Network
   Qt6::Gui
   Qt6::Test
-  CanvasSyncLib
+  csync
 )
 
-
-# set_target_properties(CanvasSyncTest PROPERTIES MACOSX_BUNDLE TRUE WIN32_EXECUTABLE TRUE)
-
-install(TARGETS CanvasSyncTest
+install(TARGETS ${TEST_NAME}
   BUNDLE DESTINATION .
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-qt_finalize_executable(CanvasSyncTest)
+qt_finalize_target(${TEST_NAME})
 
-add_test(NAME CanvasSyncTest COMMAND CanvasSyncTest)
+add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})

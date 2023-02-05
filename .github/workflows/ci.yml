@@ -32,7 +32,7 @@ jobs:
     steps:
       - name: Set environment variables
         run: |
-          echo "ASSET=CanvasSync-${{ github.ref_name }}-${{ matrix.os }}.dmg" >>$GITHUB_ENV
+          echo "ASSET=Canvas-Sync-${{ github.ref_name }}-${{ matrix.os }}.dmg" >>$GITHUB_ENV
           echo "QT_STATIC_DIR=$PWD/${{ env.QT_STATIC_DIR }}" >>$GITHUB_ENV
 
       - uses: actions/checkout@v3
@@ -80,7 +80,7 @@ jobs:
       - name: Set environment variables
         shell: bash
         run: |
-          echo "ASSET=CanvasSync-${{ github.ref_name }}-${{ matrix.os }}.exe" >>$GITHUB_ENV
+          echo "ASSET=Canvas-Sync-Installer-${{ github.ref_name }}.exe" >>$GITHUB_ENV
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
@@ -110,27 +110,23 @@ jobs:
         shell: bash
         run: |
           cd build
-          mv CanvasSync.exe ..
+          mv 'Canvas Sync.exe' ..
           rm -rf *
-          mv ../CanvasSync.exe .
-          $Qt6_DIR/bin/windeployqt.exe CanvasSync.exe
+          mv '../Canvas Sync.exe' .
+          $Qt6_DIR/bin/windeployqt.exe 'Canvas Sync.exe'
           cd ..
 
           rm -rf deploy/windows/packages/com.nguyenvukhang.canvassync/data
           mv build deploy/windows/packages/com.nguyenvukhang.canvassync/data
           cd deploy/windows/packages/com.nguyenvukhang.canvassync/data
-          mv CanvasSync.exe 'Canvas Sync.exe'
 
       - name: Package the installer
         shell: bash
         run: |
           cd deploy/windows
-          echo '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-          ls
-          echo '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
           $IQTA_TOOLS/QtInstallerFramework/4.5/bin/binarycreator.exe \
-            -c config/config.xml -p packages CanvasSyncInstaller.exe
-          mv CanvasSyncInstaller.exe ../..
+            -c config/config.xml -p packages ${{ env.ASSET }}
+          mv ${{ env.ASSET }} ../..
 
       # upload release package
       - name: Release
@@ -138,6 +134,5 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/') && matrix.os == 'windows-2019'
         with:
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') }}
-          files: |
-            CanvasSyncInstaller.exe
+          files: ${{ env.ASSET }}
           generate_release_notes: true

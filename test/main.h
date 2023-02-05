@@ -7,7 +7,7 @@
 #include <QTest>
 #include <QtWidgets>
 
-#include <canvas_sync.h>
+#include "csync/canvas_sync.h"
 
 #include <algorithm>
 

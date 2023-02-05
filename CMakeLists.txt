@@ -11,8 +11,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS 1) # to build compile_commands.json
 if (EXISTS ${QT_STATIC_DIR})
   set(CMAKE_PREFIX_PATH ${QT_STATIC_DIR})
 endif()
-
-# auto-generated flags
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -21,8 +19,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Network Gui Test)
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/app)
-add_subdirectory(${PROJECT_SOURCE_DIR}/test)
+add_subdirectory(app)
+add_subdirectory(test)
 
 if(WIN32)
   set(APP_ICON_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/appicon.rc")
@@ -33,25 +31,26 @@ elseif(APPLE)
   set(PROJECT_SOURCES ${PROJECT_SOURCES} ${APP_ICON_MACOS})
 endif()
 
-qt_add_executable(CanvasSync MANUAL_FINALIZATION main.cc)
+qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cc)
 
-include_directories(
-  ${CMAKE_SOURCE_DIR}/app
-  ${CMAKE_SOURCE_DIR}/build/app/CanvasSyncLib_autogen/include
+target_link_libraries(${PROJECT_NAME} PRIVATE
+  Qt6::Widgets
+  Qt6::Network
+)
+target_link_libraries(${PROJECT_NAME} PRIVATE csync)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+  OUTPUT_NAME "Canvas Sync"
+  MACOSX_BUNDLE_BUNDLE_NAME "Canvas Sync.app"
+  MACOSX_BUNDLE_GUI_IDENTIFIER canvassync.nguyenvukhang.com
+  MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+  MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+  MACOSX_BUNDLE_ICON_FILE canvas-sync.icns
+  MACOSX_BUNDLE TRUE WIN32_EXECUTABLE TRUE
 )
 
-target_link_libraries(CanvasSync PRIVATE Qt6::Widgets Qt6::Network CanvasSyncLib)
-
-set_target_properties(CanvasSync PROPERTIES
-    MACOSX_BUNDLE_BUNDLE_NAME "Canvas Sync"
-    MACOSX_BUNDLE_GUI_IDENTIFIER canvassync.nguyenvukhang.com
-    MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
-    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
-    MACOSX_BUNDLE_ICON_FILE canvas-sync.icns
-    MACOSX_BUNDLE TRUE WIN32_EXECUTABLE TRUE
-)
-install(TARGETS CanvasSync
+install(TARGETS ${PROJECT_NAME}
   BUNDLE DESTINATION .
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
-qt_finalize_executable(CanvasSync)
+qt_finalize_target(${PROJECT_NAME})

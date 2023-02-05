@@ -1,6 +1,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "ui_mainwindow.h"
+
 #include <algorithm>
 #include <filesystem>
 #include <map>
@@ -28,7 +30,6 @@
 #include <QSaveFile>
 #include <QSettings>
 #include <QStandardPaths>
-#include <ui_mainwindow.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui
@@ -45,7 +46,7 @@ public:
   MainWindow(ICanvas *canvas, const QString &, QWidget *parent = nullptr);
   MainWindow(ICanvas *c, QWidget *p = nullptr)
       : MainWindow(c, "canvas-sync-settings.ini", p){};
-  ~MainWindow() { delete ui; };
+  ~MainWindow();
 
   void setup_ui();
   void connect_buttons();

@@ -14,6 +14,11 @@ MainWindow::MainWindow(ICanvas *canvas, const QString &settings_file,
   this->check_auth(settings.value("access-token").toString());
 }
 
+MainWindow::~MainWindow()
+{
+  delete ui;
+}
+
 void MainWindow::setup_ui()
 {
   connect(ui->lineEdit_accessToken, &QLineEdit::textChanged, this,
