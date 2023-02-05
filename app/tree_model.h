@@ -19,6 +19,8 @@ QString get_local_dir(const QModelIndex &);
 QString get_remote_dir(const QModelIndex &);
 QString get_course(const QModelIndex &);
 QString get_ancestry(const QModelIndex &, const char *delimiter);
+const QModelIndex get_child(const QModelIndex &, const int index);
+const int count_children(const QModelIndex &);
 
 class TreeItem
 {

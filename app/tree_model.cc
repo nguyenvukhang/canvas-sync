@@ -41,6 +41,20 @@ QString get_ancestry(const QModelIndex &index, const char *delimiter)
   return path;
 }
 
+const QModelIndex get_child(const QModelIndex &index, const int i)
+{
+  return index.model()->index(i, 0, index);
+}
+
+const int count_children(const QModelIndex &index)
+{
+  int i = 0;
+  const QAbstractItemModel *m = index.model();
+  while (m->index(i, 0, index).isValid())
+    i++;
+  return i;
+}
+
 QVector<QVariant> stringListToVariantList(const QStringList &data)
 {
   QVector<QVariant> variantData;

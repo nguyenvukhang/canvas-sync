@@ -109,4 +109,31 @@ void TestGui::fetch_courses_test()
            "}";
   for (auto t : app.course_trees)
     QCOMPARE(QString(t.to_string().c_str()), QString(exp[t.id].c_str()));
+
+  TreeModel *model = app.ui->treeView->model();
+  QCOMPARE(model->childrenCount(), 3);
+
+  QModelIndex ptr;
+
+  ptr = model->index(0, 0);
+  QCOMPARE(get_course(ptr), "Calculus");
+  ptr = get_child(ptr, 0);
+  QCOMPARE(get_remote_dir(ptr), "course files");
+  QCOMPARE(get_remote_dir(get_child(ptr, 0)), "Admin");
+  QCOMPARE(get_remote_dir(get_child(ptr, 1)), "Tutorials");
+
+  ptr = model->index(1, 0);
+  QCOMPARE(get_course(ptr), "Geometry");
+  ptr = get_child(ptr, 0);
+  QCOMPARE(get_remote_dir(ptr), "course files");
+  QCOMPARE(get_remote_dir(get_child(ptr, 0)), "Course notes");
+  QCOMPARE(get_remote_dir(get_child(ptr, 1)), "Lectures");
+  QCOMPARE(get_remote_dir(get_child(ptr, 2)), "Tutorials");
+
+  ptr = model->index(2, 0);
+  QCOMPARE(get_course(ptr), "Linear Algebra");
+  ptr = get_child(ptr, 0);
+  QCOMPARE(get_remote_dir(ptr), "course files");
+  QCOMPARE(get_remote_dir(get_child(ptr, 0)), "Lectures");
+  QCOMPARE(get_remote_dir(get_child(ptr, 1)), "Tutorials");
 }
