@@ -180,7 +180,8 @@ void MainWindow::changeToken_clicked()
 
 void MainWindow::treeView_cleared(const QModelIndex &index)
 {
-  ui->treeView->model()->itemFromIndex(index)->setData(TreeItem::LOCAL_DIR, "");
+  ui->treeView->model()->itemFromIndex(index)->setData(TreeIndex::LOCAL_DIR,
+                                                       "");
   ui->guideText->setHidden(!this->gather_tracked().empty());
   QString folder_id = TreeIndex(index).id();
   if (folder_id.isEmpty()) return;
@@ -199,36 +200,14 @@ void MainWindow::treeView_trackFolder(const QModelIndex &index)
 
   TreeItem *item = ui->treeView->model()->itemFromIndex(index);
 
-  QString local_dir = dialog.selectedFiles()[0];
+  QDir selected_dir = dialog.selectedFiles()[0];
 
   // exit early if no file was chosen
   if (result != 1) return;
-
-  // clears children and parent tracked folders because this might cause
-  // conflicts in downloads.
-
-  // clear children maps
-  item->on_all_children([&](TreeItem &child) {
-    child.setData(TreeItem::LOCAL_DIR, "");
-    QString folder_id = child.get_id();
-    if (!folder_id.isEmpty()) settings.remove(folder_id);
-  });
-
-  // clear parent maps
-  item->on_all_parents([&](TreeItem &parent) {
-    parent.setData(TreeItem::LOCAL_DIR, "");
-    QString folder_id = parent.get_id();
-    if (!folder_id.isEmpty()) settings.remove(folder_id);
-  });
-
-  // update itself
-  item->setData(TreeItem::LOCAL_DIR, local_dir);
-  settings.setValue(ti.id(), local_dir);
-  settings.sync();
+  item->track_folder(index, selected_dir.path(), settings);
 
   ui->guideText->hide();
 
-  QDir selected_dir = QDir::fromNativeSeparators(local_dir);
   selected_dir.cdUp();
   this->start_dir = selected_dir.path();
 }

@@ -93,8 +93,5 @@ public:
   std::map<int, std::string> folder_names;
 
   ICanvas *canvas;
-
-private:
-  QNetworkAccessManager nw;
 };
 #endif // MAINWINDOW_H

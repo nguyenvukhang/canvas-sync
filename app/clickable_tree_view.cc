@@ -7,7 +7,7 @@ void ClickableTreeView::context_menu(const QPoint &pos)
 
   // create menu
   QMenu menu;
-  if (index.column() == TreeItem::REMOTE_DIR) {
+  if (index.column() == TreeIndex::REMOTE_DIR) {
     menu.addAction("Track Folder");
   }
   if (!TreeIndex(index).local_dir().isEmpty()) {
@@ -76,8 +76,8 @@ void ClickableTreeView::expand_tracked()
 
 void ClickableTreeView::prettify()
 {
-  this->resizeColumnToContents(TreeItem::REMOTE_DIR);
-  if (columnWidth(TreeItem::REMOTE_DIR) > this->width() * 0.6) {
-    setColumnWidth(TreeItem::REMOTE_DIR, this->width() * 0.6);
+  this->resizeColumnToContents(TreeIndex::REMOTE_DIR);
+  if (columnWidth(TreeIndex::REMOTE_DIR) > this->width() * 0.6) {
+    setColumnWidth(TreeIndex::REMOTE_DIR, this->width() * 0.6);
   }
 };

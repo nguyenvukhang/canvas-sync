@@ -142,6 +142,29 @@ void TreeItem::on_all_children(std::function<void(TreeItem &item)> f)
   }
 }
 
+void TreeItem::track_folder(const TreeIndex &ti, const QString &dir,
+                            QSettings &settings)
+{
+  // clear children maps
+  on_all_children([&](TreeItem &child) {
+    child.setData(TreeIndex::LOCAL_DIR, "");
+    QString folder_id = child.get_id();
+    if (!folder_id.isEmpty()) settings.remove(folder_id);
+  });
+
+  // clear parent maps
+  on_all_parents([&](TreeItem &parent) {
+    parent.setData(TreeIndex::LOCAL_DIR, "");
+    QString folder_id = parent.get_id();
+    if (!folder_id.isEmpty()) settings.remove(folder_id);
+  });
+
+  // update itself
+  this->setData(TreeIndex::LOCAL_DIR, dir);
+  settings.setValue(ti.id(), dir);
+  settings.sync();
+}
+
 void resolve_all_folders(TreeItem *item, std::filesystem::path *local_base_dir,
                          std::filesystem::path *cwd, std::vector<Folder> *list)
 {
