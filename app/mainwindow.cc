@@ -1,8 +1,10 @@
 #include "mainwindow.h"
 
-MainWindow::MainWindow(Canvas *canvas, QWidget *parent)
+MainWindow::MainWindow(ICanvas *canvas, const QString &settings_file,
+                       QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow),
-      settings(MainWindow::settings_path, QSettings::IniFormat), canvas(canvas)
+      settings(settings_path + '/' + settings_file, QSettings::IniFormat),
+      canvas(canvas)
 {
   ui->setupUi(this);
   connect_buttons();
@@ -48,7 +50,7 @@ void MainWindow::connect_tree()
 
 void MainWindow::connect_canvas()
 {
-  connect(canvas, &Canvas::authenticate_done, this, [=](bool authenticated) {
+  connect(canvas, &ICanvas::authenticate_done, this, [=](bool authenticated) {
     this->set_auth_state(authenticated);
     if (authenticated) canvas->fetch_courses();
   });
@@ -57,14 +59,14 @@ void MainWindow::connect_canvas()
   // 1. fetch courses -> fetch folders -> load course/folder name cache
   // 2. fetch files -> download files -> collate and show updates
 
-  connect(canvas, &Canvas::fetch_courses_done, this,
+  connect(canvas, &ICanvas::fetch_courses_done, this,
           [=](std::vector<Course> c) {
             this->user_courses = std::move(c);
             for (auto c : this->user_courses)
               canvas->fetch_folders(c);
           });
 
-  connect(canvas, &Canvas::fetch_folders_done, this,
+  connect(canvas, &ICanvas::fetch_folders_done, this,
           [=](const Course &c, std::vector<Folder> f) {
             FileTree t(&c, f);
             tree_mtx.lock();
@@ -78,7 +80,7 @@ void MainWindow::connect_canvas()
             ui->guideText->setHidden(!gather_tracked().empty());
           });
 
-  connect(canvas, &Canvas::fetch_files_done, this,
+  connect(canvas, &ICanvas::fetch_files_done, this,
           [=](const Folder &_fo, std::vector<File> files) {
             Folder folder(std::move(_fo));
             remove_existing_files(&files, folder.local_dir);
@@ -100,15 +102,15 @@ void MainWindow::connect_canvas()
             tracked_folders_mtx.unlock();
           });
 
-  connect(canvas, &Canvas::download_done, ui->progressBar,
+  connect(canvas, &ICanvas::download_done, ui->progressBar,
           &QProgressBar::setValue);
 
-  connect(canvas, &Canvas::all_fetch_done, this, [=]() {
+  connect(canvas, &ICanvas::all_fetch_done, this, [=]() {
     if (action == FETCH || (action == PULL && !canvas->has_downloads()))
       show_updates();
   });
 
-  connect(canvas, &Canvas::all_download_done, this, &MainWindow::show_updates);
+  connect(canvas, &ICanvas::all_download_done, this, &MainWindow::show_updates);
 }
 
 void MainWindow::prefetch()
@@ -391,5 +393,4 @@ TreeModel *MainWindow::newTreeModel()
 };
 
 const QString MainWindow::settings_path =
-    QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) +
-    "/canvas-sync-settings.ini";
+    QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);

@@ -42,9 +42,9 @@ class MainWindow : public QMainWindow
   Q_OBJECT
 
 public:
-  MainWindow(Canvas *canvas, QWidget *parent = nullptr);
-  MainWindow(QWidget *parent = nullptr)
-      : MainWindow(new Canvas("https://canvas.nus.edu.sg"), parent){};
+  MainWindow(ICanvas *canvas, const QString &, QWidget *parent = nullptr);
+  MainWindow(ICanvas *c, QWidget *p = nullptr)
+      : MainWindow(c, "canvas-sync-settings.ini", p){};
   ~MainWindow() { delete ui; };
 
   void setup_ui();
@@ -92,8 +92,9 @@ public:
   std::vector<Folder> tracked_folders;
   std::map<int, std::string> folder_names;
 
+  ICanvas *canvas;
+
 private:
-  Canvas *canvas;
   QNetworkAccessManager nw;
 };
 #endif // MAINWINDOW_H

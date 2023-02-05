@@ -14,12 +14,46 @@
 
 #include <mutex>
 
-class Canvas : public QObject
+class ICanvas : public QObject
+{
+  Q_OBJECT
+
+protected:
+  QString base_url, token_inner;
+
+public:
+  ICanvas(const QString &u) : base_url(u){};
+  ICanvas() = delete;
+
+  virtual const QString &token() const { return this->token_inner; };
+  virtual void set_token(const QString &t) { this->token_inner = t; };
+  virtual void authenticate() = 0;
+  virtual void fetch_courses() = 0;
+  virtual void fetch_folders(const Course &) = 0;
+  virtual void fetch_files(const Folder &) = 0;
+  virtual void download(const File &, const Folder &) = 0;
+  virtual void reset_counts() = 0;
+  virtual void set_total_fetches(size_t) = 0;
+  virtual size_t increment_total_downloads(size_t) = 0;
+  virtual size_t increment_done_downloads() = 0;
+  virtual bool is_done_downloading() = 0;
+  virtual bool has_downloads() = 0;
+
+signals:
+  void authenticate_done(bool success);
+  void fetch_courses_done(std::vector<Course>);
+  void fetch_folders_done(const Course &, std::vector<Folder>);
+  void fetch_files_done(const Folder &, std::vector<File>);
+  void download_done(const size_t progress);
+  void all_fetch_done();
+  void all_download_done();
+};
+
+class Canvas : public ICanvas
 {
   Q_OBJECT
 
   QNetworkAccessManager nw;
-  QString base_url, token_inner;
 
   void terminate(QNetworkReply *r);
   // fetch done, fetch expected, donwload done, download expected
@@ -32,11 +66,12 @@ class Canvas : public QObject
   QNetworkReply *get(const QString &fmt, const int &param);
 
 public:
-  Canvas(const QString &u) : base_url(u){};
+  Canvas(const QString &u) : ICanvas(u)
+  {
+    std::cout << "CONSTRCUTED REAL" << std::endl;
+  };
   Canvas() = delete;
 
-  const QString &token() const;
-  void set_token(const QString &);
   bool has_network_err(QNetworkReply *r);
   void authenticate();
   void fetch_courses();
@@ -49,14 +84,5 @@ public:
   size_t increment_done_downloads();
   bool is_done_downloading();
   bool has_downloads();
-
-signals:
-  void authenticate_done(bool success);
-  void fetch_courses_done(std::vector<Course>);
-  void fetch_folders_done(const Course &, std::vector<Folder>);
-  void fetch_files_done(const Folder &, std::vector<File>);
-  void download_done(const size_t progress);
-  void all_fetch_done();
-  void all_download_done();
 };
 #endif // CANVAS_H

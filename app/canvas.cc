@@ -19,16 +19,6 @@ void Canvas::terminate(QNetworkReply *r)
   r->deleteLater();
 }
 
-const QString &Canvas::token() const
-{
-  return this->token_inner;
-}
-
-void Canvas::set_token(const QString &token)
-{
-  this->token_inner = token;
-}
-
 QNetworkReply *Canvas::get_full(const QString &url)
 {
   QNetworkRequest r((QUrl(url)));
@@ -61,12 +51,14 @@ bool Canvas::has_network_err(QNetworkReply *r)
 
 void Canvas::authenticate()
 {
+  std::cout << "TRY TO AUTHENTCATE WITH REAL!" << std::endl;
   QNetworkReply *r = this->get("/api/v1/users/self/profile");
   connect(r, &QNetworkReply::finished, this, [=]() {
     terminate(r);
     bool ok = false;
 
     if (r->error() == QNetworkReply::AuthenticationRequiredError) {
+      qDebug() << "Failed auth with token:" << this->token();
       emit authenticate_done(true);
     } else if (r->error() != QNetworkReply::NoError) {
       emit authenticate_done(true);
