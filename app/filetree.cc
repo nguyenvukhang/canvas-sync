@@ -13,8 +13,7 @@ void FileTree::insert_folder(Folder &f, std::string &state)
   // find the next folder to go recurse into.
   std::string query = state.substr(0, slash_idx);
   for (size_t i = 0; i < this->folders.size(); i++) {
-    if (this->folders[i].name != query)
-      continue;
+    if (this->folders[i].name != query) continue;
     std::string next_state = state.substr(slash_idx + 1);
     this->folders[i].insert_folder(f, next_state);
     break;
@@ -31,18 +30,26 @@ void FileTree::insert_course_tree(FileTree &t)
   this->folders.push_back(std::move(t));
 }
 
-void FileTree::to_string(std::string &state)
+void FileTree::to_string(std::string &state, const int lvl)
 {
-  state += "{(" + std::to_string(this->id) + ',' + this->name + "):";
+  std::string indent = std::string(lvl * 2, ' ');
+  state += indent;
+  state += '#' + std::to_string(this->id) + '|' + this->name + ": {";
+  if (this->folders.empty()) {
+    state += "}\n";
+    return;
+  }
+  state += '\n';
   for (FileTree t : this->folders)
-    t.to_string(state);
-  state += '}';
+    t.to_string(state, lvl + 1);
+  state += indent + "}\n";
 }
 
 std::string FileTree::to_string()
 {
   std::string state = "";
-  this->to_string(state);
+  this->to_string(state, 0);
+  if (state.back() == '\n') state.pop_back();
   return state;
 }
 

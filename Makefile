@@ -16,7 +16,7 @@ build: FORCE
 	@echo "-- USING QT_STATIC_DIR: $(QT_STATIC_DIR)"
 	cmake -DQT_STATIC_DIR=$(QT_STATIC_DIR) -DCMAKE_BUILD_TYPE=Release \
 		-S . -B build
-	cmake --build build # alternatively: cd build && make
+	cmake --build build --parallel # alternatively: cd build && make
 
 build-win: FORCE
 	cmake -DCMAKE_BUILD_TYPE=Release -S . -B build -G Ninja

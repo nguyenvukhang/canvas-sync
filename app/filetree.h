@@ -18,7 +18,7 @@ private:
   // for recursion with the public variants
   void insert_folder(Folder &, std::string &);
   void insert_folder_tree(FileTree &, std::string &);
-  void to_string(std::string &);
+  void to_string(std::string &, const int);
 
   // constructors
 public:

@@ -19,16 +19,15 @@ std::vector<T> to_vecq(const QJsonDocument &d,
                        std::function<T(const QJsonObject &)> f,
                        std::vector<std::string> keys)
 {
-  const QJsonArray a = d.array();
+  const QJsonArray arr = d.array();
   std::vector<T> cs;
-  size_t k = keys.size(), n = a.size();
-  while (n-- > 0) {
+  size_t k = keys.size();
+  for (size_t i = 0; i < arr.size(); i++) {
     bool valid = true;
-    QJsonObject t = a[n].toObject();
-    for (size_t i = 0; i < k; i++)
-      valid &= !t[keys[i].c_str()].isNull();
-    if (valid)
-      cs.push_back(f(t));
+    QJsonObject t = arr[i].toObject();
+    for (size_t j = 0; j < k; j++)
+      valid &= !t[keys[j].c_str()].isNull();
+    if (valid) cs.push_back(f(t));
   }
   return cs;
 }
@@ -41,10 +40,7 @@ bool is_valid_profile(const QJsonObject &j)
 
 Course to_course(const QJsonObject &j)
 {
-  Course c;
-  c.id = j["id"].toInt(BAD_ID);
-  c.name = j["name"].toString().toStdString();
-  return c;
+  return Course(j["id"].toInt(BAD_ID), j["name"].toString().toStdString());
 }
 
 Folder to_folder(const QJsonObject &j)

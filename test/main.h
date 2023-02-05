@@ -9,6 +9,8 @@
 
 #include <canvas_sync.h>
 
+#include <algorithm>
+
 class FakeCanvas : public ICanvas
 {
   Q_OBJECT
@@ -16,9 +18,9 @@ class FakeCanvas : public ICanvas
 public:
   FakeCanvas() : ICanvas(""){};
 
-  void authenticate() override { emit authenticate_done(token() == "valid"); };
-  void fetch_courses() override{};
-  void fetch_folders(const Course &) override{};
+  void authenticate() override;
+  void fetch_courses() override;
+  void fetch_folders(const Course &course) override;
   void fetch_files(const Folder &) override{};
   void download(const File &, const Folder &) override{};
 };
@@ -33,8 +35,12 @@ public:
   QNetworkAccessManager nw;
   MainWindow app;
 
-private slots:
-  void testGui();
+  // convenience routines
+  void authenticate();
+
+private slots: // tests
+  void access_token_entry_test();
+  void fetch_courses_test();
 };
 
 #endif

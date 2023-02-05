@@ -1,6 +1,7 @@
 #ifndef CANVAS_SYNC_TYPES_H
 #define CANVAS_SYNC_TYPES_H
 
+#include <algorithm>
 #include <filesystem>
 #include <iostream> // for std::cout and std::cerr in the .cc file
 #include <vector>
@@ -21,6 +22,7 @@ class Course
 public:
   int id;
   std::string name;
+  Course(const int id, const std::string &name) : id(id), name(name){};
 };
 
 class File
@@ -41,12 +43,19 @@ public:
   std::string full_name;
   std::filesystem::path local_dir;
   std::vector<File> files;
-  Folder(int id) : id(id){};
-  Folder(int id, std::filesystem::path local_dir)
+  Folder(const int id) : id(id){};
+  Folder(const int id, std::filesystem::path local_dir)
       : id(id), local_dir(local_dir){};
   Folder(const Folder &f)
       : id(f.id), course_id(f.course_id), name(f.name), local_dir(f.local_dir),
         files(f.files), full_name(f.full_name){};
+  static Folder of(const int id, const std::string &full_name)
+  {
+    Folder f(id);
+    f.full_name = full_name;
+    f.name = full_name.substr(full_name.rfind('/') + 1);
+    return f;
+  };
 };
 
 std::string normalize_filename(std::string *);
