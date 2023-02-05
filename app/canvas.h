@@ -18,25 +18,25 @@
 class Canvas : public QObject
 {
   Q_OBJECT
-private:
+
   QNetworkAccessManager nw;
   QString base_url, token_inner;
 
-private:
   void terminate(QNetworkReply *r);
   // fetch done, fetch expected, donwload done, download expected
   size_t count[4];
   enum Count { FETCH_DONE, FETCH_TOTAL, DOWNLOAD_DONE, DOWNLOAD_TOTAL };
   std::mutex count_mtx;
 
+  QNetworkReply *get_full(const QString &url);
+  QNetworkReply *get(const QString &url);
+  QNetworkReply *get(const QString &fmt, const int &param);
+
 public:
   Canvas(const QString &u) : base_url(u){};
 
   const QString &token() const;
   void set_token(const QString &);
-  QNetworkReply *get_full(const QString &url);
-  QNetworkReply *get(const QString &url);
-  QNetworkReply *get(const QString &fmt, const int &param);
   bool has_network_err(QNetworkReply *r);
   void authenticate();
   void fetch_courses();
