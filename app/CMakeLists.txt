@@ -25,5 +25,8 @@ include_directories(
 option(BUILD_STATIC_LIBS ON)
 option(BUILD_SHARED_LIBS OFF)
 
-qt_add_library(CanvasSyncLib STATIC MANUAL_FINALIZATION ${PROJECT_SOURCES})
+qt_add_library(CanvasSyncLib MANUAL_FINALIZATION ${PROJECT_SOURCES})
+if (WIN32) 
+  set_target_properties(CanvasSyncLib PROPERTIES SUFFIX ".lib")
+endif()
 target_link_libraries(CanvasSyncLib PRIVATE Qt6::Widgets Qt6::Network)
