@@ -6,7 +6,7 @@ MainWindow::MainWindow(QWidget *parent)
           QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) +
               "/canvas-sync-settings.ini",
           QSettings::IniFormat),
-      canvas("https://canvas.nus.edu.sg")
+      canvas("https://canvas.nus.edu.sg", this->nw)
 {
   ui->setupUi(this);
   connect_buttons();

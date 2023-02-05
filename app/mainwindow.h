@@ -90,5 +90,6 @@ public:
 
 private:
   Canvas canvas;
+  QNetworkAccessManager nw;
 };
 #endif // MAINWINDOW_H
