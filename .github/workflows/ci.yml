@@ -46,6 +46,9 @@ jobs:
       # build canvas-sync
       - run: make build
 
+      - name: Run tests
+        run: make test
+
       # package app
       - run: |
           mkdir dmg
@@ -105,6 +108,10 @@ jobs:
           cmake -DCMAKE_BUILD_TYPE=Release -S . -B build -G Ninja `
             -DCMAKE_PREFIX_PATH=${{ env.Qt6_DIR }}
           cmake --build build --parallel
+
+      - name: Run tests
+        shell: bash
+        run: make test
 
       - name: Use windeployqt to load libraries
         shell: bash
