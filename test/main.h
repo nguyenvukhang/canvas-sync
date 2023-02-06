@@ -16,7 +16,7 @@ class TestGui : public QObject
   Q_OBJECT
 
 public:
-  TestGui() : app(new FakeCanvas(), "canvas-sync-test.ini"){};
+  TestGui() : app("", "canvas-sync-test.ini"){};
 
   MainWindow app;
 

@@ -1,10 +1,10 @@
 #include "mainwindow.h"
 
-MainWindow::MainWindow(ICanvas *canvas, const QString &settings_file,
+MainWindow::MainWindow(const QString &url, const QString &settings_file,
                        QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow),
       settings(settings_path + '/' + settings_file, QSettings::IniFormat),
-      canvas(canvas)
+      canvas(new Canvas(url, &this->nw))
 {
   ui->setupUi(this);
   connect_buttons();
@@ -180,7 +180,7 @@ void MainWindow::changeToken_clicked()
   canvas->set_token("");
   settings.setValue("access-token", "");
   this->set_auth_state(false);
-  ui->lineEdit_accessToken->grabKeyboard();
+  ui->lineEdit_accessToken->setFocus();
 }
 
 /// TREEVIEW SLOTS ---

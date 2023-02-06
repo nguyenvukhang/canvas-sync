@@ -19,6 +19,20 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Network Gui Test)
 
+# if (APPLE)
+#   execute_process(COMMAND brew --prefix openssl@3
+#     OUTPUT_VARIABLE OPENSSL_ROOT_DIR
+#     OUTPUT_STRIP_TRAILING_WHITESPACE
+#   )
+#   find_package(OpenSSL)
+#   if (OPENSSL_FOUND)
+#     message(STATUS "OpenSSL support enabled.")
+#     set(USE_OPENSSL TRUE)
+#   endif()
+# endif()
+set(OPENSSL_USE_STATIC_LIBS TRUE)
+include(FindOpenSSL)
+
 add_subdirectory(app)
 add_subdirectory(test)
 

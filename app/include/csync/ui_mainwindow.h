@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'mainwindow.ui'
 **
-** Created by: Qt User Interface Compiler version 6.2.0
+** Created by: Qt User Interface Compiler version 6.4.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -48,10 +48,10 @@ public:
     void setupUi(QMainWindow *MainWindow)
     {
         if (MainWindow->objectName().isEmpty())
-            MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
+            MainWindow->setObjectName("MainWindow");
         MainWindow->resize(600, 500);
         centralwidget = new QWidget(MainWindow);
-        centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
+        centralwidget->setObjectName("centralwidget");
         QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(0);
@@ -59,24 +59,24 @@ public:
         centralwidget->setSizePolicy(sizePolicy);
         verticalLayout = new QVBoxLayout(centralwidget);
         verticalLayout->setSpacing(2);
-        verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
+        verticalLayout->setObjectName("verticalLayout");
         horizontalLayout_accessToken = new QHBoxLayout();
         horizontalLayout_accessToken->setSpacing(10);
-        horizontalLayout_accessToken->setObjectName(QString::fromUtf8("horizontalLayout_accessToken"));
+        horizontalLayout_accessToken->setObjectName("horizontalLayout_accessToken");
         horizontalLayout_accessToken->setContentsMargins(-1, 0, -1, -1);
         lineEdit_accessToken = new QLineEdit(centralwidget);
-        lineEdit_accessToken->setObjectName(QString::fromUtf8("lineEdit_accessToken"));
+        lineEdit_accessToken->setObjectName("lineEdit_accessToken");
         lineEdit_accessToken->setEchoMode(QLineEdit::Password);
 
         horizontalLayout_accessToken->addWidget(lineEdit_accessToken);
 
         label_authenticationStatus = new QLabel(centralwidget);
-        label_authenticationStatus->setObjectName(QString::fromUtf8("label_authenticationStatus"));
+        label_authenticationStatus->setObjectName("label_authenticationStatus");
 
         horizontalLayout_accessToken->addWidget(label_authenticationStatus);
 
         pushButton_changeToken = new QPushButton(centralwidget);
-        pushButton_changeToken->setObjectName(QString::fromUtf8("pushButton_changeToken"));
+        pushButton_changeToken->setObjectName("pushButton_changeToken");
         pushButton_changeToken->setEnabled(true);
 
         horizontalLayout_accessToken->addWidget(pushButton_changeToken);
@@ -85,7 +85,7 @@ public:
         verticalLayout->addLayout(horizontalLayout_accessToken);
 
         label_accessTokenHelp = new QLabel(centralwidget);
-        label_accessTokenHelp->setObjectName(QString::fromUtf8("label_accessTokenHelp"));
+        label_accessTokenHelp->setObjectName("label_accessTokenHelp");
         label_accessTokenHelp->setWordWrap(true);
         label_accessTokenHelp->setOpenExternalLinks(true);
 
@@ -93,20 +93,20 @@ public:
 
         horizontalLayout_actionButtons = new QHBoxLayout();
         horizontalLayout_actionButtons->setSpacing(10);
-        horizontalLayout_actionButtons->setObjectName(QString::fromUtf8("horizontalLayout_actionButtons"));
+        horizontalLayout_actionButtons->setObjectName("horizontalLayout_actionButtons");
         horizontalLayout_actionButtons->setContentsMargins(-1, 0, -1, -1);
         horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
 
         horizontalLayout_actionButtons->addItem(horizontalSpacer);
 
         pushButton_fetch = new QPushButton(centralwidget);
-        pushButton_fetch->setObjectName(QString::fromUtf8("pushButton_fetch"));
+        pushButton_fetch->setObjectName("pushButton_fetch");
         pushButton_fetch->setMinimumSize(QSize(80, 0));
 
         horizontalLayout_actionButtons->addWidget(pushButton_fetch);
 
         pushButton_pull = new QPushButton(centralwidget);
-        pushButton_pull->setObjectName(QString::fromUtf8("pushButton_pull"));
+        pushButton_pull->setObjectName("pushButton_pull");
         QSizePolicy sizePolicy1(QSizePolicy::Maximum, QSizePolicy::Fixed);
         sizePolicy1.setHorizontalStretch(0);
         sizePolicy1.setVerticalStretch(0);
@@ -120,14 +120,14 @@ public:
         verticalLayout->addLayout(horizontalLayout_actionButtons);
 
         progressBar = new QProgressBar(centralwidget);
-        progressBar->setObjectName(QString::fromUtf8("progressBar"));
+        progressBar->setObjectName("progressBar");
         progressBar->setValue(24);
         progressBar->setInvertedAppearance(false);
 
         verticalLayout->addWidget(progressBar);
 
         guideText = new QLabel(centralwidget);
-        guideText->setObjectName(QString::fromUtf8("guideText"));
+        guideText->setObjectName("guideText");
         guideText->setWordWrap(true);
         guideText->setMargin(0);
         guideText->setIndent(0);
@@ -135,7 +135,7 @@ public:
         verticalLayout->addWidget(guideText);
 
         treeView = new ClickableTreeView(centralwidget);
-        treeView->setObjectName(QString::fromUtf8("treeView"));
+        treeView->setObjectName("treeView");
         treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
         treeView->setSelectionBehavior(QAbstractItemView::SelectItems);
         treeView->setUniformRowHeights(true);
@@ -146,7 +146,7 @@ public:
 
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
-        menubar->setObjectName(QString::fromUtf8("menubar"));
+        menubar->setObjectName("menubar");
         menubar->setGeometry(QRect(0, 0, 600, 37));
         MainWindow->setMenuBar(menubar);
 

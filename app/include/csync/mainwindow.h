@@ -43,9 +43,9 @@ class MainWindow : public QMainWindow
   Q_OBJECT
 
 public:
-  MainWindow(ICanvas *canvas, const QString &, QWidget *parent = nullptr);
-  MainWindow(ICanvas *c, QWidget *p = nullptr)
-      : MainWindow(c, "canvas-sync-settings.ini", p){};
+  MainWindow(const QString &, const QString &, QWidget *parent = nullptr);
+  MainWindow(const QString &url, QWidget *p = nullptr)
+      : MainWindow(url, "canvas-sync-settings.ini", p){};
   ~MainWindow();
 
   void setup_ui();
@@ -94,5 +94,6 @@ public:
   std::map<int, std::string> folder_names;
 
   ICanvas *canvas;
+  QNetworkAccessManager nw;
 };
 #endif // MAINWINDOW_H

@@ -60,7 +60,7 @@ QNetworkReply *Canvas::get_full(const QString &url)
   if (!this->token_inner.isEmpty()) {
     r.setRawHeader("Authorization", ("Bearer " + this->token_inner).toUtf8());
   }
-  return this->nw.get(r);
+  return this->nw->get(r);
 }
 
 QNetworkReply *Canvas::get(const QString &url)
@@ -91,12 +91,12 @@ void Canvas::authenticate()
   connect(r, &QNetworkReply::finished, this, [=]() {
     terminate(r);
     bool ok = false;
-
+  
     if (r->error() == QNetworkReply::AuthenticationRequiredError) {
       qDebug() << "Failed auth with token:" << this->token();
-      emit authenticate_done(true);
+      emit authenticate_done(false);
     } else if (r->error() != QNetworkReply::NoError) {
-      emit authenticate_done(true);
+      emit authenticate_done(false);
     } else if (is_valid_profile(to_json(r).object())) {
       emit authenticate_done(true);
     } else {

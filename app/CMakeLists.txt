@@ -11,7 +11,6 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets Network Test Gui)
 set(LIB_NAME csync)
 
 set(PROJECT_SOURCES
-  main.cc
   mainwindow.cc
   updates.cc
 

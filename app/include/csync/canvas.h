@@ -23,9 +23,11 @@ protected:
   size_t count[4];
   enum Count { FETCH_DONE, FETCH_TOTAL, DOWNLOAD_DONE, DOWNLOAD_TOTAL };
   std::mutex count_mtx;
+  QNetworkAccessManager *nw;
 
 public:
   ICanvas(const QString &u) : base_url(u){};
+  ICanvas(const QString &u, QNetworkAccessManager *nw) : base_url(u), nw(nw){};
   ICanvas() = delete;
 
   virtual void authenticate() = 0;
@@ -57,8 +59,6 @@ class Canvas : public ICanvas
 {
   Q_OBJECT
 
-  QNetworkAccessManager nw;
-
   void terminate(QNetworkReply *r);
 
   QNetworkReply *get_full(const QString &url);
@@ -66,7 +66,7 @@ class Canvas : public ICanvas
   QNetworkReply *get(const QString &fmt, const int &param);
 
 public:
-  Canvas(const QString &u) : ICanvas(u){};
+  Canvas(const QString &u, QNetworkAccessManager *nw) : ICanvas(u, nw){};
   Canvas() = delete;
 
   bool has_network_err(QNetworkReply *r);
