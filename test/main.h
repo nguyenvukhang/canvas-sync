@@ -22,20 +22,11 @@ class TestGui : public QObject
   std::vector<QString> tmp_settings;
 
 public:
+  TestGui() : app(new FakeCanvas(), "canvas-sync-test.ini"){};
+  MainWindow app;
+
   // convenience routines
-  void authenticate(MainWindow *app);
-  MainWindow *create_app()
-  {
-    return new MainWindow(new FakeCanvas(), settings_file());
-  }
-  QString settings_file()
-  {
-    this->id_mtx.lock();
-    QString result = QString("canvas-sync-test-%1.ini").arg(this->id++);
-    tmp_settings.push_back(MainWindow::settings_path + '/' + result);
-    this->id_mtx.unlock();
-    return result;
-  }
+  void authenticate();
 
 private slots: // tests
   void access_token_entry_test();

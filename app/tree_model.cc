@@ -148,14 +148,14 @@ void TreeItem::track_folder(const TreeIndex &ti, const QString &dir,
   // clear children maps
   on_all_children([&](TreeItem &child) {
     child.setData(TreeIndex::LOCAL_DIR, "");
-    QString folder_id = child.get_id();
+    QString folder_id = child.id();
     if (!folder_id.isEmpty()) settings.remove(folder_id);
   });
 
   // clear parent maps
   on_all_parents([&](TreeItem &parent) {
     parent.setData(TreeIndex::LOCAL_DIR, "");
-    QString folder_id = parent.get_id();
+    QString folder_id = parent.id();
     if (!folder_id.isEmpty()) settings.remove(folder_id);
   });
 
@@ -168,13 +168,13 @@ void TreeItem::track_folder(const TreeIndex &ti, const QString &dir,
 void resolve_all_folders(TreeItem *item, std::filesystem::path *local_base_dir,
                          std::filesystem::path *cwd, std::vector<Folder> *list)
 {
-  std::string local_dir = item->get_local_dir().toStdString();
+  std::string local_dir = item->local_dir().toStdString();
 
   std::filesystem::path new_cwd;
   std::filesystem::path new_base = *local_base_dir;
 
   if (!local_base_dir->empty()) {
-    new_cwd = *cwd / item->get_remote_dir().toStdString();
+    new_cwd = *cwd / item->remote_dir().toStdString();
   }
 
   // one-time thing. on any path downwards it is guaranteed to only have
@@ -184,7 +184,7 @@ void resolve_all_folders(TreeItem *item, std::filesystem::path *local_base_dir,
   }
 
   if (!new_base.empty()) {
-    list->push_back(Folder(item->get_id().toInt(), new_base / new_cwd));
+    list->push_back(Folder(item->id().toInt(), new_base / new_cwd));
   }
 
   auto children = item->childrenItems();
@@ -205,7 +205,7 @@ std::vector<Folder> TreeItem::resolve_folders()
     std::filesystem::path base = "";
     resolve_all_folders(child, &base, &p, &fl);
   }
-  int id = this->get_id().toInt();
+  int id = this->id().toInt();
   for (size_t i = 0; i < fl.size(); i++) {
     fl[i].course_id = id;
   }

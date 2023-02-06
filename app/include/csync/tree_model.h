@@ -16,16 +16,16 @@
 
 class TreeIndex : public QModelIndex
 {
-  QString data(int i) const { return siblingAtColumn(i).data().toString(); }
+  QString data_at(int i) const { return siblingAtColumn(i).data().toString(); }
 
 public:
   enum TreeCol { REMOTE_DIR, LOCAL_DIR, FOLDER_ID };
   TreeIndex(const QModelIndex i) : QModelIndex(i){};
 
-  const QModelIndex index() { return this->index(); }
-  QString id() const { return data(TreeCol::FOLDER_ID); }
-  QString local_dir() const { return data(TreeCol::LOCAL_DIR); }
-  QString remote_dir() const { return data(TreeCol::REMOTE_DIR); }
+  const QModelIndex index() { return *this; }
+  QString id() const { return this->data_at(TreeCol::FOLDER_ID); }
+  QString local_dir() const { return this->data_at(TreeCol::LOCAL_DIR); }
+  QString remote_dir() const { return this->data_at(TreeCol::REMOTE_DIR); }
 
   QString course() const
   {
@@ -61,8 +61,10 @@ public:
   {
     int i = 0;
     const QAbstractItemModel *m = this->model();
-    while (m->index(i, 0, this->index()).isValid())
+    while (m->index(i, 0, this->index()).isValid()) {
+      qDebug() << m->index(i + 1, 0, this->index());
       i++;
+    }
     return i;
   }
 };
@@ -107,9 +109,9 @@ private:
 
 public:
   std::vector<Folder> resolve_folders();
-  QString get_id() const { return str_data(TreeIndex::FOLDER_ID); };
-  QString get_local_dir() const { return str_data(TreeIndex::LOCAL_DIR); };
-  QString get_remote_dir() const { return str_data(TreeIndex::REMOTE_DIR); };
+  QString id() const { return str_data(TreeIndex::FOLDER_ID); };
+  QString local_dir() const { return str_data(TreeIndex::LOCAL_DIR); };
+  QString remote_dir() const { return str_data(TreeIndex::REMOTE_DIR); };
 
 private:
   QVector<QVariant> itemData;

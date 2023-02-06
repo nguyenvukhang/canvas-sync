@@ -32,6 +32,7 @@ ClickableTreeView::ClickableTreeView(QWidget *parent) : QTreeView(parent)
   setContextMenuPolicy(Qt::CustomContextMenu);
   connect(this, &QTreeView::customContextMenuRequested, this,
           [&](const QPoint &pos) { this->context_menu(pos); });
+  this->hideColumn(TreeIndex::FOLDER_ID);
 }
 
 TreeModel *ClickableTreeView::model() const
@@ -42,6 +43,7 @@ TreeModel *ClickableTreeView::model() const
 void ClickableTreeView::setModel(TreeModel *model)
 {
   QTreeView::setModel(model);
+  this->hideColumn(TreeIndex::FOLDER_ID);
   this->expand_tracked();
 };
 

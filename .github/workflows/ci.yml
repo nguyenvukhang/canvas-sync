@@ -46,8 +46,8 @@ jobs:
       # build canvas-sync
       - run: make build
 
-      # - name: Run tests
-      #   run: ./build/test/CanvasSyncTest
+      - name: Run tests
+        run: ./build/test/CanvasSyncTest
 
       # package app
       - run: |
@@ -90,7 +90,9 @@ jobs:
         with:
           arch: win64_msvc2019_64
           version: ${{ matrix.version }}
+          setup-python: false
           tools: tools_ifw
+          archives: qtbase qttools
 
       - name: Install MSVC 2022
         uses: ilammy/msvc-dev-cmd@v1
@@ -109,10 +111,8 @@ jobs:
             -DCMAKE_PREFIX_PATH=${{ env.Qt6_DIR }}
           cmake --build build --parallel
 
-      # - name: Run tests
-      #   run: |
-      #     ls build/test
-      #     ./build/test/CanvasSyncTest.exe
+      - name: Run tests
+        run: ./build/test/CanvasSyncTest.exe -tap
 
       - name: Use windeployqt to load libraries
         shell: bash

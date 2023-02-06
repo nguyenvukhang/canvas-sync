@@ -6,7 +6,7 @@ QT_SRC_DIR ?= $(MAKEFILE_DIR)/Qt/src
 
 QT_CFG_ARGS := -opensource -release -static -nomake examples -nomake tests -skip qt3d -skip qttranslations -skip qt5compat -skip qtactiveqt -skip qtcharts -skip qtcoap -skip qtconnectivity -skip qtdatavis3d -skip qtdeclarative -skip qtdoc -skip qthttpserver -skip qtlanguageserver -skip qtlottie -skip qtmqtt -skip qtmultimedia -skip qtnetworkauth -skip qtopcua -skip qtpositioning -skip qtquick3d -skip qtquick3dphysics -skip qtquicktimeline -skip qtremoteobjects -skip qtscxml -skip qtsensors -skip qtserialbus -skip qtserialport -skip qtshadertools -skip qtspeech -skip qtsvg -skip qttools -skip qtwebsockets
 QT_INIT_ARGS := --module-subset=qtbase
-QT_VERSION ?= 6.2.0
+QT_VERSION ?= 6.2.4
 
 main:
 	@make --no-print-directory build

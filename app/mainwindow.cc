@@ -15,9 +15,9 @@ void MainWindow::setup_ui()
   ui->pushButton_changeToken->hide();
   ui->pushButton_changeToken->setEnabled(false);
   ui->progressBar->hide();
-  ui->treeView->setModel(newTreeModel());
   ui->guideText->hide();
   ui->label_accessTokenHelp->hide();
+  ui->treeView->setModel(newTreeModel());
 }
 
 void MainWindow::connect_ui()
@@ -370,7 +370,7 @@ std::vector<Folder> MainWindow::gather_tracked()
 
 TreeModel *MainWindow::newTreeModel()
 {
-  return new TreeModel({"canvas folder", "local folder"});
+  return new TreeModel({"canvas folder", "local folder", ""});
 };
 
 const QString MainWindow::settings_path =
