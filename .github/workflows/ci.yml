@@ -25,9 +25,9 @@ jobs:
       matrix:
         include:
           - os: macos-11
-            version: 6.2.0
+            version: 6.2.4
           - os: macos-12
-            version: 6.2.0
+            version: 6.2.4
     runs-on: ${{ matrix.os }}
     steps:
       - name: Set environment variables
@@ -72,9 +72,9 @@ jobs:
       matrix:
         include:
           - os: windows-2019
-            version: 6.4.2
+            version: 6.2.4
           - os: windows-2022
-            version: 6.4.2
+            version: 6.2.4
     runs-on: ${{ matrix.os }}
     steps:
       - name: Set environment variables

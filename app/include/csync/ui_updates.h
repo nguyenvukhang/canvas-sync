@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'updates.ui'
 **
-** Created by: Qt User Interface Compiler version 6.4.2
+** Created by: Qt User Interface Compiler version 6.2.4
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -32,24 +32,24 @@ public:
     void setupUi(QDialog *Updates)
     {
         if (Updates->objectName().isEmpty())
-            Updates->setObjectName("Updates");
+            Updates->setObjectName(QString::fromUtf8("Updates"));
         Updates->resize(500, 400);
         horizontalLayout = new QHBoxLayout(Updates);
-        horizontalLayout->setObjectName("horizontalLayout");
+        horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
         horizontalLayout->setContentsMargins(0, 0, 0, 0);
         scrollArea = new QScrollArea(Updates);
-        scrollArea->setObjectName("scrollArea");
+        scrollArea->setObjectName(QString::fromUtf8("scrollArea"));
         scrollArea->setFrameShadow(QFrame::Plain);
         scrollArea->setLineWidth(0);
         scrollArea->setWidgetResizable(true);
         scrollAreaWidgetContents = new QWidget();
-        scrollAreaWidgetContents->setObjectName("scrollAreaWidgetContents");
+        scrollAreaWidgetContents->setObjectName(QString::fromUtf8("scrollAreaWidgetContents"));
         scrollAreaWidgetContents->setGeometry(QRect(0, 0, 498, 398));
         verticalLayout = new QVBoxLayout(scrollAreaWidgetContents);
-        verticalLayout->setObjectName("verticalLayout");
+        verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
         verticalLayout->setContentsMargins(0, 0, 0, 0);
         label = new QLabel(scrollAreaWidgetContents);
-        label->setObjectName("label");
+        label->setObjectName(QString::fromUtf8("label"));
         QSizePolicy sizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(0);
