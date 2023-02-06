@@ -192,6 +192,7 @@ void MainWindow::treeView_trackFolder(const QModelIndex &index)
   TreeIndex ti = index;
 
   QFileDialog dialog(this, "Target for " + ti.get_ancestry("/"), start_dir);
+  dialog.setFileMode(QFileDialog::Directory);
   int result = dialog.exec();
   grabKeyboard();
 

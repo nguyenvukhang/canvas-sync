@@ -67,28 +67,26 @@ void TestGui::fetch_courses_ui_test()
   MainWindow *app = create_app();
   authenticate(app);
 
-  qDebug() << "GONNA TEST THE MODEL";
   TreeModel *model = app->ui->treeView->model();
-  qDebug() << "AFTER GETTING THE MODEL";
   QCOMPARE(model->childrenCount(), 3);
-  qDebug() << "~~~~~~~~~~" << 1;
 
   TreeIndex ptr = model->index(0, 0);
-  qDebug() << "~~~~~~~~~~" << 2;
+  // QCOMPARE(1, 2);
 
+  qDebug() << "!!!!!!!!!!!!!!!!!!! COUNT" << ptr.children_count();
   QCOMPARE(ptr.course(), "Calculus");
-  qDebug() << "~~~~~~~~~~" << 3;
+  QCOMPARE(ptr.children_count(), 1);
   ptr = ptr.child(0);
-  qDebug() << "~~~~~~~~~~" << 4;
   QCOMPARE(ptr.remote_dir(), "course files");
-  qDebug() << "~~~~~~~~~~" << 5;
   QCOMPARE(ptr.child(0).remote_dir(), "Admin");
-  qDebug() << "~~~~~~~~~~" << 6;
   QCOMPARE(ptr.child(1).remote_dir(), "Tutorials");
-  qDebug() << "~~~~~~~~~~" << 7;
+  qDebug() << "!!!!!!!!!!!!!!!!!!! COUNT" << ptr.children_count();
 
   ptr = model->index(1, 0);
   QCOMPARE(ptr.course(), "Geometry");
+  qDebug() << "!!!!!!!!!!!!!!!!!!! COUNT" << ptr.children_count();
+  QCOMPARE(ptr.children_count(), 10);
+  QCOMPARE(ptr.children_count(), 11);
   ptr = ptr.child(0);
   QCOMPARE(ptr.remote_dir(), "course files");
   QCOMPARE(ptr.child(0).remote_dir(), "Course ntoes");
