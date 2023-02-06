@@ -57,6 +57,7 @@ void MainWindow::connect_tree()
 void MainWindow::connect_canvas()
 {
   connect(canvas, &ICanvas::authenticate_done, this, [=](bool authenticated) {
+    qDebug() << "SET AUTH STATE" << authenticated;
     this->set_auth_state(authenticated);
     if (authenticated) canvas->fetch_courses();
   });
@@ -179,6 +180,7 @@ void MainWindow::changeToken_clicked()
   canvas->set_token("");
   settings.setValue("access-token", "");
   this->set_auth_state(false);
+  ui->lineEdit_accessToken->grabKeyboard();
 }
 
 /// TREEVIEW SLOTS ---

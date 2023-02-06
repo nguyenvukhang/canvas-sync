@@ -31,7 +31,7 @@ elseif(APPLE)
   set(PROJECT_SOURCES ${PROJECT_SOURCES} ${APP_ICON_MACOS})
 endif()
 
-qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cc)
+qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cc ${PROJECT_SOURCES})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
   Qt6::Widgets

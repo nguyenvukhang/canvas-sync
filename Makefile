@@ -50,7 +50,7 @@ build-qt:
 	cd $(QT_SRC_DIR) && ninja -j6 && ninja install
 
 open:
-	open build/CanvasSync.app
+	open 'build/Canvas Sync.app'
 
 reset:
 	rm -rf ~/files/test/*/*
