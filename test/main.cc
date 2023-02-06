@@ -2,18 +2,19 @@
 
 QTEST_MAIN(TestGui)
 
-void TestGui::authenticate()
+void TestGui::authenticate(MainWindow *app)
 {
-  QPushButton *change_token = app.ui->pushButton_changeToken;
+  QPushButton *change_token = app->ui->pushButton_changeToken;
   QTest::mouseClick(change_token, Qt::MouseButton::LeftButton);
-  QTest::keyClicks(app.ui->lineEdit_accessToken, "valid");
+  QTest::keyClicks(app->ui->lineEdit_accessToken, "valid");
 }
 
 void TestGui::access_token_entry_test()
 {
-  QSignalSpy auth_tries(app.canvas, &ICanvas::authenticate_done);
+  MainWindow *app = create_app();
+  QSignalSpy auth_tries(app->canvas, &ICanvas::authenticate_done);
 
-  QPushButton *change_token = app.ui->pushButton_changeToken;
+  QPushButton *change_token = app->ui->pushButton_changeToken;
 
   // click on "Change Token"
   QTest::mouseClick(change_token, Qt::MouseButton::LeftButton);
@@ -23,18 +24,19 @@ void TestGui::access_token_entry_test()
   QVERIFY(change_token->isHidden());
 
   // enter a valid token
-  QTest::keyClicks(app.ui->lineEdit_accessToken, "valid");
+  QTest::keyClicks(app->ui->lineEdit_accessToken, "valid");
 
   QCOMPARE(auth_tries.count(), 5);
 
-  QCOMPARE(app.ui->label_authenticationStatus->text(), "authenticated!");
+  QCOMPARE(app->ui->label_authenticationStatus->text(), "authenticated!");
   QVERIFY(change_token->isEnabled());
   QVERIFY(!change_token->isHidden());
 }
 
 void TestGui::fetch_courses_test()
 {
-  authenticate();
+  MainWindow *app = create_app();
+  authenticate(app);
   std::string expected[] = {
       "#0|Linear Algebra: {\n"
       "  #20010|course files: {\n"
@@ -56,14 +58,15 @@ void TestGui::fetch_courses_test()
       "  }\n"
       "}",
   };
-  for (auto t : app.course_trees)
+  for (auto t : app->course_trees)
     QCOMPARE(QString(t.to_string().c_str()), QString(expected[t.id].c_str()));
 }
 
 void TestGui::fetch_courses_ui_test()
 {
-  authenticate();
-  TreeModel *model = app.ui->treeView->model();
+  MainWindow *app = create_app();
+  authenticate(app);
+  TreeModel *model = app->ui->treeView->model();
   TreeIndex ptr(model->index(0, 0));
 
   QCOMPARE(ptr.course(), "Calculus");
