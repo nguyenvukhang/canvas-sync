@@ -13,6 +13,7 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets Network Gui Test)
 
 set(TEST_SOURCES
   main.cc
+  fake_canvas.cc
 )
 
 qt_add_executable(${TEST_NAME} MANUAL_FINALIZATION ${TEST_SOURCES})
