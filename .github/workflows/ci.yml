@@ -104,21 +104,15 @@ jobs:
         run: |
           cmake -DCMAKE_BUILD_TYPE=Release -S . -B build -G Ninja `
             -DCMAKE_PREFIX_PATH=${{ env.Qt6_DIR }}
-          cmake --build build
+          cmake --build build --parallel
 
       - name: Use windeployqt to load libraries
         shell: bash
         run: |
-          cd build
-          mv 'Canvas Sync.exe' ..
-          rm -rf *
-          mv '../Canvas Sync.exe' .
+          TARGET=deploy/windows/packages/com.nguyenvukhang.canvassync/data
+          mv 'build/Canvas Sync.exe' $TARGET
+          cd $TARGET
           $Qt6_DIR/bin/windeployqt.exe 'Canvas Sync.exe'
-          cd ..
-
-          rm -rf deploy/windows/packages/com.nguyenvukhang.canvassync/data
-          mv build deploy/windows/packages/com.nguyenvukhang.canvassync/data
-          cd deploy/windows/packages/com.nguyenvukhang.canvassync/data
 
       - name: Package the installer
         shell: bash
