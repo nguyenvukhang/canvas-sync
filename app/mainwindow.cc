@@ -1,28 +1,17 @@
 #include "mainwindow.h"
 
-MainWindow::MainWindow(const QString &url, const QString &settings_file,
-                       QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::MainWindow),
-      settings(settings_path + '/' + settings_file, QSettings::IniFormat),
-      canvas(new Canvas(url, &this->nw))
+void MainWindow::start()
 {
   ui->setupUi(this);
-  connect_buttons();
+  connect_ui();
   connect_tree();
   connect_canvas();
   setup_ui();
-  this->check_auth(settings.value("access-token").toString());
-}
-
-MainWindow::~MainWindow()
-{
-  delete ui;
+  check_auth(settings.value("access-token").toString());
 }
 
 void MainWindow::setup_ui()
 {
-  connect(ui->lineEdit_accessToken, &QLineEdit::textChanged, this,
-          &MainWindow::check_auth);
   ui->pushButton_changeToken->hide();
   ui->pushButton_changeToken->setEnabled(false);
   ui->progressBar->hide();
@@ -31,8 +20,10 @@ void MainWindow::setup_ui()
   ui->label_accessTokenHelp->hide();
 }
 
-void MainWindow::connect_buttons()
+void MainWindow::connect_ui()
 {
+  connect(ui->lineEdit_accessToken, &QLineEdit::textChanged, this,
+          &MainWindow::check_auth);
   connect(ui->pushButton_pull, &QPushButton::clicked, this,
           &MainWindow::pull_clicked);
   connect(ui->pushButton_fetch, &QPushButton::clicked, this,
@@ -57,7 +48,6 @@ void MainWindow::connect_tree()
 void MainWindow::connect_canvas()
 {
   connect(canvas, &ICanvas::authenticate_done, this, [=](bool authenticated) {
-    qDebug() << "SET AUTH STATE" << authenticated;
     this->set_auth_state(authenticated);
     if (authenticated) canvas->fetch_courses();
   });

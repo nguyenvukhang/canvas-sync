@@ -41,15 +41,38 @@ QT_END_NAMESPACE
 class MainWindow : public QMainWindow
 {
   Q_OBJECT
+  // Construct with base url, defaulting to live implementation of Canvas
+  MainWindow(const QString &url, const QString &settings_file,
+             QWidget *parent = nullptr)
+      : QMainWindow(parent), ui(new Ui::MainWindow),
+        settings(settings_path + '/' + settings_file, QSettings::IniFormat),
+        canvas(new Canvas(url, &this->nw)){};
 
 public:
-  MainWindow(const QString &, const QString &, QWidget *parent = nullptr);
-  MainWindow(const QString &url, QWidget *p = nullptr)
-      : MainWindow(url, "canvas-sync-settings.ini", p){};
-  ~MainWindow();
+  // Construct with ICanvas*
+  // For use in integration tests to mock a fake Canvas server.
+  MainWindow(ICanvas *canvas, const QString &settings_file,
+             QWidget *parent = nullptr)
+      : QMainWindow(parent), ui(new Ui::MainWindow),
+        settings(settings_path + '/' + settings_file, QSettings::IniFormat),
+        canvas(canvas)
+  {
+    start();
+  };
 
+  // Construct with just a base url
+  // For use in executable entry point
+  MainWindow(const QString &base_url, QWidget *parent = nullptr)
+      : MainWindow(base_url, "canvas-sync-settings.ini", parent)
+  {
+    start();
+  };
+
+  ~MainWindow() { delete ui; };
+
+  void start();
   void setup_ui();
-  void connect_buttons();
+  void connect_ui();
   void connect_tree();
   void connect_canvas();
   void prefetch();
