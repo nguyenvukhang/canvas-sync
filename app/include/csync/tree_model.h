@@ -129,7 +129,8 @@ class TreeModel : public QAbstractItemModel
   Q_OBJECT
 
 public:
-  TreeModel(const QStringList &headers, QObject *parent = nullptr);
+  TreeModel(const QStringList &headers, Settings *s = nullptr,
+            QObject *parent = nullptr);
   ~TreeModel();
 
   QVariant data(const QModelIndex &index, int role) const override;
@@ -165,9 +166,11 @@ public:
   // custom functions
   int childrenCount() { return this->rowCount(); }
   std::vector<Folder> gather_tracked();
+  void load_settings(Settings *s) { this->settings = s; };
 
 private:
   TreeItem *rootItem;
+  Settings *settings;
   bool readOnly;
 };
 

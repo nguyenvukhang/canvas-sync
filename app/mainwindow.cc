@@ -35,15 +35,17 @@ void MainWindow::connect_ui()
 
 void MainWindow::connect_tree()
 {
-  connect(ui->treeView, &ClickableTreeView::expanded, ui->treeView,
-          &ClickableTreeView::prettify);
-  connect(ui->treeView, &ClickableTreeView::collapsed, ui->treeView,
-          &ClickableTreeView::prettify);
+  using T = ClickableTreeView;
+  T *t = ui->treeView;
 
-  connect(ui->treeView, &ClickableTreeView::cleared, this,
-          &MainWindow::treeView_cleared);
-  connect(ui->treeView, &ClickableTreeView::track_folder, this,
-          &MainWindow::treeView_trackFolder);
+  connect(t, &T::expanded, ui->treeView, &T::prettify);
+  connect(t, &T::collapsed, ui->treeView, &T::prettify);
+  connect(t, &T::cleared, this, &MainWindow::treeView_cleared);
+  connect(t, &T::track_folder, this, &MainWindow::treeView_trackFolder);
+  // connect(t->model(), &T::dataChanged, this,
+  //         [](const QModelIndex &tl, const QModelIndex &br) {
+  //           qDebug() << "Change:" << tl << "->" << br;
+  //         });
 }
 
 void MainWindow::connect_canvas()
@@ -364,5 +366,5 @@ std::vector<Folder> MainWindow::gather_tracked()
 
 TreeModel *MainWindow::newTreeModel()
 {
-  return new TreeModel({"canvas folder", "local folder", ""});
+  return new TreeModel({"canvas folder", "local folder", ""}, &this->settings);
 };

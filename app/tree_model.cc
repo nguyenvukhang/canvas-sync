@@ -223,8 +223,8 @@ void TreeItem::setData(int column, const QVariant &value)
   itemData[column] = value;
 }
 
-TreeModel::TreeModel(const QStringList &headers, QObject *parent)
-    : QAbstractItemModel(parent), readOnly(false)
+TreeModel::TreeModel(const QStringList &headers, Settings *s, QObject *parent)
+    : QAbstractItemModel(parent), readOnly(false), settings(s)
 {
   QVector<QVariant> rootData;
   for (const QString &header : headers) {
@@ -418,6 +418,8 @@ bool TreeModel::setData(const QModelIndex &index, const QVariant &value,
   TreeItem *item = itemFromIndex(index);
   if (role == Qt::CheckStateRole) {
     item->setChecked(!item->isChecked());
+    qDebug() << "------------- BOOOM";
+    settings->set(item->id(), Settings::TRACKED, item->isChecked());
     emit dataChanged(index.siblingAtColumn(TreeIndex::REMOTE_DIR),
                      index.siblingAtColumn(TreeIndex::LOCAL_DIR));
     return true;
