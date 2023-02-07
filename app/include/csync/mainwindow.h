@@ -1,5 +1,5 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef CANVAS_SYNC_MAINWINDOW_H
+#define CANVAS_SYNC_MAINWINDOW_H
 
 #include "ui_mainwindow.h"
 

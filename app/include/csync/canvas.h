@@ -1,5 +1,5 @@
-#ifndef CANVAS_H
-#define CANVAS_H
+#ifndef CANVAS_SYNC_CANVAS_H
+#define CANVAS_SYNC_CANVAS_H
 
 #include <QFile>
 #include <QNetworkAccessManager>

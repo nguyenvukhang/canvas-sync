@@ -1,5 +1,5 @@
-#ifndef TREE_MODEL_H
-#define TREE_MODEL_H
+#ifndef CANVAS_SYNC_TREE_MODEL_H
+#define CANVAS_SYNC_TREE_MODEL_H
 
 #include <QAbstractItemModel>
 #include <QModelIndex>

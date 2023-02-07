@@ -1,5 +1,5 @@
-#ifndef CLICKABLE_TREE_VIEW_H
-#define CLICKABLE_TREE_VIEW_H
+#ifndef CANVAS_SYNC_CLICKABLE_TREE_VIEW_H
+#define CANVAS_SYNC_CLICKABLE_TREE_VIEW_H
 
 #include "tree_model.h"
 
