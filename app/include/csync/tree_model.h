@@ -98,7 +98,7 @@ public:
   void setData(int column, const QVariant &value);
   void insertColumns(int position, int columns);
   void insertRows(int position, int count, int columns);
-  void insert(const FileTree &, const Settings &);
+  void insert(const FileTree &, Settings &);
   void on_all_parents(std::function<void(TreeItem &item)>);
   void on_all_children(std::function<void(TreeItem &item)>);
   void track_folder(const TreeIndex &, const QString &, Settings &);

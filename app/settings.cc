@@ -41,12 +41,17 @@ void Settings::remove(const QString &g, const QString &k)
   endGroup();
 }
 
-bool Settings::is_tracked(const QString &folder_id)
+QString Settings::local_dir(const QString &folder_id)
 {
-  return get(folder_id, Type::TRACKED) == "true";
+  return get(folder_id, Type::LOCAL_DIR);
 }
 
 bool Settings::has_local_dir(const QString &folder_id)
 {
-  return !get(folder_id, Type::LOCAL_DIR).isEmpty();
+  return !local_dir(folder_id).isEmpty();
+}
+
+bool Settings::is_tracked(const QString &folder_id)
+{
+  return get(folder_id, Type::TRACKED) == "true";
 }

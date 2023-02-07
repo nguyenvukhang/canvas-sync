@@ -183,7 +183,7 @@ void MainWindow::treeView_cleared(const QModelIndex &index)
   ui->guideText->setHidden(!this->gather_tracked().empty());
   QString folder_id = TreeIndex(index).id();
   if (folder_id.isEmpty()) return;
-  settings.remove(folder_id, "local-dir");
+  settings.remove(folder_id, Settings::LOCAL_DIR);
 }
 
 void MainWindow::treeView_trackFolder(const QModelIndex &index)

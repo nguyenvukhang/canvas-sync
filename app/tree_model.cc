@@ -110,7 +110,7 @@ void TreeItem::insertRows(int position, int count, int columns)
   }
 }
 
-void TreeItem::insert(const FileTree &tree, const Settings &settings)
+void TreeItem::insert(const FileTree &tree, Settings &settings)
 {
   size_t child_count = tree.folders.size();
   if (child_count == 0) return;
@@ -118,8 +118,10 @@ void TreeItem::insert(const FileTree &tree, const Settings &settings)
     FileTree child = tree.folders[i];
     QString id = QString::fromStdString(std::to_string(child.id));
     QString name = QString::fromStdString(child.name);
-    QString dir = settings.get(id);
-    this->appendChild(new TreeItem(QStringList() << name << dir << id));
+    QString dir = settings.local_dir(id);
+    TreeItem ti(QStringList() << name << dir << id);
+    ti.setChecked(settings.is_tracked(id));
+    this->appendChild(&ti);
     this->child(i)->insert(child, settings);
   }
 }
@@ -149,19 +151,20 @@ void TreeItem::track_folder(const TreeIndex &ti, const QString &dir,
   on_all_children([&](TreeItem &child) {
     child.setData(TreeIndex::LOCAL_DIR, "");
     QString folder_id = child.id();
-    if (!folder_id.isEmpty()) settings.remove(folder_id);
+    if (!folder_id.isEmpty()) settings.set(folder_id, Settings::TRACKED, false);
   });
 
   // clear parent maps
   on_all_parents([&](TreeItem &parent) {
     parent.setData(TreeIndex::LOCAL_DIR, "");
     QString folder_id = parent.id();
-    if (!folder_id.isEmpty()) settings.remove(folder_id);
+    if (!folder_id.isEmpty()) settings.set(folder_id, Settings::TRACKED, false);
   });
 
   // update itself
   this->setData(TreeIndex::LOCAL_DIR, dir);
-  settings.set(ti.id(), dir, Settings::LOCAL_DIR);
+  settings.set(ti.id(), Settings::LOCAL_DIR, dir);
+  settings.set(ti.id(), Settings::TRACKED, true);
 }
 
 void resolve_all_folders(TreeItem *item, std::filesystem::path *local_base_dir,

@@ -25,21 +25,27 @@ private:
   }
 
 public:
-  QString get(const QString &g, const QString &k);
-  QString get(const QString &k) const { return value(k).toString(); }
-  QString get(const QString &g, const Type &t) { return get(g, type(t)); }
-  void set(const QString &k, const QString &v);
-  void set(const QString &g, const QString &k, const QString &v);
-  void set(const QString &g, const QString &v, const Type &t)
+  QString get(const QString &group, const QString &key);
+  QString get(const QString &key) const { return value(key).toString(); }
+  QString get(const QString &key, const Type &t) { return get(key, type(t)); }
+  void set(const QString &key, const QString &val);
+  void set(const QString &group, const QString &key, const QString &val);
+  void set(const QString &key, const Type &t, const QString &val)
   {
-    set(g, type(t), v);
+    set(key, type(t), val);
   };
-  void remove(const QString &k);
-  void remove(const QString &g, const QString &k);
+  void set(const QString &key, const Type &t, const bool &val)
+  {
+    set(key, type(t), val ? "true" : "false");
+  };
+  void remove(const QString &key);
+  void remove(const QString &group, const QString &key);
+  void remove(const QString &key, const Type &t) { remove(key, type(t)); };
 
   // derivative functions
-  bool is_tracked(const QString &folder_id);
+  QString local_dir(const QString &folder_id);
   bool has_local_dir(const QString &folder_id);
+  bool is_tracked(const QString &folder_id);
 
   QString path() const { return QSettings::fileName(); }
 };
