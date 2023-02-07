@@ -2,21 +2,6 @@
 
 ClickableTreeView::ClickableTreeView(QWidget *parent) : QTreeView(parent)
 {
-  setContextMenuPolicy(Qt::ActionsContextMenu);
-  actions.clear = menu.addAction("Clear");
-  actions.track_folder = menu.addAction("Track Folder");
-  addAction(actions.track_folder);
-  addAction(actions.clear);
-
-  actions.clear->setDisabled(true);
-  connect(&this->menu, &QMenu::triggered, this, [=]() {
-    qDebug() << "TRIGGER CTX";
-    // this->bindableObjectName
-  });
-  connect(this, &ClickableTreeView::activated, this, [=]() {
-    qDebug() << "ACTIVATED";
-    // this->bindableObjectName
-  });
   this->hideColumn(TreeIndex::FOLDER_ID);
 }
 

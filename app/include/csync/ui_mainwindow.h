@@ -114,6 +114,8 @@ public:
         sizePolicy1.setHeightForWidth(pushButton_pull->sizePolicy().hasHeightForWidth());
         pushButton_pull->setSizePolicy(sizePolicy1);
         pushButton_pull->setMinimumSize(QSize(80, 0));
+        pushButton_pull->setCheckable(false);
+        pushButton_pull->setFlat(false);
 
         horizontalLayout_actionButtons->addWidget(pushButton_pull);
 
@@ -152,6 +154,9 @@ public:
         MainWindow->setMenuBar(menubar);
 
         retranslateUi(MainWindow);
+
+        pushButton_pull->setDefault(false);
+
 
         QMetaObject::connectSlotsByName(MainWindow);
     } // setupUi

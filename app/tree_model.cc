@@ -267,7 +267,7 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
     return item->data(index.column());
   }
 
-  if (role == Qt::CheckStateRole && index.column() == 0)
+  if (role == Qt::CheckStateRole && index.column() == TreeIndex::REMOTE_DIR)
     return item->isChecked() ? Qt::Checked : Qt::Unchecked;
 
   return QVariant();
@@ -275,19 +275,21 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
 
 Qt::ItemFlags TreeModel::flags(const QModelIndex &index) const
 {
-  if (!index.isValid()) return Qt::NoItemFlags;
+  Qt::ItemFlags flags = Qt::NoItemFlags;
+  if (!index.isValid()) return flags;
   if (readOnly) return QAbstractItemModel::flags(index);
 
-  Qt::ItemFlags flags = Qt::ItemIsEnabled;
-
-  flags |= Qt::ItemIsSelectable;
-  flags |= Qt::ItemIsUserCheckable;
-
-  if (hasChildren(index)) return flags;
-
-  flags |= Qt::ItemIsEditable;
   flags |= Qt::ItemIsEnabled;
+  TreeItem *item = itemFromIndex(index);
 
+  if (index.column() == TreeIndex::LOCAL_DIR) {
+    if (item->has_local_dir()) flags |= Qt::ItemIsSelectable;
+
+    TreeItem *remote =
+        itemFromIndex(index.siblingAtColumn(TreeIndex::REMOTE_DIR));
+    if (!remote->isChecked()) flags &= ~Qt::ItemIsEnabled;
+  }
+  if (index.column() == TreeIndex::REMOTE_DIR) flags |= Qt::ItemIsUserCheckable;
   return flags;
 }
 
@@ -414,7 +416,8 @@ bool TreeModel::setData(const QModelIndex &index, const QVariant &value,
   TreeItem *item = itemFromIndex(index);
   if (role == Qt::CheckStateRole) {
     item->setChecked(!item->isChecked());
-    emit dataChanged(index, index);
+    emit dataChanged(index.siblingAtColumn(TreeIndex::REMOTE_DIR),
+                     index.siblingAtColumn(TreeIndex::LOCAL_DIR));
     return true;
   };
   return true;
