@@ -72,7 +72,11 @@ void MainWindow::connect_canvas()
               this->folder_names.insert(std::pair(f.id, f.full_name));
             }
             this->course_trees.push_back(t);
-            refresh_tree_data();
+            TreeModel *model = newTreeModel();
+            FileTree gt;
+            gt.insert_course_trees(this->course_trees);
+            model->item(0)->insert(gt, settings);
+            ui->treeView->setModel(model);
             ui->treeView->prettify();
             tree_mtx.unlock();
             ui->guideText->setHidden(!gather_tracked().empty());
@@ -257,15 +261,6 @@ void MainWindow::disable_fetch(const QString &s)
 {
   ui->pushButton_fetch->setText(s);
   ui->pushButton_fetch->setEnabled(false);
-}
-
-void MainWindow::refresh_tree_data()
-{
-  TreeModel *model = newTreeModel();
-  FileTree t;
-  t.insert_course_trees(this->course_trees);
-  model->item(0)->insert(t, settings);
-  ui->treeView->setModel(model);
 }
 
 void MainWindow::set_auth_state(bool authenticated)

@@ -86,12 +86,12 @@ bool Canvas::has_network_err(QNetworkReply *r)
 
 void Canvas::authenticate()
 {
-  std::cout << "TRY TO AUTHENTCATE WITH REAL!" << std::endl;
+  std::cout << "First out to canvas servers!" << std::endl;
   QNetworkReply *r = this->get("/api/v1/users/self/profile");
   connect(r, &QNetworkReply::finished, this, [=]() {
     terminate(r);
     bool ok = false;
-  
+
     if (r->error() == QNetworkReply::AuthenticationRequiredError) {
       qDebug() << "Failed auth with token:" << this->token();
       emit authenticate_done(false);

@@ -120,8 +120,8 @@ void TreeItem::insert(const FileTree &tree, Settings &settings)
     QString name = QString::fromStdString(child.name);
     QString dir = settings.local_dir(id);
     TreeItem ti(QStringList() << name << dir << id);
-    ti.setChecked(settings.is_tracked(id));
-    this->appendChild(&ti);
+    this->appendChild(new TreeItem(QStringList() << name << dir << id));
+    this->child(i)->setChecked(settings.is_tracked(id));
     this->child(i)->insert(child, settings);
   }
 }

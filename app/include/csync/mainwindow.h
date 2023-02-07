@@ -92,7 +92,6 @@ public:
   void disable_pull(const QString & = "Pulling...");
   void enable_fetch(const QString & = "Fetch");
   void disable_fetch(const QString & = "Fetching...");
-  void refresh_tree_data();
   void set_auth_state(bool);
   void show_updates();
   void check_auth(const QString &token);
