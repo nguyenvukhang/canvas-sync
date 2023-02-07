@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "updates.h"
 
 void MainWindow::start()
 {

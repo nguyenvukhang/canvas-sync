@@ -5,6 +5,7 @@
 #include <QSignalSpy>
 #include <QTest>
 #include <QtWidgets>
+#include <QRect>
 
 #include "csync/canvas_sync.h"
 #include "fake_canvas.h"
@@ -41,6 +42,7 @@ private slots: // tests
   void access_token_entry_test();
   void fetch_courses_test();
   void fetch_courses_ui_test();
+  void track_folder_ui_test();
   void cleanupTestCase()
   {
     this->id_mtx.lock();

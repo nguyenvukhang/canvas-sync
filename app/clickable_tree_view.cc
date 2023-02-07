@@ -1,19 +1,39 @@
 #include "clickable_tree_view.h"
 
+ClickableTreeView::ClickableTreeView(QWidget *parent) : QTreeView(parent)
+{
+  setContextMenuPolicy(Qt::ActionsContextMenu);
+  actions.clear = menu.addAction("Clear");
+  actions.track_folder = menu.addAction("Track Folder");
+  addAction(actions.track_folder);
+  addAction(actions.clear);
+
+  actions.clear->setDisabled(true);
+  connect(&this->menu, &QMenu::triggered, this, [=]() {
+    qDebug() << "TRIGGER CTX";
+    // this->bindableObjectName
+  });
+  connect(this, &ClickableTreeView::activated, this, [=]() {
+    qDebug() << "ACTIVATED";
+    // this->bindableObjectName
+  });
+  this->hideColumn(TreeIndex::FOLDER_ID);
+}
+
 void ClickableTreeView::context_menu(const QPoint &pos)
 {
   const QModelIndex index = indexAt(pos);
   if (!index.isValid() || !index.parent().isValid()) return;
+  this->menu.clear();
 
   // create menu
-  QMenu menu;
   if (index.column() == TreeIndex::REMOTE_DIR) {
-    menu.addAction("Track Folder");
+    this->menu.addAction("Track Folder");
   }
   if (!TreeIndex(index).local_dir().isEmpty()) {
-    menu.addAction("Clear");
+    this->menu.addAction("Clear");
   }
-  auto e = menu.exec(mapToGlobal(pos));
+  auto e = this->menu.exec(mapToGlobal(pos));
   if (e == nullptr) return;
 
   // get selected item
@@ -25,14 +45,6 @@ void ClickableTreeView::context_menu(const QPoint &pos)
   if (target == "Clear") {
     emit cleared(index);
   }
-}
-
-ClickableTreeView::ClickableTreeView(QWidget *parent) : QTreeView(parent)
-{
-  setContextMenuPolicy(Qt::CustomContextMenu);
-  connect(this, &QTreeView::customContextMenuRequested, this,
-          [&](const QPoint &pos) { this->context_menu(pos); });
-  this->hideColumn(TreeIndex::FOLDER_ID);
 }
 
 TreeModel *ClickableTreeView::model() const

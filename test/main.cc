@@ -2,6 +2,26 @@
 
 QTEST_MAIN(TestGui)
 
+void wait(int ms)
+{
+  QTest::qWait(ms);
+}
+
+void sleep(int ms)
+{
+  QTest::qSleep(ms);
+}
+
+void log(std::string log_text)
+{
+  std::cout << "--> " << log_text << std::endl;
+}
+
+void log(std::string log_text, int x, int y)
+{
+  std::cout << "--> " << log_text << '(' << x << ", " << y << ')' << std::endl;
+}
+
 void TestGui::authenticate(MainWindow *app)
 {
   QPushButton *change_token = app->ui->pushButton_changeToken;
@@ -89,4 +109,48 @@ void TestGui::fetch_courses_ui_test()
   QCOMPARE(ptr.remote_dir(), "course files");
   QCOMPARE(ptr.child(0).remote_dir(), "Lectures");
   QCOMPARE(ptr.child(1).remote_dir(), "Tutorials");
+}
+
+void TestGui::track_folder_ui_test()
+{
+  MainWindow *app = create_app();
+  ClickableTreeView *t = app->ui->treeView;
+
+  app->show();
+  t->menu.setEnabled(true);
+
+  authenticate(app);
+
+  TreeIndex ptr = t->model()->index(1, 0);
+
+  // this probably sets focus on the target. Not sure why this is needed.
+  QTest::mouseClick(t->viewport(), Qt::MouseButton::LeftButton, Qt::NoModifier,
+                    t->visualRect(ptr).center());
+
+  // expand "Geometry" course files
+  QCOMPARE(ptr.course(), "Geometry");
+  QVERIFY(!t->isExpanded(ptr));
+  QTest::mouseDClick(t->viewport(), Qt::LeftButton, {},
+                     t->visualRect(ptr).center());
+  QVERIFY(t->isExpanded(ptr));
+
+  // go to the first child folder of "Geometry"
+  ptr = ptr.child(0);
+
+  QInputEvent *rc = new QContextMenuEvent(QContextMenuEvent::Mouse,
+                                          t->visualRect(ptr).center());
+  qApp->postEvent(t->viewport(), rc);
+  // QTest::mouseClick(t->viewport(), Qt::RightButton, {},
+  //                   t->visualRect(ptr).center());
+
+  for (int x = 0; x < 50; x += 5) {
+    for (int y = 0; y < 50; y += 5) {
+      // rc=
+      // QTest::mouseClick(t->viewport(), Qt::RightButton, {}, QPoint(x, y));
+      log("GO", x, y);
+      wait(50);
+    }
+  }
+
+  qDebug() << "Complete execution";
 }

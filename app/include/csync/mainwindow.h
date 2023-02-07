@@ -13,7 +13,6 @@
 #include "filetree.h"
 #include "tree_model.h"
 #include "types.h"
-#include "updates.h"
 
 #include <QApplication>
 #include <QDebug>
