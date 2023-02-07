@@ -112,8 +112,11 @@ public:
   QString id() const { return str_data(TreeIndex::FOLDER_ID); };
   QString local_dir() const { return str_data(TreeIndex::LOCAL_DIR); };
   QString remote_dir() const { return str_data(TreeIndex::REMOTE_DIR); };
+  bool isChecked() const { return checked; };
+  void setChecked(bool set) { checked = set; };
 
 private:
+  bool checked;
   QVector<QVariant> itemData;
   TreeItem *parentItem;
   QVector<TreeItem *> childItems;

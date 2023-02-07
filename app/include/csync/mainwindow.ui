@@ -171,7 +171,7 @@
     <item>
      <widget class="ClickableTreeView" name="treeView">
       <property name="editTriggers">
-       <set>QAbstractItemView::NoEditTriggers</set>
+       <set>QAbstractItemView::AnyKeyPressed|QAbstractItemView::SelectedClicked</set>
       </property>
       <property name="selectionBehavior">
        <enum>QAbstractItemView::SelectItems</enum>

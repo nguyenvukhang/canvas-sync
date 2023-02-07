@@ -20,33 +20,6 @@ ClickableTreeView::ClickableTreeView(QWidget *parent) : QTreeView(parent)
   this->hideColumn(TreeIndex::FOLDER_ID);
 }
 
-void ClickableTreeView::context_menu(const QPoint &pos)
-{
-  const QModelIndex index = indexAt(pos);
-  if (!index.isValid() || !index.parent().isValid()) return;
-  this->menu.clear();
-
-  // create menu
-  if (index.column() == TreeIndex::REMOTE_DIR) {
-    this->menu.addAction("Track Folder");
-  }
-  if (!TreeIndex(index).local_dir().isEmpty()) {
-    this->menu.addAction("Clear");
-  }
-  auto e = this->menu.exec(mapToGlobal(pos));
-  if (e == nullptr) return;
-
-  // get selected item
-  QString target = e->text();
-
-  if (target == "Track Folder") {
-    emit track_folder(index);
-  }
-  if (target == "Clear") {
-    emit cleared(index);
-  }
-}
-
 TreeModel *ClickableTreeView::model() const
 {
   return static_cast<TreeModel *>(QTreeView::model());
@@ -55,8 +28,8 @@ TreeModel *ClickableTreeView::model() const
 void ClickableTreeView::setModel(TreeModel *model)
 {
   QTreeView::setModel(model);
-  this->hideColumn(TreeIndex::FOLDER_ID);
-  this->expand_tracked();
+  hideColumn(TreeIndex::FOLDER_ID);
+  expand_tracked();
 };
 
 bool expand_tracked_inner(ClickableTreeView *tv, const QModelIndex &index)
@@ -66,8 +39,7 @@ bool expand_tracked_inner(ClickableTreeView *tv, const QModelIndex &index)
   bool expand = false;
   int n = model->childrenCount();
   for (int i = 0; i < n; i++) {
-    QModelIndex child = model->index(i, 0, index);
-    expand |= expand_tracked_inner(tv, child);
+    expand |= expand_tracked_inner(tv, model->index(i, 0, index));
   }
   if (!TreeIndex(index).local_dir().isEmpty() || expand) {
     tv->expand(index.parent());

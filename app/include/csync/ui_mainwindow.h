@@ -137,7 +137,7 @@ public:
 
         treeView = new ClickableTreeView(centralwidget);
         treeView->setObjectName(QString::fromUtf8("treeView"));
-        treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        treeView->setEditTriggers(QAbstractItemView::AnyKeyPressed|QAbstractItemView::SelectedClicked);
         treeView->setSelectionBehavior(QAbstractItemView::SelectItems);
         treeView->setUniformRowHeights(true);
         treeView->setAnimated(false);

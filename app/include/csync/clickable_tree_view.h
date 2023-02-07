@@ -4,6 +4,7 @@
 #include "tree_model.h"
 
 #include <QAction>
+#include <QCheckBox>
 #include <QMenu>
 #include <QTreeView>
 
