@@ -8,9 +8,9 @@ QT_CFG_ARGS := -opensource -release -static -nomake examples -nomake tests -skip
 QT_INIT_ARGS := --module-subset=qtbase
 QT_VERSION ?= 6.2.4
 
-current: FORCE
-	make main
-	make test
+# current: FORCE
+# 	make main
+# 	make test
 
 main:
 	@make --no-print-directory build

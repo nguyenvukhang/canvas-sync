@@ -110,7 +110,7 @@ void TreeItem::insertRows(int position, int count, int columns)
   }
 }
 
-void TreeItem::insert(const FileTree &tree, const QSettings &settings)
+void TreeItem::insert(const FileTree &tree, const Settings &settings)
 {
   size_t child_count = tree.folders.size();
   if (child_count == 0) return;
@@ -118,7 +118,7 @@ void TreeItem::insert(const FileTree &tree, const QSettings &settings)
     FileTree child = tree.folders[i];
     QString id = QString::fromStdString(std::to_string(child.id));
     QString name = QString::fromStdString(child.name);
-    QString dir = settings.value(id).toString();
+    QString dir = settings.get(id);
     this->appendChild(new TreeItem(QStringList() << name << dir << id));
     this->child(i)->insert(child, settings);
   }
@@ -143,7 +143,7 @@ void TreeItem::on_all_children(std::function<void(TreeItem &item)> f)
 }
 
 void TreeItem::track_folder(const TreeIndex &ti, const QString &dir,
-                            QSettings &settings)
+                            Settings &settings)
 {
   // clear children maps
   on_all_children([&](TreeItem &child) {
@@ -161,8 +161,7 @@ void TreeItem::track_folder(const TreeIndex &ti, const QString &dir,
 
   // update itself
   this->setData(TreeIndex::LOCAL_DIR, dir);
-  settings.setValue(ti.id(), dir);
-  settings.sync();
+  settings.set(ti.id(), dir, Settings::LOCAL_DIR);
 }
 
 void resolve_all_folders(TreeItem *item, std::filesystem::path *local_base_dir,

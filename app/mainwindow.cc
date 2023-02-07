@@ -8,7 +8,7 @@ void MainWindow::start()
   connect_tree();
   connect_canvas();
   setup_ui();
-  check_auth(settings.value("access-token").toString());
+  check_auth(settings.get("access-token"));
 }
 
 void MainWindow::setup_ui()
@@ -169,7 +169,7 @@ void MainWindow::changeToken_clicked()
   ui->lineEdit_accessToken->setDisabled(false);
 
   canvas->set_token("");
-  settings.setValue("access-token", "");
+  settings.remove("access-token");
   this->set_auth_state(false);
   ui->lineEdit_accessToken->setFocus();
 }
@@ -183,8 +183,7 @@ void MainWindow::treeView_cleared(const QModelIndex &index)
   ui->guideText->setHidden(!this->gather_tracked().empty());
   QString folder_id = TreeIndex(index).id();
   if (folder_id.isEmpty()) return;
-  settings.remove(folder_id);
-  settings.sync();
+  settings.remove(folder_id, "local-dir");
 }
 
 void MainWindow::treeView_trackFolder(const QModelIndex &index)
@@ -283,8 +282,7 @@ void MainWindow::set_auth_state(bool authenticated)
     ui->pushButton_changeToken->show();
     ui->pushButton_changeToken->setEnabled(true);
 
-    this->settings.setValue("access-token", canvas->token());
-    settings.sync();
+    settings.set("access-token", canvas->token());
     return;
   }
   this->disable_fetch("Fetch");
@@ -373,6 +371,3 @@ TreeModel *MainWindow::newTreeModel()
 {
   return new TreeModel({"canvas folder", "local folder", ""});
 };
-
-const QString MainWindow::settings_path =
-    QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);

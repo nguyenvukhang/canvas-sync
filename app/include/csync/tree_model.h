@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "filetree.h"
+#include "settings.h"
 
 class TreeIndex : public QModelIndex
 {
@@ -97,10 +98,10 @@ public:
   void setData(int column, const QVariant &value);
   void insertColumns(int position, int columns);
   void insertRows(int position, int count, int columns);
-  void insert(const FileTree &, const QSettings &);
+  void insert(const FileTree &, const Settings &);
   void on_all_parents(std::function<void(TreeItem &item)>);
   void on_all_children(std::function<void(TreeItem &item)>);
-  void track_folder(const TreeIndex &, const QString &, QSettings &);
+  void track_folder(const TreeIndex &, const QString &, Settings &);
 
 private:
   void resolve_folders(TreeItem *item, std::filesystem::path *local_base_dir,

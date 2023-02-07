@@ -18,6 +18,7 @@ set(PROJECT_SOURCES
   clickable_tree_view.cc
   convert.cc
   filetree.cc
+  settings.cc
   tree_model.cc
   types.cc
 
@@ -30,6 +31,7 @@ set(PROJECT_SOURCES
   include/csync/clickable_tree_view.h
   include/csync/convert.h
   include/csync/filetree.h
+  include/csync/settings.h
   include/csync/tree_model.h
   include/csync/types.h
   include/csync/mainwindow.h

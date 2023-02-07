@@ -1,70 +1,47 @@
 #ifndef CANVAS_SYNC_SETTINGS_H
 #define CANVAS_SYNC_SETTINGS_H
 
-#include <algorithm>
-#include <filesystem>
-#include <iostream> // for std::cout and std::cerr in the .cc file
-#include <vector>
+#include <QDebug>
+#include <QSettings>
+#include <QStandardPaths>
 
-class Profile
+class Settings : private QSettings
 {
-public:
-  int id;
-  std::string name;
-  std::string primary_email;
-  std::string login_id;
-  std::string integration_id;
-  Profile() : id(-1){};
-};
+  Q_OBJECT
 
-class Course
-{
 public:
-  int id;
-  std::string name;
-  Course(const int id, const std::string &name) : id(id), name(name){};
-};
+  Settings(const QString &settings_file = "canvas-sync-settings.ini")
+      : QSettings(dir + '/' + settings_file, QSettings::IniFormat){};
 
-class File
-{
-public:
-  int id;
-  int folder_id;
-  std::string filename;
-  std::string url;
-  std::filesystem::path local_dir;
-};
+  enum Type { TRACKED, LOCAL_DIR };
+  static const QString dir; // defined elsewhere
 
-class Folder
-{
-public:
-  int id, course_id;
-  std::string name;
-  std::string full_name;
-  std::filesystem::path local_dir;
-  std::vector<File> files;
-  Folder(const int id) : id(id){};
-  Folder(const int id, std::filesystem::path local_dir)
-      : id(id), local_dir(local_dir){};
-  Folder(const Folder &f)
-      : id(f.id), course_id(f.course_id), name(f.name), local_dir(f.local_dir),
-        files(f.files), full_name(f.full_name){};
-  static Folder of(const int id, const std::string &full_name)
+private:
+  QString type(const Type t)
   {
-    Folder f(id);
-    f.full_name = full_name;
-    f.name = full_name.substr(full_name.rfind('/') + 1);
-    return f;
+    if (t == TRACKED) return "tracked";
+    if (t == LOCAL_DIR) return "local-dir";
+    return "";
+  }
+
+public:
+  QString get(const QString &g, const QString &k);
+  QString get(const QString &k) const { return value(k).toString(); }
+  QString get(const QString &g, const Type &t) { return get(g, type(t)); }
+  void set(const QString &k, const QString &v);
+  void set(const QString &g, const QString &k, const QString &v);
+  void set(const QString &g, const QString &v, const Type &t)
+  {
+    set(g, type(t), v);
   };
+  void remove(const QString &k);
+  void remove(const QString &g, const QString &k);
+
+  // derivative functions
+  bool is_tracked(const QString &folder_id);
+  bool has_local_dir(const QString &folder_id);
+
+  QString path() const { return QSettings::fileName(); }
 };
-
-std::string normalize_filename(std::string *);
-template <typename T> void swap_remove(std::vector<T> *, size_t);
-void remove_existing_files(std::vector<File> *, const std::filesystem::path &);
-
-void debug(Profile *);
-void debug(Course *);
-void debug(Folder *);
-void debug(File *);
 
 #endif

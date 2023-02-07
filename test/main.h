@@ -2,10 +2,10 @@
 #define TEST_MAIN_H
 
 #include <QDebug>
+#include <QRect>
 #include <QSignalSpy>
 #include <QTest>
 #include <QtWidgets>
-#include <QRect>
 
 #include "csync/canvas_sync.h"
 #include "fake_canvas.h"
@@ -33,7 +33,7 @@ public:
   {
     this->id_mtx.lock();
     QString result = QString("canvas-sync-test-%1.ini").arg(this->id++);
-    tmp_settings.push_back(MainWindow::settings_path + '/' + result);
+    tmp_settings.push_back(Settings::dir + '/' + result);
     this->id_mtx.unlock();
     return result;
   }

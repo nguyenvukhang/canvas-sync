@@ -11,6 +11,7 @@
 #include "canvas.h"
 #include "convert.h"
 #include "filetree.h"
+#include "settings.h"
 #include "tree_model.h"
 #include "types.h"
 
@@ -43,8 +44,7 @@ class MainWindow : public QMainWindow
   // Construct with base url, defaulting to live implementation of Canvas
   MainWindow(const QString &url, const QString &settings_file,
              QWidget *parent = nullptr)
-      : QMainWindow(parent), ui(new Ui::MainWindow),
-        settings(settings_path + '/' + settings_file, QSettings::IniFormat),
+      : QMainWindow(parent), ui(new Ui::MainWindow), settings(settings_file),
         canvas(new Canvas(url, &this->nw)){};
 
 public:
@@ -52,9 +52,8 @@ public:
   // For use in integration tests to mock a fake Canvas server.
   MainWindow(ICanvas *canvas, const QString &settings_file,
              QWidget *parent = nullptr)
-      : QMainWindow(parent), ui(new Ui::MainWindow),
-        settings(settings_path + '/' + settings_file, QSettings::IniFormat),
-        canvas(canvas)
+      : QMainWindow(parent), ui(new Ui::MainWindow), canvas(canvas),
+        settings(settings_file)
   {
     start();
   };
@@ -105,8 +104,7 @@ public:
   Action action;
   std::mutex tree_mtx, tracked_folders_mtx;
   QString start_dir = QDir::homePath();
-  QSettings settings;
-  const static QString settings_path;
+  Settings settings;
   Ui::MainWindow *ui;
 
   // core business
