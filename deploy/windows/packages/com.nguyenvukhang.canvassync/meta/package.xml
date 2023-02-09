@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package>
+  <DisplayName>Canvas Sync</DisplayName>
+  <Description>Syncs local folders with folders on canvas.</Description>
+  <Version>0.1.3</Version>
+  <ReleaseDate>2023-02-01</ReleaseDate>
+  <Default>true</Default>
+  <Script>installscript.qs</Script>
+</Package>

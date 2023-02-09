@@ -1,0 +1,128 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - ci
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+**"
+
+permissions:
+  contents: write
+
+env:
+  QT_STATIC_DIR: Qt/static
+
+# Standard format of uploaded asset:
+# CanvasSync-${{ github.ref_name }}-${{ matrix.os }}.{app,exe,deb}
+
+jobs:
+  mac:
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [6.2.4]
+        os: [macos-11, macos-12]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Set environment variables
+        run: |
+          echo "ASSET=Canvas-Sync-${{ github.ref_name }}-${{ matrix.os }}.dmg" >>$GITHUB_ENV
+          echo "QT_STATIC_DIR=$PWD/${{ env.QT_STATIC_DIR }}" >>$GITHUB_ENV
+
+      - uses: actions/checkout@v3
+
+      - name: download pre-build static Qt libraries
+        run: |
+          curl -fLo qt.tar.gz https://github.com/nguyenvukhang/qt-static/releases/download/v0.0.18/qt-${{ matrix.version }}-${{ matrix.os }}.tar.gz
+          mkdir -p ${{ env.QT_STATIC_DIR }}
+          tar -xvzf qt.tar.gz && mv qt_output/* ${{ env.QT_STATIC_DIR }}
+
+      # build canvas-sync
+      - run: make build
+
+      # package app
+      - run: |
+          mkdir dmg
+          cp -a 'build/Canvas Sync.app' 'dmg/Canvas Sync.app'
+          mv ./deploy/mac-readme.txt dmg/README.txt
+          ln -s /Applications dmg/Applications
+          hdiutil create -volname CanvasSync \
+            -srcfolder dmg \
+            -fs HFS+ -ov -format UDBZ \
+            ${{ env.ASSET }}
+
+      # upload release package
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') }}
+          files: ${{ env.ASSET }}
+          generate_release_notes: true
+
+  win:
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [6.2.4]
+        os: [windows-2019, windows-2022]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Set environment variables
+        shell: bash
+        run: |
+          echo "ASSET=Canvas-Sync-Installer-${{ github.ref_name }}.exe" >>$GITHUB_ENV
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          arch: win64_msvc2019_64
+          version: ${{ matrix.version }}
+          setup-python: false
+          tools: tools_ifw
+          archives: qtbase qttools
+
+      - name: Install MSVC 2022
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Install build dependencies
+        shell: bash
+        run: cinst -y ninja
+
+      - uses: actions/checkout@v3
+
+      - name: Build
+        run: |
+          cmake -DCMAKE_BUILD_TYPE=Release -S . -B build -G Ninja `
+            -DCMAKE_PREFIX_PATH=${{ env.Qt6_DIR }}
+          cmake --build build --parallel
+
+      - name: Use windeployqt to load libraries
+        shell: bash
+        run: |
+          TARGET=deploy/windows/packages/com.nguyenvukhang.canvassync/data
+          mv 'build/Canvas Sync.exe' $TARGET
+          cd $TARGET
+          $Qt6_DIR/bin/windeployqt.exe 'Canvas Sync.exe'
+
+      - name: Package the installer
+        shell: bash
+        run: |
+          cd deploy/windows
+          $IQTA_TOOLS/QtInstallerFramework/4.5/bin/binarycreator.exe \
+            -c config/config.xml -p packages ${{ env.ASSET }}
+          mv ${{ env.ASSET }} ../..
+
+      # upload release package
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/') && matrix.os == 'windows-2019'
+        with:
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') }}
+          files: ${{ env.ASSET }}
+          generate_release_notes: true

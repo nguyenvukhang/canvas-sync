@@ -1,0 +1,9 @@
+<ui version="4.0">
+  <author />
+  <comment />
+  <exportmacro />
+  <class>PushButton</class>
+  <widget name="PushButton" class="QPushButton"></widget>
+  <pixmapfunction />
+  <connections />
+</ui>
