@@ -1,4 +1,0 @@
-BreakBeforeBraces: Linux
-AllowShortBlocksOnASingleLine: Never
-AllowShortFunctionsOnASingleLine: InlineOnly
-AllowShortIfStatementsOnASingleLine: WithoutElse
