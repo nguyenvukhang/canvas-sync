@@ -13,14 +13,14 @@ QT_VERSION ?= 6.2.4
 # 	make main
 # 	make test
 
+install: FORCE
+	make main
+	rm -rf '/Applications/Canvas Sync.app'
+	cp -a './build/Canvas Sync.app' '/Applications/Canvas Sync.app'
+
 main:
 	@make --no-print-directory build
 	mv ./build/compile_commands.json .
-
-app: FORCE
-	cd app && cmake -DBUILD_TESTS=ON -DQT_STATIC_DIR=$(QT_STATIC_DIR) -DCMAKE_BUILD_TYPE=Release \
-		-S . -B build
-	cd app && cmake --build build --parallel # alternatively: cd build && make
 
 test: FORCE
 	$(MAKEFILE_DIR)/build/test/CanvasSyncTest

@@ -310,7 +310,9 @@ void App::show_updates()
       push(folder_name(f.id).c_str());
       push("</h3>");
       for (auto f : f.files) {
+        push("<p>");
         push(f.filename.c_str());
+        push("</p>");
       }
     }
   }
