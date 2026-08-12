@@ -75,6 +75,16 @@ color: #fbbf24;</string>
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QComboBox" name="theme_selector">
+        <property name="minimumSize">
+         <size>
+          <width>120</width>
+          <height>0</height>
+         </size>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>

@@ -34,8 +34,10 @@ std::vector<T> to_vecq(const QJsonDocument &d,
 
 bool is_valid_profile(const QJsonObject &j)
 {
-  return has(j, "id") && has(j, "name") && has(j, "primary_email") &&
-         has(j, "login_id") && has(j, "integration_id");
+  // Canvas may omit optional profile fields such as primary_email and
+  // integration_id.  The API response is authenticated if it contains the
+  // stable user identity fields we actually need.
+  return has(j, "id") && has(j, "name");
 }
 
 Course to_course(const QJsonObject &j)

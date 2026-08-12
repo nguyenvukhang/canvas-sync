@@ -1,5 +1,8 @@
 #include "tree_model.h"
 
+#include <QApplication>
+#include <QPalette>
+
 QVector<QVariant> stringListToVariantList(const QStringList &data)
 {
   QVector<QVariant> variantData;
@@ -275,12 +278,13 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
   }
 
   if (role == Qt::ForegroundRole) {
+    const QPalette palette = qApp->palette();
     if (index.column() == TreeIndex::LOCAL_DIR) {
-      return QVariant(QColor(item->isChecked() && item->has_local_dir()
-                                 ? Qt::black
-                                 : Qt::lightGray));
+      return QVariant(item->isChecked() && item->has_local_dir()
+                          ? palette.color(QPalette::Text)
+                          : palette.color(QPalette::Disabled, QPalette::Text));
     }
-    return QVariant(QColor(Qt::black));
+    return QVariant(palette.color(QPalette::Text));
   }
 
   return QVariant();
